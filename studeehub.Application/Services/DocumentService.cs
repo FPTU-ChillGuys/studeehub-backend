@@ -35,7 +35,6 @@ namespace studeehub.Application.Services
 			}
 
 			var document = _mapper.Map<Document>(request);
-			document.CreatedAt = DateTime.UtcNow;
 
 			await _genericRepository.AddAsync(document);
 			var result = await _genericRepository.SaveChangesAsync();

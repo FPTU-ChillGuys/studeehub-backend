@@ -37,7 +37,7 @@ namespace studeehub.API.Controllers
 			return result.Success ? Ok(result) : BadRequest(result);
 		}
 
-		[HttpPost("create")]
+		[HttpPost]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		public async Task<IActionResult> CreateDocument([FromBody] CreateDocumentRequest request)

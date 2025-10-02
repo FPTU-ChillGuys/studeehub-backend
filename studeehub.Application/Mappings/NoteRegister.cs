@@ -13,6 +13,9 @@ namespace studeehub.Application.Mappings
 				.Map(dest => dest.WorkSpaceId, src => src.WorkSpaceId)
 				.Map(dest => dest.UserId, src => src.OwnerId)
 				.Map(dest => dest.CreatedAt, src => DateTime.UtcNow);
+
+			config.NewConfig<UpdateNoteRequest, Note>()
+				.Map(dest => dest.UpdatedAt, src => DateTime.UtcNow);
 		}
 	}
 }

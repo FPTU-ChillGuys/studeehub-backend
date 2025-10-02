@@ -15,7 +15,7 @@ namespace studeehub.API.Controllers
 			_noteService = noteService;
 		}
 
-		[HttpPost("create")]
+		[HttpPost]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		public async Task<IActionResult> CreateNote([FromBody] CreateNoteRequest request)
@@ -30,6 +30,15 @@ namespace studeehub.API.Controllers
 		public async Task<IActionResult> ExportNoteToDocument([FromRoute] Guid noteId)
 		{
 			var result = await _noteService.BecomeDocumentAsync(noteId);
+			return result.Success ? Ok(result) : BadRequest(result);
+		}
+
+		[HttpPut]
+		[ProducesResponseType(StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status400BadRequest)]
+		public async Task<IActionResult> UpdateNote([FromBody] UpdateNoteRequest request)
+		{
+			var result = await _noteService.UpdateNoteAsync(request);
 			return result.Success ? Ok(result) : BadRequest(result);
 		}
 	}

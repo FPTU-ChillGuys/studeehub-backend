@@ -38,6 +38,7 @@ namespace studeehub.Application.Extensions
 			services.AddScoped<IValidator<CreateWorkSpaceRequest>, CreateWorkSpaceValidator>();
 			services.AddScoped<IValidator<CreateDocumentRequest>, CreateDocumentValidator>();
 			services.AddScoped<IValidator<CreateNoteRequest>, CreateNoteValidator>();
+			services.AddScoped<IValidator<UpdateNoteRequest>, UpdateNoteValidator>();
 
 			return services;
 		}
