@@ -2,8 +2,12 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using studeehub.Application.Interfaces.Repositories;
+using studeehub.Application.Interfaces.Services.ThirdPartyServices;
 using studeehub.Domain.Entities;
+using studeehub.Infrastructure.Services;
 using studeehub.Persistence.Context;
+using studeehub.Persistence.Repositories;
 
 namespace studeehub.Infrastructure.Extensions
 {
@@ -11,6 +15,13 @@ namespace studeehub.Infrastructure.Extensions
 	{
 		public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
 		{
+            // Register Repositories
+            services.AddScoped<IAuthRepository, AuthRepository>();
+
+            // Register Third-Party Services (e.g., Email, SMS)
+            services.AddTransient<IEmailService, EmailService>();
+            services.AddTransient<IEmailTemplateService, EmailTemplateService>();
+
             // - DBContext
             var connectionString = configuration["DATABASE_CONNECTION_STRING"];
 
