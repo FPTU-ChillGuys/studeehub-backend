@@ -15,54 +15,55 @@ namespace studeehub.Infrastructure.Extensions
 	{
 		public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
 		{
-            // Register Repositories
-            services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-            services.AddScoped<IAuthRepository, AuthRepository>();
-            services.AddScoped<IWorkSpaceRepository, WorkSpaceRepository>();
+			// Register Repositories
+			services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+			services.AddScoped<IAuthRepository, AuthRepository>();
+			services.AddScoped<IWorkSpaceRepository, WorkSpaceRepository>();
 
-            // Register Third-Party Services (e.g., Email, SMS)
-            services.AddTransient<IEmailService, EmailService>();
-            services.AddTransient<IEmailTemplateService, EmailTemplateService>();
+			// Register Third-Party Services (e.g., Email, SMS)
+			services.AddTransient<IEmailService, EmailService>();
+			services.AddTransient<IEmailTemplateService, EmailTemplateService>();
+			services.AddTransient<ISupabaseStorageService, SupabaseStorageService>();
 
-            // - DBContext
-            var connectionString = configuration["DATABASE_CONNECTION_STRING"];
+			// - DBContext
+			var connectionString = configuration["DATABASE_CONNECTION_STRING"];
 
-            if (string.IsNullOrWhiteSpace(connectionString))
-            {
-                throw new InvalidOperationException("DATABASE_CONNECTION_STRING is not configured.");
-            }
+			if (string.IsNullOrWhiteSpace(connectionString))
+			{
+				throw new InvalidOperationException("DATABASE_CONNECTION_STRING is not configured.");
+			}
 
-            services.AddDbContext<StudeeHubDBContext>(options =>
-                options.UseSqlServer(connectionString));
+			services.AddDbContext<StudeeHubDBContext>(options =>
+				options.UseSqlServer(connectionString));
 
-            // - Identity
-            services.AddIdentity<User, IdentityRole<Guid>>(options =>
-            {
-                options.Password.RequireDigit = true;
-                options.Password.RequiredLength = 8;
-                options.Password.RequireNonAlphanumeric = true;
-                options.Password.RequireUppercase = true;
-                options.Password.RequireLowercase = true;
-                options.Password.RequiredUniqueChars = 1;
+			// - Identity
+			services.AddIdentity<User, IdentityRole<Guid>>(options =>
+			{
+				options.Password.RequireDigit = true;
+				options.Password.RequiredLength = 8;
+				options.Password.RequireNonAlphanumeric = true;
+				options.Password.RequireUppercase = true;
+				options.Password.RequireLowercase = true;
+				options.Password.RequiredUniqueChars = 1;
 
-                options.User.RequireUniqueEmail = true;
-            })
-            .AddEntityFrameworkStores<StudeeHubDBContext>()
-            .AddDefaultTokenProviders();
+				options.User.RequireUniqueEmail = true;
+			})
+			.AddEntityFrameworkStores<StudeeHubDBContext>()
+			.AddDefaultTokenProviders();
 
-            services.Configure<DataProtectionTokenProviderOptions>(options =>
-            {
-                options.TokenLifespan = TimeSpan.FromHours(24); // Set token lifespan to 24 hours
-            });
+			services.Configure<DataProtectionTokenProviderOptions>(options =>
+			{
+				options.TokenLifespan = TimeSpan.FromHours(24); // Set token lifespan to 24 hours
+			});
 
-            services.Configure<IdentityOptions>(options =>
-            {
-                options.User.AllowedUserNameCharacters =
-                    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+đĐăĂâÂêÊôÔơƠưƯ" +
-                    "áàảãạấầẩẫậắằẳẵặéèẻẽẹếềểễệíìỉĩịóòỏõọốồổỗộớờởỡợúùủũụứừửữựýỳỷỹỵ" +
-                    "ÁÀẢÃẠẤẦẨẪẬẮẰẲẴẶÉÈẺẼẸẾỀỂỄỆÍÌỈĨỊÓÒỎÕỌỐỒỔỖỘỚỜỞỠỢÚÙỦŨỤỨỪỬỮỰÝỲỶỸỴ";
-            });
-            return services;
+			services.Configure<IdentityOptions>(options =>
+			{
+				options.User.AllowedUserNameCharacters =
+					"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+đĐăĂâÂêÊôÔơƠưƯ" +
+					"áàảãạấầẩẫậắằẳẵặéèẻẽẹếềểễệíìỉĩịóòỏõọốồổỗộớờởỡợúùủũụứừửữựýỳỷỹỵ" +
+					"ÁÀẢÃẠẤẦẨẪẬẮẰẲẴẶÉÈẺẼẸẾỀỂỄỆÍÌỈĨỊÓÒỎÕỌỐỒỔỖỘỚỜỞỠỢÚÙỦŨỤỨỪỬỮỰÝỲỶỸỴ";
+			});
+			return services;
 		}
 	}
 }

@@ -35,7 +35,7 @@ namespace studeehub.Application.Services
 			var workSpace = _mapper.Map<WorkSpace>(requests);
 			workSpace.CreatedAt = DateTime.UtcNow;
 
-            if (string.IsNullOrWhiteSpace(requests.Name))
+			if (string.IsNullOrWhiteSpace(requests.Name))
 			{
 				workSpace.Name = await _workSpaceService.GenerateUniqueWorkspaceNameAsync(requests.OwnerId);
 			}

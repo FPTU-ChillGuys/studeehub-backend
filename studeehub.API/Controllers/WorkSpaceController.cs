@@ -20,7 +20,7 @@ namespace studeehub.API.Controllers
 		[Authorize(Roles = "user")]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
-		public async Task<IActionResult> CreateWorkSpace([FromQuery] CreateWorkSpaceRequest requests)
+		public async Task<IActionResult> CreateWorkSpace([FromBody] CreateWorkSpaceRequest requests)
 		{
 			var result = await _workSpaceService.CreateWorkSpaceAsync(requests);
 			return result.Success ? Ok(result) : BadRequest(result);

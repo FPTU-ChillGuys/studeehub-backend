@@ -1,0 +1,70 @@
+﻿using FluentValidation;
+using MapsterMapper;
+using studeehub.Application.DTOs.Requests.Document;
+using studeehub.Application.DTOs.Responses.Base;
+using studeehub.Application.DTOs.Responses.Document;
+using studeehub.Application.Interfaces.Repositories;
+using studeehub.Application.Interfaces.Services;
+using studeehub.Application.Interfaces.Services.ThirdPartyServices;
+using studeehub.Domain.Entities;
+
+namespace studeehub.Application.Services
+{
+	public class DocumentService : IDocumentService
+	{
+		private readonly ISupabaseStorageService _supabaseStorageService;
+		private readonly IGenericRepository<Document> _genericRepository;
+		private readonly IValidator<CreateDocumentRequest> _createDocumentValidator;
+		private readonly IMapper _mapper;
+
+		public DocumentService(ISupabaseStorageService supabaseStorageService, IGenericRepository<Document> genericRepository, IValidator<CreateDocumentRequest> createDocumentValidator, IMapper mapper)
+		{
+			_supabaseStorageService = supabaseStorageService;
+			_genericRepository = genericRepository;
+			_createDocumentValidator = createDocumentValidator;
+			_mapper = mapper;
+		}
+
+		public async Task<BaseResponse<string>> CreateDocumentAsync(CreateDocumentRequest request)
+		{
+			var validationResult = await _createDocumentValidator.ValidateAsync(request);
+			if (!validationResult.IsValid)
+			{
+				var errors = string.Join(" | ", validationResult.Errors.Select(e => e.ErrorMessage));
+				return BaseResponse<string>.Fail(errors);
+			}
+
+			if (string.IsNullOrWhiteSpace(request.Url))
+			{
+				throw new Exception("File path must be provided after upload.");
+			}
+
+			var document = _mapper.Map<Document>(request);
+			document.CreatedAt = DateTime.UtcNow;
+
+			await _genericRepository.AddAsync(document);
+			var result = await _genericRepository.SaveChangesAsync();
+
+			return result
+				? BaseResponse<string>.Ok("Document created successfully")
+				: BaseResponse<string>.Fail("Failed to create Document");
+		}
+
+		public async Task<BaseResponse<UploadFileResponse>> UploadDocumentAsync(Stream fileStream, string fileName, string contentType)
+		{
+			var uploadedUrl = await _supabaseStorageService.UploadFileAsync(fileStream, fileName);
+
+			if (uploadedUrl == null)
+				return BaseResponse<UploadFileResponse>.Fail("File upload failed");
+
+			var response = new UploadFileResponse
+			{
+				FileName = fileName,
+				ContentType = contentType,
+				Url = uploadedUrl
+			};
+
+			return BaseResponse<UploadFileResponse>.Ok(response);
+		}
+	}
+}
