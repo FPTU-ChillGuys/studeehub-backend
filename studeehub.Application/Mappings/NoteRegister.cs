@@ -1,18 +1,18 @@
 ﻿using Mapster;
-using studeehub.Application.DTOs.Requests.Document;
+using studeehub.Application.DTOs.Requests.Note;
 using studeehub.Domain.Entities;
 
 namespace studeehub.Application.Mappings
 {
-	public class DocumentRegister : IRegister
+	public class NoteRegister : IRegister
 	{
 		public void Register(TypeAdapterConfig config)
 		{
-			config.NewConfig<CreateDocumentRequest, Document>()
+			config.NewConfig<CreateNoteRequest, Note>()
 				.Map(dest => dest.Id, src => Guid.NewGuid())
-				.Map(dest => dest.UserId, src => src.OwnerId)
 				.Map(dest => dest.WorkSpaceId, src => src.WorkSpaceId)
-				.Map(dest => dest.FilePath, src => src.Url);
+				.Map(dest => dest.UserId, src => src.OwnerId)
+				.Map(dest => dest.CreatedAt, src => DateTime.UtcNow);
 		}
 	}
 }

@@ -58,13 +58,18 @@ namespace studeehub.Persistence.Context
 			modelBuilder.Entity<Note>()
 				.HasKey(n => n.Id);
 
-			// json constraint on Content
+			//// json constraint on Content
+			//modelBuilder.Entity<Note>(entity =>
+			//{
+			//	entity.Property(e => e.Content)
+			//		  .HasColumnType("NVARCHAR(MAX)");
+
+			//	entity.ToTable(t => t.HasCheckConstraint("CK_Note_Content_IsJson", "ISJSON(Content) = 1"));
+			//});
 			modelBuilder.Entity<Note>(entity =>
 			{
 				entity.Property(e => e.Content)
 					  .HasColumnType("NVARCHAR(MAX)");
-
-				entity.ToTable(t => t.HasCheckConstraint("CK_Note_Content_IsJson", "ISJSON(Content) = 1"));
 			});
 
 			modelBuilder.Entity<Note>()

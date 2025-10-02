@@ -34,11 +34,6 @@ namespace studeehub.Application.Services
 				return BaseResponse<string>.Fail(errors);
 			}
 
-			if (string.IsNullOrWhiteSpace(request.Url))
-			{
-				throw new Exception("File path must be provided after upload.");
-			}
-
 			var document = _mapper.Map<Document>(request);
 			document.CreatedAt = DateTime.UtcNow;
 
