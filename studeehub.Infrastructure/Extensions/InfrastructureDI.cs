@@ -16,7 +16,9 @@ namespace studeehub.Infrastructure.Extensions
 		public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
 		{
             // Register Repositories
+            services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddScoped<IAuthRepository, AuthRepository>();
+            services.AddScoped<IWorkSpaceRepository, WorkSpaceRepository>();
 
             // Register Third-Party Services (e.g., Email, SMS)
             services.AddTransient<IEmailService, EmailService>();
