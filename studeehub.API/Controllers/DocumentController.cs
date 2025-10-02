@@ -45,5 +45,14 @@ namespace studeehub.API.Controllers
 			var result = await _documentService.CreateDocumentAsync(request);
 			return result.Success ? Ok(result) : BadRequest(result);
 		}
-	}
+
+		[HttpPut]
+		[ProducesResponseType(StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status400BadRequest)]
+		public async Task<IActionResult> UpdateDocument([FromBody] UpdateDocumentRequest request)
+		{
+			var result = await _documentService.UpdateDocumentAsync(request);
+			return result.Success ? Ok(result) : BadRequest(result);
+        }
+    }
 }

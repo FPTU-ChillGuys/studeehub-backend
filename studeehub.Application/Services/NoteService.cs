@@ -136,7 +136,7 @@ namespace studeehub.Application.Services
 				return BaseResponse<string>.Fail("Note not found");
 			}
 
-			var updatedNote = _mapper.Map<Note>(request);
+			var updatedNote = _mapper.Map(request, note);
 			_noteRepository.Update(updatedNote);
 			var result = await _noteRepository.SaveChangesAsync();
 

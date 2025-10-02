@@ -9,5 +9,7 @@ namespace studeehub.Application.Interfaces.Services
 		public Task<BaseResponse<UploadFileResponse>> UploadDocumentAsync(Stream fileStream, string fileName, string contentType);
 
 		public Task<BaseResponse<string>> CreateDocumentAsync(CreateDocumentRequest request);
-	}
+
+		public Task<BaseResponse<string>> UpdateDocumentAsync(UpdateDocumentRequest request);
+    }
 }

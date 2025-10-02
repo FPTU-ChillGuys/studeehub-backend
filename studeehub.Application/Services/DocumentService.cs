@@ -15,14 +15,16 @@ namespace studeehub.Application.Services
 		private readonly ISupabaseStorageService _supabaseStorageService;
 		private readonly IGenericRepository<Document> _genericRepository;
 		private readonly IValidator<CreateDocumentRequest> _createDocumentValidator;
-		private readonly IMapper _mapper;
+		private readonly IValidator<UpdateDocumentRequest> _updateDocumentValidator;
+        private readonly IMapper _mapper;
 
-		public DocumentService(ISupabaseStorageService supabaseStorageService, IGenericRepository<Document> genericRepository, IValidator<CreateDocumentRequest> createDocumentValidator, IMapper mapper)
+		public DocumentService(ISupabaseStorageService supabaseStorageService, IGenericRepository<Document> genericRepository, IValidator<CreateDocumentRequest> createDocumentValidator, IMapper mapper, IValidator<UpdateDocumentRequest> updateDocumentValidator)
 		{
 			_supabaseStorageService = supabaseStorageService;
 			_genericRepository = genericRepository;
 			_createDocumentValidator = createDocumentValidator;
 			_mapper = mapper;
+			_updateDocumentValidator = updateDocumentValidator;
 		}
 
 		public async Task<BaseResponse<string>> CreateDocumentAsync(CreateDocumentRequest request)
@@ -60,5 +62,30 @@ namespace studeehub.Application.Services
 
 			return BaseResponse<UploadFileResponse>.Ok(response);
 		}
+
+		public async Task<BaseResponse<string>> UpdateDocumentAsync(UpdateDocumentRequest request)
+		{
+			var validationResult = _updateDocumentValidator.Validate(request);
+			if (!validationResult.IsValid)
+			{
+				var errors = string.Join(" | ", validationResult.Errors.Select(e => e.ErrorMessage));
+				return BaseResponse<string>.Fail(errors);
+            }
+
+			var document = await _genericRepository.GetByIdAsync(d => d.Id == request.Id);
+
+			if (document == null)
+			{
+				return BaseResponse<string>.Fail("Document not found");
+            }
+
+			var updatedDocument = _mapper.Map(request, document);
+			_genericRepository.Update(updatedDocument);
+			var result = await _genericRepository.SaveChangesAsync();
+
+			return result
+				? BaseResponse<string>.Ok("Document updated successfully")
+				: BaseResponse<string>.Fail("Failed to update Document");
+        }
 	}
 }
