@@ -10,6 +10,6 @@ namespace studeehub.Application.Interfaces.Services
 
 		public Task<BaseResponse<string>> CreateDocumentAsync(CreateDocumentRequest request);
 
-		public Task<BaseResponse<string>> UpdateDocumentAsync(UpdateDocumentRequest request);
-    }
+		public Task<BaseResponse<string>> UpdateDocumentAsync(Guid id, UpdateDocumentRequest request);
+	}
 }

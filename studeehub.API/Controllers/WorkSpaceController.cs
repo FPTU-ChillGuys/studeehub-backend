@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using studeehub.Application.DTOs.Requests.WorkSpace;
+using studeehub.Application.DTOs.Responses.Base;
 using studeehub.Application.Interfaces.Services;
 
 namespace studeehub.API.Controllers
@@ -18,12 +19,10 @@ namespace studeehub.API.Controllers
 
 		[HttpPost]
 		[Authorize(Roles = "user")]
-		[ProducesResponseType(StatusCodes.Status200OK)]
-		[ProducesResponseType(StatusCodes.Status400BadRequest)]
-		public async Task<IActionResult> CreateWorkSpace([FromBody] CreateWorkSpaceRequest requests)
-		{
-			var result = await _workSpaceService.CreateWorkSpaceAsync(requests);
-			return result.Success ? Ok(result) : BadRequest(result);
-		}
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status400BadRequest)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
+		public async Task<BaseResponse<string>> CreateWorkSpace([FromBody] CreateWorkSpaceRequest requests)
+			=> await _workSpaceService.CreateWorkSpaceAsync(requests);
 	}
 }

@@ -20,6 +20,6 @@ namespace studeehub.Application.Mappings
 			config.NewConfig<UpdateDocumentRequest, Document>()
 				.Map(dest => dest.Title, src => src.Title);
 
-        }
+		}
 	}
 }

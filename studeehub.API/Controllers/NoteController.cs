@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using studeehub.Application.DTOs.Requests.Note;
+using studeehub.Application.DTOs.Responses.Base;
 using studeehub.Application.Interfaces.Services;
 
 namespace studeehub.API.Controllers
@@ -16,30 +17,25 @@ namespace studeehub.API.Controllers
 		}
 
 		[HttpPost]
-		[ProducesResponseType(StatusCodes.Status200OK)]
-		[ProducesResponseType(StatusCodes.Status400BadRequest)]
-		public async Task<IActionResult> CreateNote([FromBody] CreateNoteRequest request)
-		{
-			var result = await _noteService.CreateNoteAsync(request);
-			return result.Success ? Ok(result) : BadRequest(result);
-		}
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status400BadRequest)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
+		public async Task<BaseResponse<string>> CreateNote([FromBody] CreateNoteRequest request)
+			=> await _noteService.CreateNoteAsync(request);
 
-		[HttpPost("{noteId:guid}/export")]
-		[ProducesResponseType(StatusCodes.Status200OK)]
-		[ProducesResponseType(StatusCodes.Status400BadRequest)]
-		public async Task<IActionResult> ExportNoteToDocument([FromRoute] Guid noteId)
-		{
-			var result = await _noteService.BecomeDocumentAsync(noteId);
-			return result.Success ? Ok(result) : BadRequest(result);
-		}
+		[HttpPost("{id:Guid}/export")]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status404NotFound)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
+		public async Task<BaseResponse<string>> ExportNoteToDocument([FromRoute] Guid id)
+			=> await _noteService.BecomeDocumentAsync(id);
 
-		[HttpPut]
-		[ProducesResponseType(StatusCodes.Status200OK)]
-		[ProducesResponseType(StatusCodes.Status400BadRequest)]
-		public async Task<IActionResult> UpdateNote([FromBody] UpdateNoteRequest request)
-		{
-			var result = await _noteService.UpdateNoteAsync(request);
-			return result.Success ? Ok(result) : BadRequest(result);
-		}
+		[HttpPut("{id:Guid}")]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status400BadRequest)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status404NotFound)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
+		public async Task<BaseResponse<string>> UpdateNote(Guid id, [FromBody] UpdateNoteRequest request)
+			=> await _noteService.UpdateNoteAsync(id, request);
 	}
 }

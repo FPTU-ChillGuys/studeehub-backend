@@ -7,6 +7,7 @@ using studeehub.Application.DTOs.Responses.Document;
 using studeehub.Application.Interfaces.Repositories;
 using studeehub.Application.Interfaces.Services;
 using studeehub.Domain.Entities;
+using studeehub.Domain.Enums;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -34,7 +35,7 @@ namespace studeehub.Application.Services
 			// 1. Load note
 			var note = await _noteRepository.GetByIdAsync(n => n.Id == noteId);
 			if (note == null)
-				return BaseResponse<string>.Fail("Note not found.");
+				return BaseResponse<string>.Fail("Note not found.", ErrorType.NotFound);
 
 			// 2. Render markdown
 			var sb = new StringBuilder();
@@ -75,7 +76,10 @@ namespace studeehub.Application.Services
 			}
 
 			if (uploadResult == null || !uploadResult.Success || uploadResult.Data == null)
-				return BaseResponse<string>.Fail($"File upload failed after {maxAttempts} attempts: {uploadResult?.Message ?? "unknown error"}");
+				return BaseResponse<string>.Fail(
+					$"File upload failed after {maxAttempts} attempts: {uploadResult?.Message ?? "unknown error"}",
+					ErrorType.ServerError
+					);
 
 			// 4. Create document record
 			var uploaded = uploadResult.Data;
@@ -90,10 +94,9 @@ namespace studeehub.Application.Services
 			};
 
 			var createResult = await _documentService.CreateDocumentAsync(createRequest);
-			if (!createResult.Success)
-				return BaseResponse<string>.Fail($"Failed to create document record: {createResult.Message}");
-
-			return BaseResponse<string>.Ok("Note exported to document successfully");
+			return createResult.Success
+				? BaseResponse<string>.Ok("Document created and note exported successfully")
+				: BaseResponse<string>.Fail($"Failed to create document record: {createResult.Message}", ErrorType.ServerError);
 		}
 
 		private static string SanitizeFileName(string name)
@@ -109,40 +112,52 @@ namespace studeehub.Application.Services
 			if (!validationResult.IsValid)
 			{
 				var errors = string.Join(" | ", validationResult.Errors.Select(e => e.ErrorMessage));
-				return BaseResponse<string>.Fail(errors);
+				return BaseResponse<string>.Fail(errors, ErrorType.Validation);
 			}
 
-			var note = _mapper.Map<Note>(request);
-			await _noteRepository.AddAsync(note);
-			var result = await _noteRepository.SaveChangesAsync();
+			try
+			{
+				var note = _mapper.Map<Note>(request);
+				await _noteRepository.AddAsync(note);
+				var result = await _noteRepository.SaveChangesAsync();
 
-			return result
-				? BaseResponse<string>.Ok("Note created successfully")
-				: BaseResponse<string>.Fail("Failed to create Note");
+				return result
+					? BaseResponse<string>.Ok("Note created successfully")
+					: BaseResponse<string>.Fail("Failed to create Note", ErrorType.ServerError);
+			}
+			catch (Exception ex)
+			{
+				// If an ILogger is available in the future, log the exception here.
+				return BaseResponse<string>.Fail(
+					"An unexpected error occurred while creating the note.",
+					ErrorType.ServerError,
+					new List<string> { ex.Message }
+				);
+			}
 		}
 
-		public async Task<BaseResponse<string>> UpdateNoteAsync(UpdateNoteRequest request)
+		public async Task<BaseResponse<string>> UpdateNoteAsync(Guid id, UpdateNoteRequest request)
 		{
 			var validationResult = _updateNoteValidator.Validate(request);
 			if (!validationResult.IsValid)
 			{
-				var errors = string.Join(" | ", validationResult.Errors.Select(e => e.ErrorMessage));
-				return BaseResponse<string>.Fail(errors);
+				var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+				return BaseResponse<string>.Fail("Validation failed", ErrorType.Validation, errors);
 			}
 
-			var note = await _noteRepository.GetByIdAsync(n => n.Id == request.Id);
+			var note = await _noteRepository.GetByIdAsync(n => n.Id == id);
 			if (note == null)
 			{
-				return BaseResponse<string>.Fail("Note not found");
+				return BaseResponse<string>.Fail("Note not found", ErrorType.NotFound);
 			}
 
-			var updatedNote = _mapper.Map(request, note);
+			var updatedNote = _mapper.Map<Note>(request);
 			_noteRepository.Update(updatedNote);
 			var result = await _noteRepository.SaveChangesAsync();
 
 			return result
 				? BaseResponse<string>.Ok("Note updated successfully")
-				: BaseResponse<string>.Fail("Failed to update Note");
+				: BaseResponse<string>.Fail("Failed to update note", ErrorType.ServerError);
 		}
 	}
 }

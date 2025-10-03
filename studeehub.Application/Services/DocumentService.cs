@@ -16,7 +16,7 @@ namespace studeehub.Application.Services
 		private readonly IGenericRepository<Document> _genericRepository;
 		private readonly IValidator<CreateDocumentRequest> _createDocumentValidator;
 		private readonly IValidator<UpdateDocumentRequest> _updateDocumentValidator;
-        private readonly IMapper _mapper;
+		private readonly IMapper _mapper;
 
 		public DocumentService(ISupabaseStorageService supabaseStorageService, IGenericRepository<Document> genericRepository, IValidator<CreateDocumentRequest> createDocumentValidator, IMapper mapper, IValidator<UpdateDocumentRequest> updateDocumentValidator)
 		{
@@ -33,7 +33,7 @@ namespace studeehub.Application.Services
 			if (!validationResult.IsValid)
 			{
 				var errors = string.Join(" | ", validationResult.Errors.Select(e => e.ErrorMessage));
-				return BaseResponse<string>.Fail(errors);
+				return BaseResponse<string>.Fail(errors, Domain.Enums.ErrorType.Validation);
 			}
 
 			var document = _mapper.Map<Document>(request);
@@ -43,7 +43,7 @@ namespace studeehub.Application.Services
 
 			return result
 				? BaseResponse<string>.Ok("Document created successfully")
-				: BaseResponse<string>.Fail("Failed to create Document");
+				: BaseResponse<string>.Fail("Failed to create Document", Domain.Enums.ErrorType.ServerError);
 		}
 
 		public async Task<BaseResponse<UploadFileResponse>> UploadDocumentAsync(Stream fileStream, string fileName, string contentType)
@@ -51,7 +51,7 @@ namespace studeehub.Application.Services
 			var uploadedUrl = await _supabaseStorageService.UploadFileAsync(fileStream, fileName);
 
 			if (uploadedUrl == null)
-				return BaseResponse<UploadFileResponse>.Fail("File upload failed");
+				return BaseResponse<UploadFileResponse>.Fail("File upload failed", Domain.Enums.ErrorType.ServerError);
 
 			var response = new UploadFileResponse
 			{
@@ -63,21 +63,21 @@ namespace studeehub.Application.Services
 			return BaseResponse<UploadFileResponse>.Ok(response);
 		}
 
-		public async Task<BaseResponse<string>> UpdateDocumentAsync(UpdateDocumentRequest request)
+		public async Task<BaseResponse<string>> UpdateDocumentAsync(Guid id, UpdateDocumentRequest request)
 		{
 			var validationResult = _updateDocumentValidator.Validate(request);
 			if (!validationResult.IsValid)
 			{
 				var errors = string.Join(" | ", validationResult.Errors.Select(e => e.ErrorMessage));
-				return BaseResponse<string>.Fail(errors);
-            }
+				return BaseResponse<string>.Fail(errors, Domain.Enums.ErrorType.Validation);
+			}
 
-			var document = await _genericRepository.GetByIdAsync(d => d.Id == request.Id);
+			var document = await _genericRepository.GetByIdAsync(d => d.Id == id);
 
 			if (document == null)
 			{
-				return BaseResponse<string>.Fail("Document not found");
-            }
+				return BaseResponse<string>.Fail("Document not found", Domain.Enums.ErrorType.NotFound);
+			}
 
 			var updatedDocument = _mapper.Map(request, document);
 			_genericRepository.Update(updatedDocument);
@@ -85,7 +85,7 @@ namespace studeehub.Application.Services
 
 			return result
 				? BaseResponse<string>.Ok("Document updated successfully")
-				: BaseResponse<string>.Fail("Failed to update Document");
-        }
+				: BaseResponse<string>.Fail("Failed to update Document", Domain.Enums.ErrorType.ServerError);
+		}
 	}
 }
