@@ -1,5 +1,6 @@
 using Microsoft.OpenApi.Models;
 using studeehub.API.Extensions;
+using studeehub.API.Middlewares;
 using studeehub.Application.Extensions;
 using studeehub.Infrastructure.Extensions;
 
@@ -49,7 +50,10 @@ builder.Services.AddJWTServices(builder.Configuration);
 // Force all routes to be lowercase
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+	options.Filters.Add<BaseResponseActionFilter>();
+});
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>

@@ -2,12 +2,14 @@
 using Mapster;
 using MapsterMapper;
 using Microsoft.Extensions.DependencyInjection;
+using studeehub.Application.DTOs.Requests.Auth;
 using studeehub.Application.DTOs.Requests.Document;
 using studeehub.Application.DTOs.Requests.Note;
 using studeehub.Application.DTOs.Requests.WorkSpace;
 using studeehub.Application.Interfaces.Services;
 using studeehub.Application.Mappings;
 using studeehub.Application.Services;
+using studeehub.Application.Validators.AuthValidators;
 using studeehub.Application.Validators.DocumentValidators;
 using studeehub.Application.Validators.NoteValidators;
 using studeehub.Application.Validators.WorkSpaceValidators;
@@ -35,9 +37,12 @@ namespace studeehub.Application.Extensions
 			services.AddScoped<IMapper, ServiceMapper>();
 
 			// FluentValidation
+			services.AddScoped<IValidator<ResetPasswordRequest>, ResetPasswordValidator>();
 			services.AddScoped<IValidator<CreateWorkSpaceRequest>, CreateWorkSpaceValidator>();
 			services.AddScoped<IValidator<CreateDocumentRequest>, CreateDocumentValidator>();
+			services.AddScoped<IValidator<UpdateDocumentRequest>, UpdateDocumentValidator>();
 			services.AddScoped<IValidator<CreateNoteRequest>, CreateNoteValidator>();
+			services.AddScoped<IValidator<UpdateNoteRequest>, UpdateNoteValidator>();
 
 			return services;
 		}

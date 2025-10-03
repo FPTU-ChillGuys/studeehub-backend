@@ -1,4 +1,5 @@
-﻿using Google.Apis.Auth;
+﻿using FluentValidation;
+using Google.Apis.Auth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using studeehub.Application.DTOs.Requests.Auth;
@@ -11,18 +12,19 @@ using studeehub.Domain.Entities;
 
 namespace studeehub.Application.Services
 {
-	public class AuthService(IEmailTemplateService emailTemplateService, UserManager<User> userManager, IAuthRepository authRepository, IEmailService emailService) : IAuthService
+	public class AuthService(IValidator<ResetPasswordRequest> validator, IEmailTemplateService emailTemplateService, UserManager<User> userManager, IAuthRepository authRepository, IEmailService emailService) : IAuthService
 	{
 		private readonly IEmailTemplateService _templateService = emailTemplateService;
 		private readonly UserManager<User> _userManager = userManager;
 		private readonly IEmailService _emailService = emailService;
 		private readonly IAuthRepository _authRepository = authRepository;
+		private readonly IValidator<ResetPasswordRequest> _validator = validator;
 
 		public async Task<BaseResponse<string>> ForgotPasswordAsync(ForgotPasswordRequest request)
 		{
 			var user = await _userManager.FindByEmailAsync(request.Email!);
 			if (user is null)
-				return BaseResponse<string>.Fail("User not found");
+				return BaseResponse<string>.Fail("User not found", Domain.Enums.ErrorType.NotFound);
 
 			var token = await _userManager.GeneratePasswordResetTokenAsync(user);
 			var param = new Dictionary<string, string?>
@@ -42,18 +44,18 @@ namespace studeehub.Application.Services
 		{
 			var user = await _userManager.FindByEmailAsync(request.Email!);
 			if (user == null)
-				return BaseResponse<TokenResponse>.Fail("User not found");
+				return BaseResponse<TokenResponse>.Fail("User not found", Domain.Enums.ErrorType.NotFound);
 
 			if (!user.IsActive)
-				return BaseResponse<TokenResponse>.Fail("User is inactive");
+				return BaseResponse<TokenResponse>.Fail("User is inactive", Domain.Enums.ErrorType.Forbidden);
 
 			var isPasswordValid = await _userManager.CheckPasswordAsync(user, request.Password!);
 			if (!isPasswordValid)
-				return BaseResponse<TokenResponse>.Fail("Invalid password");
+				return BaseResponse<TokenResponse>.Fail("Invalid password", Domain.Enums.ErrorType.Unauthorized);
 
 			var isEmailConfirmed = await _userManager.IsEmailConfirmedAsync(user);
 			if (!isEmailConfirmed)
-				return BaseResponse<TokenResponse>.Fail("Email not confirmed");
+				return BaseResponse<TokenResponse>.Fail("Email not confirmed", Domain.Enums.ErrorType.Forbidden);
 
 			var tokenResponse = await GenerateTokenResponseAsync(user);
 			return BaseResponse<TokenResponse>.Ok(tokenResponse);
@@ -73,7 +75,7 @@ namespace studeehub.Application.Services
 		public async Task<BaseResponse<TokenResponse>> LoginWithGoogleAsync(GoogleLoginRequest request)
 		{
 			if (request is null || string.IsNullOrWhiteSpace(request.IdToken))
-				return BaseResponse<TokenResponse>.Fail("Invalid request");
+				return BaseResponse<TokenResponse>.Fail("Invalid request", Domain.Enums.ErrorType.Validation);
 
 			GoogleJsonWebSignature.Payload payload;
 			try
@@ -82,12 +84,12 @@ namespace studeehub.Application.Services
 			}
 			catch
 			{
-				return BaseResponse<TokenResponse>.Fail("Invalid Google token");
+				return BaseResponse<TokenResponse>.Fail("Invalid Google token", Domain.Enums.ErrorType.Validation);
 			}
 
 			var email = payload?.Email;
 			if (string.IsNullOrWhiteSpace(email))
-				return BaseResponse<TokenResponse>.Fail("Google token does not contain an email");
+				return BaseResponse<TokenResponse>.Fail("Google token does not contain an email", Domain.Enums.ErrorType.Validation);
 
 			User? user = null;
 			try
@@ -98,17 +100,17 @@ namespace studeehub.Application.Services
 					// Attempt registration via repository; repository returns a created user or null on failure.
 					user = await _authRepository.RegisterViaGoogleAsync(payload);
 					if (user is null)
-						return BaseResponse<TokenResponse>.Fail("Failed to create user account from Google payload");
+						return BaseResponse<TokenResponse>.Fail("Failed to create user account from Google payload", Domain.Enums.ErrorType.ServerError);
 				}
 			}
 			catch (Exception ex)
 			{
 				// Surface repository errors as friendly responses
-				return BaseResponse<TokenResponse>.Fail("Google registration failed: " + ex.Message);
+				return BaseResponse<TokenResponse>.Fail("Google registration failed: " + ex.Message, Domain.Enums.ErrorType.ServerError);
 			}
 
 			if (!user.IsActive)
-				return BaseResponse<TokenResponse>.Fail("Your account is inactive.");
+				return BaseResponse<TokenResponse>.Fail("Your account is inactive.", Domain.Enums.ErrorType.Forbidden);
 
 			// Ensure email is confirmed (repository may have done this already for new users)
 			if (!user.EmailConfirmed)
@@ -130,7 +132,7 @@ namespace studeehub.Application.Services
 		{
 			var user = await _authRepository.ValidateRefreshToken(request.UserId, request.RefreshToken);
 			if (user is null)
-				return BaseResponse<TokenResponse>.Fail("Invalid refresh token");
+				return BaseResponse<TokenResponse>.Fail("Invalid refresh token", Domain.Enums.ErrorType.Validation);
 
 			var tokenResponse = await GenerateTokenResponseAsync(user);
 			return BaseResponse<TokenResponse>.Ok(tokenResponse);
@@ -140,7 +142,7 @@ namespace studeehub.Application.Services
 		{
 			var existingUser = await _userManager.FindByEmailAsync(request.Email);
 			if (existingUser != null)
-				return BaseResponse<string>.Fail("Email already exists");
+				return BaseResponse<string>.Fail("Email already exists", Domain.Enums.ErrorType.Conflict);
 
 			var user = new User
 			{
@@ -152,11 +154,19 @@ namespace studeehub.Application.Services
 
 			var identityResult = await _userManager.CreateAsync(user, request.Password!);
 			if (!identityResult.Succeeded)
-				return BaseResponse<string>.Fail("Failed to create user", identityResult.Errors.Select(e => e.Description).ToList());
+				return BaseResponse<string>.Fail(
+					"Failed to create user",
+					Domain.Enums.ErrorType.Validation,
+					identityResult.Errors.Select(e => e.Description).ToList()
+				);
 
 			var roleResult = await _userManager.AddToRoleAsync(user, role);
 			if (!roleResult.Succeeded)
-				return BaseResponse<string>.Fail("Failed to assign role", roleResult.Errors.Select(e => e.Description).ToList());
+				return BaseResponse<string>.Fail(
+					"Failed to assign role",
+					Domain.Enums.ErrorType.Validation,
+					roleResult.Errors.Select(e => e.Description).ToList()
+				);
 
 			var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
 
@@ -183,27 +193,23 @@ namespace studeehub.Application.Services
 
 		public async Task<BaseResponse<string>> ResetPasswordAsync(ResetPasswordRequest request)
 		{
-			if (request is null) throw new ArgumentNullException(nameof(request));
-
-			if (string.IsNullOrWhiteSpace(request.Email))
-				return BaseResponse<string>.Fail("Email is required");
-
-			if (string.IsNullOrWhiteSpace(request.Token))
-				return BaseResponse<string>.Fail("Token is required");
-
-			if (string.IsNullOrWhiteSpace(request.Password) || string.IsNullOrWhiteSpace(request.ConfirmPassword))
-				return BaseResponse<string>.Fail("Password and confirm password are required");
-
-			if (request.Password != request.ConfirmPassword)
-				return BaseResponse<string>.Fail("Passwords do not match");
+			var validationResult = await _validator.ValidateAsync(request);
+			if (!validationResult.IsValid)
+			{
+				var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
+				return BaseResponse<string>.Fail("Validation failed", Domain.Enums.ErrorType.Validation, errors);
+			}
 
 			var user = await _userManager.FindByEmailAsync(request.Email!);
 			if (user is null)
-				return BaseResponse<string>.Fail("User not found");
+				return BaseResponse<string>.Fail("User not found", Domain.Enums.ErrorType.NotFound);
 
 			var resetResult = await _userManager.ResetPasswordAsync(user, request.Token!, request.Password!);
 			if (!resetResult.Succeeded)
-				return BaseResponse<string>.Fail("Failed to reset password", resetResult.Errors.Select(e => e.Description).ToList());
+				return BaseResponse<string>.Fail(
+					"Failed to reset password",
+					Domain.Enums.ErrorType.Validation,
+					resetResult.Errors.Select(e => e.Description).ToList());
 
 			return BaseResponse<string>.Ok("Password reset successfully");
 		}
@@ -213,13 +219,13 @@ namespace studeehub.Application.Services
 			var user = await _userManager.FindByEmailAsync(email);
 			if (user == null)
 			{
-				return BaseResponse<string>.Fail("User not found");
+				return BaseResponse<string>.Fail("User not found", Domain.Enums.ErrorType.NotFound);
 			}
 
 			var result = await _userManager.ConfirmEmailAsync(user, token);
 			if (!result.Succeeded)
 			{
-				return BaseResponse<string>.Fail("failed to verify");
+				return BaseResponse<string>.Fail("failed to verify", Domain.Enums.ErrorType.ServerError);
 			}
 
 			return BaseResponse<string>.Ok("Success");

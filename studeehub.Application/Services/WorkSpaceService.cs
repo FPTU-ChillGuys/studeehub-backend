@@ -29,11 +29,10 @@ namespace studeehub.Application.Services
 			if (!validationResult.IsValid)
 			{
 				var errors = string.Join(" | ", validationResult.Errors.Select(e => e.ErrorMessage));
-				return BaseResponse<string>.Fail(errors);
+				return BaseResponse<string>.Fail(errors, Domain.Enums.ErrorType.Validation);
 			}
 
 			var workSpace = _mapper.Map<WorkSpace>(requests);
-			workSpace.CreatedAt = DateTime.UtcNow;
 
 			if (string.IsNullOrWhiteSpace(requests.Name))
 			{
@@ -44,7 +43,7 @@ namespace studeehub.Application.Services
 			var result = await _repository.SaveChangesAsync();
 			return result
 				? BaseResponse<string>.Ok("WorkSpace created successfully")
-				: BaseResponse<string>.Fail("Failed to create WorkSpace");
+				: BaseResponse<string>.Fail("Failed to create WorkSpace", Domain.Enums.ErrorType.ServerError);
 		}
 	}
 }

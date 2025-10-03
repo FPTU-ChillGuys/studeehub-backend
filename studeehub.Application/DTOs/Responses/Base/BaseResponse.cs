@@ -1,16 +1,19 @@
-﻿namespace studeehub.Application.DTOs.Responses.Base
+﻿using studeehub.Domain.Enums;
+
+namespace studeehub.Application.DTOs.Responses.Base
 {
 	public class BaseResponse
 	{
 		public bool Success { get; set; } = true;
 		public string Message { get; set; } = "OK";
 		public List<string>? Errors { get; set; }
+		public ErrorType ErrorType { get; set; } = ErrorType.None;
 
 		public static BaseResponse Ok(string message = "Success")
 			=> new() { Success = true, Message = message };
 
-		public static BaseResponse Fail(string message, List<string>? errors = null)
-			=> new() { Success = false, Message = message, Errors = errors };
+		public static BaseResponse Fail(string message, ErrorType errorType = ErrorType.ServerError, List<string>? errors = null)
+			=> new() { Success = false, Message = message, Errors = errors, ErrorType = errorType };
 	}
 
 	public class BaseResponse<T> : BaseResponse
@@ -20,7 +23,7 @@
 		public static BaseResponse<T> Ok(T data, string message = "Success")
 			=> new() { Success = true, Message = message, Data = data };
 
-		public static new BaseResponse<T> Fail(string message, List<string>? errors = null)
-			=> new() { Success = false, Message = message, Errors = errors };
+		public static new BaseResponse<T> Fail(string message, ErrorType errorType = ErrorType.ServerError, List<string>? errors = null)
+			=> new() { Success = false, Message = message, Errors = errors, ErrorType = errorType };
 	}
 }

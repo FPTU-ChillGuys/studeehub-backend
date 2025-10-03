@@ -1,7 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using studeehub.Application.DTOs.Requests.Base;
 using studeehub.Application.DTOs.Requests.Document;
+using studeehub.Application.DTOs.Responses.Base;
+using studeehub.Application.DTOs.Responses.Document;
 using studeehub.Application.Interfaces.Services;
+using studeehub.Domain.Enums;
 
 namespace studeehub.API.Controllers
 {
@@ -18,32 +21,38 @@ namespace studeehub.API.Controllers
 
 		[HttpPost("upload")]
 		[Consumes("multipart/form-data")]
-		[ProducesResponseType(StatusCodes.Status200OK)]
-		[ProducesResponseType(StatusCodes.Status400BadRequest)]
-		public async Task<IActionResult> Upload([FromForm] UploadFileRequest request)
+		[ProducesResponseType(typeof(BaseResponse<UploadFileResponse>), StatusCodes.Status200OK)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status400BadRequest)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
+		public async Task<BaseResponse<UploadFileResponse>> Upload([FromForm] UploadFileRequest request)
 		{
 			var uploadedFile = request.File;
 			if (uploadedFile == null || uploadedFile.Length == 0)
-				return BadRequest("File is required.");
+			{
+				return BaseResponse<UploadFileResponse>.Fail("File is not null", ErrorType.Validation);
+			}
 
 			await using var stream = uploadedFile.OpenReadStream();
 
-			var result = await _documentService.UploadDocumentAsync(
+			return await _documentService.UploadDocumentAsync(
 				stream,
 				uploadedFile.FileName,
 				uploadedFile.ContentType
 			);
-
-			return result.Success ? Ok(result) : BadRequest(result);
 		}
 
-		[HttpPost("create")]
-		[ProducesResponseType(StatusCodes.Status200OK)]
-		[ProducesResponseType(StatusCodes.Status400BadRequest)]
-		public async Task<IActionResult> CreateDocument([FromBody] CreateDocumentRequest request)
-		{
-			var result = await _documentService.CreateDocumentAsync(request);
-			return result.Success ? Ok(result) : BadRequest(result);
-		}
+		[HttpPost]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status400BadRequest)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
+		public async Task<BaseResponse<string>> CreateDocument([FromBody] CreateDocumentRequest request)
+			=> await _documentService.CreateDocumentAsync(request);
+
+		[HttpPut("{id:Guid}")]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status400BadRequest)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
+		public async Task<BaseResponse<string>> UpdateDocument(Guid id, [FromBody] UpdateDocumentRequest request)
+			=> await _documentService.UpdateDocumentAsync(id, request);
 	}
 }

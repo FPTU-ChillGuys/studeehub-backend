@@ -22,81 +22,65 @@ namespace studeehub.API.Controllers
 		[AllowAnonymous]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status400BadRequest)]
-		public async Task<ActionResult<BaseResponse<string>>> Register([FromBody] RegisterRequest request)
-		{
-			var result = await _authService.RegisterAsync(request, "User");
-			return result.Success ? Ok(result) : BadRequest(result);
-		}
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status409Conflict)]
+		public async Task<BaseResponse<string>> Register([FromBody] RegisterRequest request)
+			=> await _authService.RegisterAsync(request, "User");
 
 		[HttpPost("register/admin")]
 		[Authorize(Roles = "Admin")]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status403Forbidden)]
-		public async Task<ActionResult<BaseResponse<string>>> RegisterByAdmin([FromBody] RegisterRequest request, [FromQuery] string role = "Admin")
-		{
-			var result = await _authService.RegisterAsync(request, role);
-			return result.Success ? Ok(result) : BadRequest(result);
-		}
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status409Conflict)]
+		public async Task<BaseResponse<string>> RegisterByAdmin([FromBody] RegisterRequest request, [FromQuery] string role = "Admin")
+			=> await _authService.RegisterAsync(request, role);
 
 		[HttpGet("verify-email")]
 		[AllowAnonymous]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status404NotFound)]
-		public async Task<ActionResult<BaseResponse<string>>> VerifyEmail([FromQuery] string email, [FromQuery] string token)
-		{
-			var result = await _authService.VerifyEmailAsync(email, token);
-			return result.Success ? Ok(result) : NotFound(result);
-		}
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
+		public async Task<BaseResponse<string>> VerifyEmail([FromQuery] string email, [FromQuery] string token)
+			=> await _authService.VerifyEmailAsync(email, token);
 
 		[HttpPost("login")]
 		[AllowAnonymous]
 		[ProducesResponseType(typeof(BaseResponse<TokenResponse>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status401Unauthorized)]
-		public async Task<ActionResult<BaseResponse<TokenResponse>>> Login([FromBody] LoginRequest request)
-		{
-			var result = await _authService.LoginAsync(request);
-			return result.Success ? Ok(result) : Unauthorized(result);
-		}
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status403Forbidden)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status404NotFound)]
+		public async Task<BaseResponse<TokenResponse>> Login([FromBody] LoginRequest request)
+			=> await _authService.LoginAsync(request);
 
 		[HttpPost("google-login")]
 		[AllowAnonymous]
 		[ProducesResponseType(typeof(BaseResponse<TokenResponse>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status400BadRequest)]
-		public async Task<ActionResult<BaseResponse<TokenResponse>>> GoogleLogin([FromBody] GoogleLoginRequest request)
-		{
-			var result = await _authService.LoginWithGoogleAsync(request);
-			return result.Success ? Ok(result) : BadRequest(result);
-		}
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status403Forbidden)]
+		public async Task<BaseResponse<TokenResponse>> GoogleLogin([FromBody] GoogleLoginRequest request)
+			=> await _authService.LoginWithGoogleAsync(request);
 
 		[HttpPost("refresh-token")]
 		[AllowAnonymous]
 		[ProducesResponseType(typeof(BaseResponse<TokenResponse>), StatusCodes.Status200OK)]
-		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status401Unauthorized)]
-		public async Task<ActionResult<BaseResponse<TokenResponse>>> RefreshToken([FromBody] RefreshTokenRequest request)
-		{
-			var result = await _authService.RefreshTokenAsync(request);
-			return result.Success ? Ok(result) : Unauthorized(result);
-		}
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status404NotFound)]
+		public async Task<BaseResponse<TokenResponse>> RefreshToken([FromBody] RefreshTokenRequest request)
+			=> await _authService.RefreshTokenAsync(request);
 
 		[HttpPost("forgot-password")]
 		[AllowAnonymous]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status400BadRequest)]
-		public async Task<ActionResult<BaseResponse<string>>> ForgotPassword([FromBody] ForgotPasswordRequest request)
-		{
-			var result = await _authService.ForgotPasswordAsync(request);
-			return result.Success ? Ok(result) : NotFound(result);
-		}
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status404NotFound)]
+		public async Task<BaseResponse<string>> ForgotPassword([FromBody] ForgotPasswordRequest request)
+			=> await _authService.ForgotPasswordAsync(request);
 
 		[HttpPost("reset-password")]
 		[AllowAnonymous]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status400BadRequest)]
-		public async Task<ActionResult<BaseResponse<string>>> ResetPassword([FromBody] ResetPasswordRequest request)
-		{
-			var result = await _authService.ResetPasswordAsync(request);
-			return result.Success ? Ok(result) : BadRequest(result);
-		}
+		public async Task<BaseResponse<string>> ResetPassword([FromBody] ResetPasswordRequest request)
+			=> await _authService.ResetPasswordAsync(request);
 	}
 }
