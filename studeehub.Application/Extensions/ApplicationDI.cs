@@ -39,6 +39,7 @@ namespace studeehub.Application.Extensions
 			// FluentValidation
 			services.AddScoped<IValidator<ResetPasswordRequest>, ResetPasswordValidator>();
 			services.AddScoped<IValidator<CreateWorkSpaceRequest>, CreateWorkSpaceValidator>();
+			services.AddScoped<IValidator<UpdateWorkSpaceRequest>, UpdateWorkSpaceValidator>();
 			services.AddScoped<IValidator<CreateDocumentRequest>, CreateDocumentValidator>();
 			services.AddScoped<IValidator<UpdateDocumentRequest>, UpdateDocumentValidator>();
 			services.AddScoped<IValidator<CreateNoteRequest>, CreateNoteValidator>();

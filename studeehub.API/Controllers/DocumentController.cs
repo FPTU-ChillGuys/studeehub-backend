@@ -52,7 +52,7 @@ namespace studeehub.API.Controllers
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
-		public async Task<BaseResponse<string>> UpdateDocument(Guid id, [FromBody] UpdateDocumentRequest request)
+		public async Task<BaseResponse<string>> UpdateDocument([FromRoute] Guid id, [FromBody] UpdateDocumentRequest request)
 			=> await _documentService.UpdateDocumentAsync(id, request);
 	}
 }

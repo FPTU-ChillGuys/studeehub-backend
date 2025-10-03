@@ -35,7 +35,7 @@ namespace studeehub.API.Controllers
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status404NotFound)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
-		public async Task<BaseResponse<string>> UpdateNote(Guid id, [FromBody] UpdateNoteRequest request)
+		public async Task<BaseResponse<string>> UpdateNote([FromRoute] Guid id, [FromBody] UpdateNoteRequest request)
 			=> await _noteService.UpdateNoteAsync(id, request);
 	}
 }

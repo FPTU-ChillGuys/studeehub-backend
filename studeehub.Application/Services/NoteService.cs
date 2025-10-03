@@ -30,83 +30,54 @@ namespace studeehub.Application.Services
 			_updateNoteValidator = updateNoteValidator;
 		}
 
-		public async Task<BaseResponse<string>> BecomeDocumentAsync(Guid noteId)
-		{
-			// 1. Load note
-			var note = await _noteRepository.GetByIdAsync(n => n.Id == noteId);
-			if (note == null)
-				return BaseResponse<string>.Fail("Note not found.", ErrorType.NotFound);
+        public async Task<BaseResponse<string>> BecomeDocumentAsync(Guid noteId)
+        {
+            // 1. Load note
+            var note = await _noteRepository.GetByIdAsync(n => n.Id == noteId);
+            if (note == null)
+                return BaseResponse<string>.Fail("Note not found.", ErrorType.NotFound);
 
-			// 2. Render markdown
-			var sb = new StringBuilder();
-			sb.AppendLine($"# {note.Title}");
-			sb.AppendLine();
-			sb.AppendLine(note.Content ?? string.Empty);
-			var mdBytes = Encoding.UTF8.GetBytes(sb.ToString());
+            // 2. Render markdown
+            var sb = new StringBuilder();
+            sb.AppendLine($"# {note.Title}");
+            sb.AppendLine();
+            sb.AppendLine(note.Content ?? string.Empty);
+            var mdBytes = Encoding.UTF8.GetBytes(sb.ToString());
 
-			// 3. Upload Markdown file (avoid duplicates by generating unique filename and retrying)
-			await using var ms = new MemoryStream(mdBytes);
-			var baseName = SanitizeFileName(note.Title);
-			const string contentType = "text/markdown; charset=utf-8";
-			const int maxAttempts = 5;
+            // 3. Upload Markdown file (storage will handle unique naming)
+            await using var ms = new MemoryStream(mdBytes);
+            var fileName = $"{note.Title}.md"; // storage service will sanitize/rename as needed
 
-			BaseResponse<UploadFileResponse>? uploadResult = null;
-			string? uploadedFileName = null;
+            var uploadResult = await _documentService.UploadDocumentAsync(ms, fileName, "text/markdown; charset=utf-8");
 
-			for (int attempt = 0; attempt < maxAttempts; attempt++)
-			{
-				// generate readable unique suffix: timestamp + short guid
-				var suffix = $"{DateTime.UtcNow:yyyyMMddHHmmssfff}-{Guid.NewGuid().ToString("N").Substring(0, 8)}";
-				var candidateName = $"{baseName}-{suffix}.md";
+            if (!uploadResult.Success || uploadResult.Data == null)
+            {
+                return BaseResponse<string>.Fail(
+                    $"File upload failed: {uploadResult.Message ?? "unknown error"}",
+                    ErrorType.ServerError
+                );
+            }
 
-				// reset stream before each upload attempt
-				ms.Position = 0;
+            // 4. Create document record
+            var uploaded = uploadResult.Data;
 
-				uploadResult = await _documentService.UploadDocumentAsync(ms, candidateName, contentType);
+            var createRequest = new CreateDocumentRequest
+            {
+                OwnerId = note.UserId,
+                WorkSpaceId = note.WorkSpaceId,
+                Name = $"{note.Title}.md", // Just use the original title, storage handles uniqueness
+                Description = string.Empty,
+                ContentType = string.IsNullOrEmpty(uploaded.ContentType) ? "text/markdown" : uploaded.ContentType,
+                Url = uploaded.Url
+            };
 
-				if (uploadResult.Success && uploadResult.Data != null)
-				{
-					uploadedFileName = candidateName;
-					break;
-				}
+            var createResult = await _documentService.CreateDocumentAsync(createRequest);
+            return createResult.Success
+                ? BaseResponse<string>.Ok("Document created and note exported successfully")
+                : BaseResponse<string>.Fail($"Failed to create document record: {createResult.Message}", ErrorType.ServerError);
+        }
 
-				// If the service returns a message that indicates a duplicate or transient error,
-				// we loop to try another unique name. If it returns a non-transient failure,
-				// the loop will still retry but will fail after maxAttempts.
-			}
-
-			if (uploadResult == null || !uploadResult.Success || uploadResult.Data == null)
-				return BaseResponse<string>.Fail(
-					$"File upload failed after {maxAttempts} attempts: {uploadResult?.Message ?? "unknown error"}",
-					ErrorType.ServerError
-					);
-
-			// 4. Create document record
-			var uploaded = uploadResult.Data;
-
-			var createRequest = new CreateDocumentRequest
-			{
-				OwnerId = note.UserId,
-				WorkSpaceId = note.WorkSpaceId,
-				Title = uploadedFileName ?? $"{baseName}.md",
-				ContentType = string.IsNullOrEmpty(uploaded.ContentType) ? "text/markdown" : uploaded.ContentType,
-				Url = uploaded.Url
-			};
-
-			var createResult = await _documentService.CreateDocumentAsync(createRequest);
-			return createResult.Success
-				? BaseResponse<string>.Ok("Document created and note exported successfully")
-				: BaseResponse<string>.Fail($"Failed to create document record: {createResult.Message}", ErrorType.ServerError);
-		}
-
-		private static string SanitizeFileName(string name)
-		{
-			if (string.IsNullOrWhiteSpace(name)) return "New note";
-			var sanitized = Regex.Replace(name, @"[^\w\-. ]", "_");
-			return sanitized.Trim();
-		}
-
-		public async Task<BaseResponse<string>> CreateNoteAsync(CreateNoteRequest request)
+        public async Task<BaseResponse<string>> CreateNoteAsync(CreateNoteRequest request)
 		{
 			var validationResult = _createNoteValidator.Validate(request);
 			if (!validationResult.IsValid)
@@ -151,7 +122,7 @@ namespace studeehub.Application.Services
 				return BaseResponse<string>.Fail("Note not found", ErrorType.NotFound);
 			}
 
-			var updatedNote = _mapper.Map<Note>(request);
+			var updatedNote = _mapper.Map(request, note);
 			_noteRepository.Update(updatedNote);
 			var result = await _noteRepository.SaveChangesAsync();
 

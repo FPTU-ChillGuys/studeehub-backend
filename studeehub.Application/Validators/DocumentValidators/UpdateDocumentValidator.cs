@@ -7,7 +7,7 @@ namespace studeehub.Application.Validators.DocumentValidators
 	{
 		public UpdateDocumentValidator()
 		{
-			RuleFor(RuleFor => RuleFor.Title).NotEmpty().WithMessage("Title is required.")
+			RuleFor(RuleFor => RuleFor.Name).NotEmpty().WithMessage("Title is required.")
 				.MaximumLength(200).WithMessage("Title cannot exceed 200 characters.");
 		}
 	}
