@@ -105,7 +105,9 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.UseHangfireDashboard();
-app.MapHangfireDashboard("/hangfire");
+app.MapHangfireDashboard("/hangfire", new DashboardOptions
+{
+	Authorization = new[] { new DashboardAuthorizationFilter("Admin") }
+});
 
 app.Run();

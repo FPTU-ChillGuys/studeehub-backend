@@ -30,8 +30,8 @@ namespace studeehub.Application.Extensions
 			services.AddScoped<IStreakService, StreakService>();
 			services.AddScoped<IUserService, UserService>();
 
-            // Mapster configuration: clone global settings and scan this assembly for IRegister implementations
-            var config = TypeAdapterConfig.GlobalSettings.Clone();
+			// Mapster configuration: clone global settings and scan this assembly for IRegister implementations
+			var config = TypeAdapterConfig.GlobalSettings.Clone();
 			config.Scan(typeof(WorkSpaceRegister).Assembly);
 			config.Scan(typeof(DocumentRegister).Assembly);
 			config.Scan(typeof(NoteRegister).Assembly);
