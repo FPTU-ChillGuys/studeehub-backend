@@ -35,8 +35,8 @@ namespace studeehub.Infrastructure.Services
 			_recurringJobManager.AddOrUpdate<ISendReminderJobService>(
 				"daily-streak-reminder-job",
 				svc => svc.SendStreakRemindersAsync(),
-                //"* * * * *"); // Run after 1 minute for testing
-                "0 20 * * *"); // Runs at 8:00 PM UTC
+				//"* * * * *"); // Run after 1 minute for testing
+				"0 20 * * *"); // Runs at 8:00 PM UTC
 		}
 	}
 }

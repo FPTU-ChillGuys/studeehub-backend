@@ -22,13 +22,13 @@ namespace studeehub.Infrastructure.Extensions
 			services.AddScoped<IWorkSpaceRepository, WorkSpaceRepository>();
 			services.AddScoped<IStreakRepository, StreakRepository>();
 
-            // Register Third-Party Services (e.g., Email, SMS)
-            services.AddTransient<IEmailService, EmailService>();
+			// Register Third-Party Services (e.g., Email, SMS)
+			services.AddTransient<IEmailService, EmailService>();
 			services.AddTransient<IEmailTemplateService, EmailTemplateService>();
 			services.AddTransient<ISupabaseStorageService, SupabaseStorageService>();
 
-            // - DBContext
-            var connectionString = configuration["DATABASE_CONNECTION_STRING"];
+			// - DBContext
+			var connectionString = configuration["DATABASE_CONNECTION_STRING"];
 
 			if (string.IsNullOrWhiteSpace(connectionString))
 			{
@@ -66,22 +66,36 @@ namespace studeehub.Infrastructure.Extensions
 					"ÁÀẢÃẠẤẦẨẪẬẮẰẲẴẶÉÈẺẼẸẾỀỂỄỆÍÌỈĨỊÓÒỎÕỌỐỒỔỖỘỚỜỞỠỢÚÙỦŨỤỨỪỬỮỰÝỲỶỸỴ";
 			});
 
-            // Add hangfire client
-            services.AddHangfire(config =>
-            {
-                config
-                .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
-                .UseSimpleAssemblyNameTypeSerializer()
-                .UseRecommendedSerializerSettings()
-                .UseSqlServerStorage(connectionString);
-            });
-            // Add hangfire server
-            services.AddHangfireServer();
+			// - CORS
+			var webUrl = configuration["Front-end:webUrl"] ?? throw new Exception("Missing web url!!");
+			services.AddCors(options =>
+			{
+				options.AddPolicy("AllowFrontend", builder =>
+				{
+					builder
+						.WithOrigins(webUrl)
+						.AllowAnyHeader()
+						.AllowAnyMethod()
+						.AllowCredentials();
+				});
+			});
 
-            // Register job + scheduler
-            services.AddScoped<ISendReminderJobService, SendReminderJobService>();
-            services.AddHostedService<StartupJobScheduler>();
-            return services;
+			// Add hangfire client
+			services.AddHangfire(config =>
+			{
+				config
+				.SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+				.UseSimpleAssemblyNameTypeSerializer()
+				.UseRecommendedSerializerSettings()
+				.UseSqlServerStorage(connectionString);
+			});
+			// Add hangfire server
+			services.AddHangfireServer();
+
+			// Register job + scheduler
+			services.AddScoped<ISendReminderJobService, SendReminderJobService>();
+			services.AddHostedService<StartupJobScheduler>();
+			return services;
 		}
 	}
 }

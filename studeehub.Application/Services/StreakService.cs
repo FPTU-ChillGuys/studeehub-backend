@@ -30,7 +30,7 @@ namespace studeehub.Application.Services
 		{
 			var validationResult = _createStreakValidator.Validate(request);
 			var userExists = await _userService.IsUserExistAsync(request.UserId);
-            if (!validationResult.IsValid || !userExists)
+			if (!validationResult.IsValid || !userExists)
 			{
 				var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
 				return BaseResponse<string>.Fail("Validation failed", ErrorType.Validation, errors);
