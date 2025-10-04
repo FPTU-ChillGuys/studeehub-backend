@@ -12,7 +12,7 @@ namespace studeehub.Application.Validators.DocumentValidators
 			RuleFor(x => x.Name).NotEmpty().WithMessage("Title is required.")
 				.MaximumLength(200).WithMessage("Title cannot exceed 200 characters.");
 			RuleFor(x => x.Description).MaximumLength(1000).WithMessage("Description cannot exceed 1000 characters.");
-            RuleFor(x => x.ContentType).NotEmpty().WithMessage("Type is required.");
+			RuleFor(x => x.ContentType).NotEmpty().WithMessage("Type is required.");
 			RuleFor(x => x.Url).NotEmpty().WithMessage("Path is required.");
 		}
 	}

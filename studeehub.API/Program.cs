@@ -1,3 +1,4 @@
+using Hangfire;
 using Microsoft.OpenApi.Models;
 using studeehub.API.Extensions;
 using studeehub.API.Middlewares;
@@ -104,5 +105,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseHangfireDashboard();
+app.MapHangfireDashboard("/hangfire");
 
 app.Run();

@@ -13,11 +13,11 @@ namespace studeehub.Application.Mappings
 				.Map(dest => dest.UserId, src => src.OwnerId)
 				.Map(dest => dest.Name, src => src.Name)
 				.Map(dest => dest.Description, src => src.Description)
-                .Map(dest => dest.CreatedAt, src => DateTime.UtcNow);
+				.Map(dest => dest.CreatedAt, src => DateTime.UtcNow);
 
 			config.NewConfig<UpdateWorkSpaceRequest, WorkSpace>()
 				.Map(dest => dest.Name, src => src.Name)
 				.Map(dest => dest.UpdatedAt, src => DateTime.UtcNow);
-        }
+		}
 	}
 }

@@ -2,7 +2,9 @@
 {
 	public interface IEmailTemplateService
 	{
-		string GetRegisterTemplate(string username, string verifyUrl);
-		string GetForgotPasswordTemplate(string username, string resetUrl);
+		public string GetRegisterTemplate(string username, string verifyUrl);
+		public string GetForgotPasswordTemplate(string username, string resetUrl);
+		public string StreakReminderTemplate(string fullname);
+
 	}
 }

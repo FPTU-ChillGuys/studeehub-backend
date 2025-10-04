@@ -3,13 +3,11 @@ using MapsterMapper;
 using studeehub.Application.DTOs.Requests.Document;
 using studeehub.Application.DTOs.Requests.Note;
 using studeehub.Application.DTOs.Responses.Base;
-using studeehub.Application.DTOs.Responses.Document;
 using studeehub.Application.Interfaces.Repositories;
 using studeehub.Application.Interfaces.Services;
 using studeehub.Domain.Entities;
 using studeehub.Domain.Enums;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace studeehub.Application.Services
 {
@@ -30,54 +28,54 @@ namespace studeehub.Application.Services
 			_updateNoteValidator = updateNoteValidator;
 		}
 
-        public async Task<BaseResponse<string>> BecomeDocumentAsync(Guid noteId)
-        {
-            // 1. Load note
-            var note = await _noteRepository.GetByIdAsync(n => n.Id == noteId);
-            if (note == null)
-                return BaseResponse<string>.Fail("Note not found.", ErrorType.NotFound);
+		public async Task<BaseResponse<string>> BecomeDocumentAsync(Guid noteId)
+		{
+			// 1. Load note
+			var note = await _noteRepository.GetByIdAsync(n => n.Id == noteId);
+			if (note == null)
+				return BaseResponse<string>.Fail("Note not found.", ErrorType.NotFound);
 
-            // 2. Render markdown
-            var sb = new StringBuilder();
-            sb.AppendLine($"# {note.Title}");
-            sb.AppendLine();
-            sb.AppendLine(note.Content ?? string.Empty);
-            var mdBytes = Encoding.UTF8.GetBytes(sb.ToString());
+			// 2. Render markdown
+			var sb = new StringBuilder();
+			sb.AppendLine($"# {note.Title}");
+			sb.AppendLine();
+			sb.AppendLine(note.Content ?? string.Empty);
+			var mdBytes = Encoding.UTF8.GetBytes(sb.ToString());
 
-            // 3. Upload Markdown file (storage will handle unique naming)
-            await using var ms = new MemoryStream(mdBytes);
-            var fileName = $"{note.Title}.md"; // storage service will sanitize/rename as needed
+			// 3. Upload Markdown file (storage will handle unique naming)
+			await using var ms = new MemoryStream(mdBytes);
+			var fileName = $"{note.Title}.md"; // storage service will sanitize/rename as needed
 
-            var uploadResult = await _documentService.UploadDocumentAsync(ms, fileName, "text/markdown; charset=utf-8");
+			var uploadResult = await _documentService.UploadDocumentAsync(ms, fileName, "text/markdown; charset=utf-8");
 
-            if (!uploadResult.Success || uploadResult.Data == null)
-            {
-                return BaseResponse<string>.Fail(
-                    $"File upload failed: {uploadResult.Message ?? "unknown error"}",
-                    ErrorType.ServerError
-                );
-            }
+			if (!uploadResult.Success || uploadResult.Data == null)
+			{
+				return BaseResponse<string>.Fail(
+					$"File upload failed: {uploadResult.Message ?? "unknown error"}",
+					ErrorType.ServerError
+				);
+			}
 
-            // 4. Create document record
-            var uploaded = uploadResult.Data;
+			// 4. Create document record
+			var uploaded = uploadResult.Data;
 
-            var createRequest = new CreateDocumentRequest
-            {
-                OwnerId = note.UserId,
-                WorkSpaceId = note.WorkSpaceId,
-                Name = $"{note.Title}.md", // Just use the original title, storage handles uniqueness
-                Description = string.Empty,
-                ContentType = string.IsNullOrEmpty(uploaded.ContentType) ? "text/markdown" : uploaded.ContentType,
-                Url = uploaded.Url
-            };
+			var createRequest = new CreateDocumentRequest
+			{
+				OwnerId = note.UserId,
+				WorkSpaceId = note.WorkSpaceId,
+				Name = $"{note.Title}.md", // Just use the original title, storage handles uniqueness
+				Description = string.Empty,
+				ContentType = string.IsNullOrEmpty(uploaded.ContentType) ? "text/markdown" : uploaded.ContentType,
+				Url = uploaded.Url
+			};
 
-            var createResult = await _documentService.CreateDocumentAsync(createRequest);
-            return createResult.Success
-                ? BaseResponse<string>.Ok("Document created and note exported successfully")
-                : BaseResponse<string>.Fail($"Failed to create document record: {createResult.Message}", ErrorType.ServerError);
-        }
+			var createResult = await _documentService.CreateDocumentAsync(createRequest);
+			return createResult.Success
+				? BaseResponse<string>.Ok("Document created and note exported successfully")
+				: BaseResponse<string>.Fail($"Failed to create document record: {createResult.Message}", ErrorType.ServerError);
+		}
 
-        public async Task<BaseResponse<string>> CreateNoteAsync(CreateNoteRequest request)
+		public async Task<BaseResponse<string>> CreateNoteAsync(CreateNoteRequest request)
 		{
 			var validationResult = _createNoteValidator.Validate(request);
 			if (!validationResult.IsValid)

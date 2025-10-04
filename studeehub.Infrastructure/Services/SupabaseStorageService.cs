@@ -17,37 +17,37 @@ namespace studeehub.Infrastructure.Services
 			);
 		}
 
-        public async Task<string?> UploadFileAsync(Stream fileStream, string fileName, string bucket = "Studeehub_Bucket")
-        {
-            await _client.InitializeAsync();
+		public async Task<string?> UploadFileAsync(Stream fileStream, string fileName, string bucket = "Studeehub_Bucket")
+		{
+			await _client.InitializeAsync();
 
-            var storage = _client.Storage;
-            var bucketRef = storage.From(bucket);
+			var storage = _client.Storage;
+			var bucketRef = storage.From(bucket);
 
-            // Read stream into byte array
-            byte[] fileBytes;
-            using (var ms = new MemoryStream())
-            {
-                await fileStream.CopyToAsync(ms);
-                fileBytes = ms.ToArray();
-            }
+			// Read stream into byte array
+			byte[] fileBytes;
+			using (var ms = new MemoryStream())
+			{
+				await fileStream.CopyToAsync(ms);
+				fileBytes = ms.ToArray();
+			}
 
-            // Extract file extension
-            var extension = Path.GetExtension(fileName);
-            var baseName = Path.GetFileNameWithoutExtension(fileName);
+			// Extract file extension
+			var extension = Path.GetExtension(fileName);
+			var baseName = Path.GetFileNameWithoutExtension(fileName);
 
-            // Generate unique filename to avoid duplicates
-            var uniqueName = $"{baseName}_{Guid.NewGuid():N}{extension}";
+			// Generate unique filename to avoid duplicates
+			var uniqueName = $"{baseName}_{Guid.NewGuid():N}{extension}";
 
-            var response = await bucketRef.Upload(fileBytes, uniqueName);
+			var response = await bucketRef.Upload(fileBytes, uniqueName);
 
-            if (!string.IsNullOrEmpty(response))
-            {
-                // Return public URL
-                return bucketRef.GetPublicUrl(uniqueName);
-            }
+			if (!string.IsNullOrEmpty(response))
+			{
+				// Return public URL
+				return bucketRef.GetPublicUrl(uniqueName);
+			}
 
-            return null;
-        }
-    }
+			return null;
+		}
+	}
 }

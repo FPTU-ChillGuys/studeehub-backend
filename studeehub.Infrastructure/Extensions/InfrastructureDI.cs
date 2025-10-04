@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Hangfire;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,14 +20,15 @@ namespace studeehub.Infrastructure.Extensions
 			services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 			services.AddScoped<IAuthRepository, AuthRepository>();
 			services.AddScoped<IWorkSpaceRepository, WorkSpaceRepository>();
+			services.AddScoped<IStreakRepository, StreakRepository>();
 
-			// Register Third-Party Services (e.g., Email, SMS)
-			services.AddTransient<IEmailService, EmailService>();
+            // Register Third-Party Services (e.g., Email, SMS)
+            services.AddTransient<IEmailService, EmailService>();
 			services.AddTransient<IEmailTemplateService, EmailTemplateService>();
 			services.AddTransient<ISupabaseStorageService, SupabaseStorageService>();
 
-			// - DBContext
-			var connectionString = configuration["DATABASE_CONNECTION_STRING"];
+            // - DBContext
+            var connectionString = configuration["DATABASE_CONNECTION_STRING"];
 
 			if (string.IsNullOrWhiteSpace(connectionString))
 			{
@@ -63,7 +65,23 @@ namespace studeehub.Infrastructure.Extensions
 					"áàảãạấầẩẫậắằẳẵặéèẻẽẹếềểễệíìỉĩịóòỏõọốồổỗộớờởỡợúùủũụứừửữựýỳỷỹỵ" +
 					"ÁÀẢÃẠẤẦẨẪẬẮẰẲẴẶÉÈẺẼẸẾỀỂỄỆÍÌỈĨỊÓÒỎÕỌỐỒỔỖỘỚỜỞỠỢÚÙỦŨỤỨỪỬỮỰÝỲỶỸỴ";
 			});
-			return services;
+
+            // Add hangfire client
+            services.AddHangfire(config =>
+            {
+                config
+                .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+                .UseSimpleAssemblyNameTypeSerializer()
+                .UseRecommendedSerializerSettings()
+                .UseSqlServerStorage(connectionString);
+            });
+            // Add hangfire server
+            services.AddHangfireServer();
+
+            // Register job + scheduler
+            services.AddScoped<ISendReminderJobService, SendReminderJobService>();
+            services.AddHostedService<StartupJobScheduler>();
+            return services;
 		}
 	}
 }

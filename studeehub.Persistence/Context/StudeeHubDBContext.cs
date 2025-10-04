@@ -155,6 +155,9 @@ namespace studeehub.Persistence.Context
 				.OnDelete(DeleteBehavior.Cascade);
 
 			// Enums stored as strings (if used)
+			modelBuilder.Entity<Streak>()
+				.Property(s => s.Type)
+				.HasConversion<string>();
 			modelBuilder.Entity<Subscription>()
 				.Property(s => s.Type)
 				.HasConversion<string>();

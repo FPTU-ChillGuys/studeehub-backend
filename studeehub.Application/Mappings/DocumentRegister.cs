@@ -15,7 +15,7 @@ namespace studeehub.Application.Mappings
 				.Map(dest => dest.CreatedAt, src => DateTime.UtcNow)
 				.Map(dest => dest.Name, src => src.Name)
 				.Map(dest => dest.Description, src => src.Description)
-                .Map(dest => dest.Type, src => src.ContentType)
+				.Map(dest => dest.Type, src => src.ContentType)
 				.Map(dest => dest.FilePath, src => src.Url);
 
 			config.NewConfig<UpdateDocumentRequest, Document>()

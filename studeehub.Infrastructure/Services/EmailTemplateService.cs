@@ -12,7 +12,7 @@ namespace studeehub.Infrastructure.Services
 					<p>Dear {username},</p>
 					<p>Thank you for registering with us! Please click <a href='{verifyUrl}'>here</a> to verify your email address.</p>
 					<p>If you did not register, please ignore this email.</p>
-					<p>Best regards,<br/>EduConnect Team</p>
+					<p>Best regards,<br/>StudeeHub Team</p>
 				</body>
 			</html>";
 		}
@@ -26,7 +26,19 @@ namespace studeehub.Infrastructure.Services
 					<p>We received a request to reset your password.</p>
 					<p>Click <a href='{resetUrl}'>here</a> to reset your password.</p>
 					<p>If you did not request a password reset, please ignore this email. This link will expire soon for security reasons.</p>
-					<p>Best regards,<br/>EduConnect Team</p>
+					<p>Best regards,<br/>StudeeHub Team</p>
+				</body>
+			</html>";
+		}
+
+		public string StreakReminderTemplate(string fullname)
+		{
+			return $@"
+			<html>
+				<body style='font-family: Arial, sans-serif;'>
+					<p>Hi {fullname},</p>
+					<p>You haven’t studied yet today. Keep your streak alive by completing one Pomodoro or flashcard session!</p>
+					<p>Best regards,<br/>StudeeHub Team</p>
 				</body>
 			</html>";
 		}
