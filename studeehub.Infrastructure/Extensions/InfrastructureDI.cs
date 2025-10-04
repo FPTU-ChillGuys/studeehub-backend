@@ -66,6 +66,20 @@ namespace studeehub.Infrastructure.Extensions
 					"ÁÀẢÃẠẤẦẨẪẬẮẰẲẴẶÉÈẺẼẸẾỀỂỄỆÍÌỈĨỊÓÒỎÕỌỐỒỔỖỘỚỜỞỠỢÚÙỦŨỤỨỪỬỮỰÝỲỶỸỴ";
 			});
 
+            // - CORS
+            var webUrl = configuration["Front-end:webUrl"] ?? throw new Exception("Missing web url!!");
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowFrontend", builder =>
+                {
+                    builder
+                        .WithOrigins(webUrl)
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials();
+                });
+            });
+
             // Add hangfire client
             services.AddHangfire(config =>
             {
