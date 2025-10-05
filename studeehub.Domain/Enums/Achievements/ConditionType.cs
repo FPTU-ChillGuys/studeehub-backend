@@ -2,9 +2,10 @@
 {
 	public enum ConditionType
 	{
-		Streak,
-		QuizCompleted,
-		TasksCompleted,
-		HoursStudied
-	}
+		Streak = 1,
+		MetSchedule,
+		DocumentUpload,
+		NoteCreated,
+		FlashcardReviewed
+    }
 }

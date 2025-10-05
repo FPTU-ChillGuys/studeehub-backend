@@ -9,6 +9,6 @@
 		public DateTime? End { get; set; }
 		public TimeSpan? Duration => End.HasValue ? End - Start : null;
 
-		public virtual User User { get; set; } = null!;
+        public virtual User User { get; set; } = null!;
 	}
 }

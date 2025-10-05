@@ -16,14 +16,18 @@ namespace studeehub.Application.Services
 		private readonly IValidator<UpdateStreakRequest> _updateStreakValidator;
 		private readonly IUserService _userService;
 		private readonly IStreakRepository _streakRepository;
+		private readonly IAchievementService _achievementService;
+		private readonly IUserAchievementService _userAchievementService;
 
-		public StreakService(IMapper mapper, IValidator<CreateStreakRequest> createStreakValidator, IStreakRepository streakRepository, IValidator<UpdateStreakRequest> updateStreakValidator, IUserService userService)
+		public StreakService(IMapper mapper, IValidator<CreateStreakRequest> createStreakValidator, IStreakRepository streakRepository, IValidator<UpdateStreakRequest> updateStreakValidator, IUserService userService, IAchievementService achievementService, IUserAchievementService userAchievementService)
 		{
 			_mapper = mapper;
 			_createStreakValidator = createStreakValidator;
 			_streakRepository = streakRepository;
 			_updateStreakValidator = updateStreakValidator;
 			_userService = userService;
+			_achievementService = achievementService;
+			_userAchievementService = userAchievementService;
 		}
 
 		public async Task<BaseResponse<string>> CreateStreakAsync(CreateStreakRequest request)
@@ -73,7 +77,8 @@ namespace studeehub.Application.Services
 			}
 
 			// Update logic
-			var today = DateTime.UtcNow.Date;
+			var message = string.Empty;
+            var today = DateTime.UtcNow.Date;
 			var daysDiff = (today - existingStreak.LastUpdated.Date).Days;
 			if (daysDiff == 0)
 			{
@@ -84,19 +89,27 @@ namespace studeehub.Application.Services
 				existingStreak.CurrentCount++;
 				if (existingStreak.CurrentCount > existingStreak.LongestCount)
 					existingStreak.LongestCount = existingStreak.CurrentCount;
-			}
+
+				var currentUser = await _userService.GetUserByIdAsync(userId);
+				if (currentUser != null)
+				{
+					await _userAchievementService.CheckAndUnlockAsync(currentUser);
+				}
+				message = "Streak incremented";
+            }
 			else
 			{
 				existingStreak.CurrentCount = 1;
-			}
+				message = "Streak reset due to inactivity";
+            }
 
 			var updatedStreak = _mapper.Map(request, existingStreak);
 			_streakRepository.Update(updatedStreak);
 			var result = await _streakRepository.SaveChangesAsync();
 
 			return result
-				? BaseResponse<string>.Ok(updatedStreak.Id.ToString(), "Streak reset successfully")
-				: BaseResponse<string>.Fail("Failed to reset streak", ErrorType.ServerError);
+				? BaseResponse<string>.Ok(updatedStreak.Id.ToString(), message)
+				: BaseResponse<string>.Fail("Failed to update streak", ErrorType.ServerError);
 		}
 
 		public Task<IEnumerable<User>> GetUsersToRemindAsync() => _streakRepository.GetUsersToRemindAsync();

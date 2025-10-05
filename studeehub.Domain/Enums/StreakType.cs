@@ -2,9 +2,6 @@
 {
 	public enum StreakType
 	{
-		Login,
-		Quiz,
-		Flashcard,
-		Study
+		Login = 1
 	}
 }

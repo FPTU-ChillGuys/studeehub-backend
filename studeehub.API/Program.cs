@@ -105,6 +105,8 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+app.MapHub<NotificationHub>("/hubs/notifications");
+
 app.MapHangfireDashboard("/hangfire", new DashboardOptions
 {
 	Authorization = new[] { new DashboardAuthorizationFilter("Admin") }

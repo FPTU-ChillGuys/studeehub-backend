@@ -2,7 +2,7 @@
 {
 	public enum SubscriptionStatus
 	{
-		Active,
+		Active = 1,
 		Expired,
 		Cancelled
 	}

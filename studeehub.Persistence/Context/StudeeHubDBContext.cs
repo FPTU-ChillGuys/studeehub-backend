@@ -299,11 +299,11 @@ namespace studeehub.Persistence.Context
 				new Achievement
 				{
 					Id = Guid.Parse("a1f2c3d4-0003-4a1b-8c1d-000000000003"),
-					Code = "FIRST_QUIZ",
-					Name = "First Quiz Completed",
-					Description = "Complete your first quiz.",
+					Code = "FIRST_NOTE",
+					Name = "First Note Created",
+					Description = "Create your first note.",
 					ConditionValue = 1,
-					ConditionType = ConditionType.QuizCompleted,
+					ConditionType = ConditionType.NoteCreated,
 					RewardType = RewardType.Badge,
 					RewardValue = 1,
 					IsActive = true
@@ -311,11 +311,11 @@ namespace studeehub.Persistence.Context
 				new Achievement
 				{
 					Id = Guid.Parse("a1f2c3d4-0004-4a1b-8c1d-000000000004"),
-					Code = "TASKS_10",
-					Name = "10 Tasks Completed",
-					Description = "Complete 10 tasks.",
+					Code = "FLASHCARDS_REVIEWED_10",
+					Name = "10 Flashcards Reviewed",
+					Description = "Review 10 flashcards.",
 					ConditionValue = 10,
-					ConditionType = ConditionType.TasksCompleted,
+					ConditionType = ConditionType.FlashcardReviewed,
 					RewardType = RewardType.XP,
 					RewardValue = 100,
 					IsActive = true
@@ -323,11 +323,11 @@ namespace studeehub.Persistence.Context
 				new Achievement
 				{
 					Id = Guid.Parse("a1f2c3d4-0005-4a1b-8c1d-000000000005"),
-					Code = "HOURS_10",
-					Name = "10 Hours Studied",
-					Description = "Accumulate 10 hours of study.",
+					Code = "DOCUMENTS_UPLOADED_10",
+					Name = "10 Documents Uploaded",
+					Description = "Upload 10 documents.",
 					ConditionValue = 10,
-					ConditionType = ConditionType.HoursStudied,
+					ConditionType = ConditionType.DocumentUpload,
 					RewardType = RewardType.XP,
 					RewardValue = 200,
 					IsActive = true

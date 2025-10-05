@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using studeehub.Application.DTOs.Requests.Achievement;
 using studeehub.Application.DTOs.Responses.Base;
 using studeehub.Application.Interfaces.Services;
@@ -29,9 +28,9 @@ namespace studeehub.API.Controllers
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(typeof(BaseResponse), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(BaseResponse), StatusCodes.Status409Conflict)]
+		[ProducesResponseType(typeof(BaseResponse), StatusCodes.Status409Conflict)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
 		public async Task<BaseResponse<string>> UpdateAchievement([FromRoute] Guid id, [FromBody] UpdateAchievemRequest request)
 			=> await _achievementService.UpdateAchievementAsync(id, request);
-    }
+	}
 }

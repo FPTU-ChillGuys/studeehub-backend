@@ -2,7 +2,7 @@
 {
 	public enum RewardType
 	{
-		XP,
+		XP = 1,
 		Badge,
 		InAppCurrency
 	}
