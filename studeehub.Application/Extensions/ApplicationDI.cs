@@ -2,6 +2,7 @@
 using Mapster;
 using MapsterMapper;
 using Microsoft.Extensions.DependencyInjection;
+using studeehub.Application.DTOs.Requests.Achievement;
 using studeehub.Application.DTOs.Requests.Auth;
 using studeehub.Application.DTOs.Requests.Document;
 using studeehub.Application.DTOs.Requests.Note;
@@ -10,6 +11,7 @@ using studeehub.Application.DTOs.Requests.WorkSpace;
 using studeehub.Application.Interfaces.Services;
 using studeehub.Application.Mappings;
 using studeehub.Application.Services;
+using studeehub.Application.Validators.AchievemValidators;
 using studeehub.Application.Validators.AuthValidators;
 using studeehub.Application.Validators.DocumentValidators;
 using studeehub.Application.Validators.NoteValidators;
@@ -29,16 +31,18 @@ namespace studeehub.Application.Extensions
 			services.AddScoped<INoteService, NoteService>();
 			services.AddScoped<IStreakService, StreakService>();
 			services.AddScoped<IUserService, UserService>();
+			services.AddScoped<IAchievementService, AchievementService>();
 
-			// Mapster configuration: clone global settings and scan this assembly for IRegister implementations
-			var config = TypeAdapterConfig.GlobalSettings.Clone();
+            // Mapster configuration: clone global settings and scan this assembly for IRegister implementations
+            var config = TypeAdapterConfig.GlobalSettings.Clone();
 			config.Scan(typeof(WorkSpaceRegister).Assembly);
 			config.Scan(typeof(DocumentRegister).Assembly);
 			config.Scan(typeof(NoteRegister).Assembly);
 			config.Scan(typeof(StreakRegister).Assembly);
+			config.Scan(typeof(AchievementRegister).Assembly);
 
-			// Register TypeAdapterConfig and Mapster IMapper (ServiceMapper)
-			services.AddSingleton(config);
+            // Register TypeAdapterConfig and Mapster IMapper (ServiceMapper)
+            services.AddSingleton(config);
 			services.AddScoped<IMapper, ServiceMapper>();
 
 			// FluentValidation
@@ -51,8 +55,11 @@ namespace studeehub.Application.Extensions
 			services.AddScoped<IValidator<UpdateNoteRequest>, UpdateNoteValidator>();
 			services.AddScoped<IValidator<CreateStreakRequest>, CreateStreakValidator>();
 			services.AddScoped<IValidator<UpdateStreakRequest>, UpdateStreakValidator>();
+			services.AddScoped<IValidator<CreateAchievemRequest>, CreateAchievemValidator>();
+			services.AddScoped<IValidator<UpdateAchievemRequest>, UpdateAchievemValidator>();
 
-			return services;
+
+            return services;
 		}
 	}
 }

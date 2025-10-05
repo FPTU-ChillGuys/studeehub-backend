@@ -9,9 +9,9 @@ namespace studeehub.Domain.Entities
 		public string Name { get; set; } = string.Empty;
 		public string? Description { get; set; }
 
-		public int ConditionValue { get; set; } // e.g., 7
-		public ConditionType ConditionType { get; set; } // enum, e.g., Streak, QuizCompleted
-		public RewardType RewardType { get; set; } // enum, e.g., XP, Badge
+		public int ConditionValue { get; set; } 
+		public ConditionType ConditionType { get; set; }
+		public RewardType RewardType { get; set; } 
 		public int RewardValue { get; set; }
 
 		public bool IsActive { get; set; } = true;
