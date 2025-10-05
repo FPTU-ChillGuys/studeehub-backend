@@ -9,6 +9,7 @@ using studeehub.Domain.Entities;
 using studeehub.Domain.Enums;
 using studeehub.Domain.Enums.Achievements;
 using studeehub.Infrastructure.Extensions;
+using System.Text.Json;
 
 namespace studeehub.Application.Services
 {
@@ -37,27 +38,27 @@ namespace studeehub.Application.Services
 			_hubContext = hubContext;
 		}
 
-        public async Task CheckAndUnlockAsync(User user)
-        {
-            var allAchievements = await _achievementRepository.GetAllAsync(a => a.IsActive);
+		public async Task CheckAndUnlockAsync(User user)
+		{
+			var allAchievements = await _achievementRepository.GetAllAsync(a => a.IsActive);
 
-            foreach (var achievement in allAchievements)
-            {
-                bool alreadyUnlocked = user.UserAchievements.Any(ua => ua.AchievementId == achievement.Id);
-                if (alreadyUnlocked) continue;
+			foreach (var achievement in allAchievements)
+			{
+				bool alreadyUnlocked = user.UserAchievements.Any(ua => ua.AchievementId == achievement.Id);
+				if (alreadyUnlocked) continue;
 
-                if (CheckCondition(user, achievement))
-                {
-                    await UnclockAchievement(new UnlockAchivemRequest
-                    {
-                        UserId = user.Id,
-                        AchievementId = achievement.Id
-                    });
-                }
-            }
-        }
+				if (CheckCondition(user, achievement))
+				{
+					await UnclockAchievement(new UnlockAchivemRequest
+					{
+						UserId = user.Id,
+						AchievementId = achievement.Id
+					});
+				}
+			}
+		}
 
-        public async Task UnclockAchievement(UnlockAchivemRequest request)
+		public async Task UnclockAchievement(UnlockAchivemRequest request)
 		{
 			// validate request
 			var validationResult = _unlockValidator.Validate(request);
@@ -100,13 +101,14 @@ namespace studeehub.Application.Services
 			}
 
 			// build DTO for notification and send to connected user(s)
-			var getAchievemRequest = new GetAchievemRequest();
-			_mapper.Map(existing, getAchievemRequest);
+			var getAchievemRequest = _mapper.Map<GetAchievemRequest>(achievement);
 
-            try
+			try
 			{
-                await _hubContext.Clients.User(request.UserId.ToString())
+				await _hubContext.Clients.User(request.UserId.ToString())
 					.SendAsync("AchievementUnlocked", getAchievemRequest);
+
+				Console.WriteLine($"[SignalR] Sent AchievementUnlocked to user {request.UserId}: {JsonSerializer.Serialize(getAchievemRequest)}");
 			}
 			catch
 			{

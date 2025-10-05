@@ -78,7 +78,7 @@ namespace studeehub.Application.Services
 
 			// Update logic
 			var message = string.Empty;
-            var today = DateTime.UtcNow.Date;
+			var today = DateTime.UtcNow.Date;
 			var daysDiff = (today - existingStreak.LastUpdated.Date).Days;
 			if (daysDiff == 0)
 			{
@@ -96,12 +96,12 @@ namespace studeehub.Application.Services
 					await _userAchievementService.CheckAndUnlockAsync(currentUser);
 				}
 				message = "Streak incremented";
-            }
+			}
 			else
 			{
 				existingStreak.CurrentCount = 1;
 				message = "Streak reset due to inactivity";
-            }
+			}
 
 			var updatedStreak = _mapper.Map(request, existingStreak);
 			_streakRepository.Update(updatedStreak);

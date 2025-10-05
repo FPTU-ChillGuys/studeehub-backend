@@ -37,6 +37,6 @@ namespace studeehub.Application.Mappings
 				.Map(dest => dest.ConditionValue, src => src.ConditionValue)
 				.Map(dest => dest.RewardType, src => src.RewardType)
 				.Map(dest => dest.RewardValue, src => src.RewardValue);
-        }
+		}
 	}
 }

@@ -36,8 +36,8 @@ namespace studeehub.Application.Extensions
 			services.AddScoped<IAchievementService, AchievementService>();
 			services.AddScoped<IUserAchievementService, UserAchievementService>();
 
-            // Mapster configuration: clone global settings and scan this assembly for IRegister implementations
-            var config = TypeAdapterConfig.GlobalSettings.Clone();
+			// Mapster configuration: clone global settings and scan this assembly for IRegister implementations
+			var config = TypeAdapterConfig.GlobalSettings.Clone();
 			config.Scan(typeof(WorkSpaceRegister).Assembly);
 			config.Scan(typeof(DocumentRegister).Assembly);
 			config.Scan(typeof(NoteRegister).Assembly);
@@ -45,8 +45,8 @@ namespace studeehub.Application.Extensions
 			config.Scan(typeof(AchievementRegister).Assembly);
 			config.Scan(typeof(UserAchievementRegister).Assembly);
 
-            // Register TypeAdapterConfig and Mapster IMapper (ServiceMapper)
-            services.AddSingleton(config);
+			// Register TypeAdapterConfig and Mapster IMapper (ServiceMapper)
+			services.AddSingleton(config);
 			services.AddScoped<IMapper, ServiceMapper>();
 
 			// FluentValidation
@@ -66,7 +66,7 @@ namespace studeehub.Application.Extensions
 			// SignalR
 			services.AddSignalR();
 
-            return services;
+			return services;
 		}
 	}
 }

@@ -68,16 +68,25 @@ namespace studeehub.Infrastructure.Extensions
 
 			// - CORS
 			var webUrl = configuration["Front-end:webUrl"] ?? throw new Exception("Missing web url!!");
+			//services.AddCors(options =>
+			//{
+			//	options.AddPolicy("AllowFrontend", builder =>
+			//	{
+			//		builder
+			//			.WithOrigins(webUrl)
+			//			.AllowAnyHeader()
+			//			.AllowAnyMethod()
+			//			.AllowCredentials();
+			//	});
+			//});
 			services.AddCors(options =>
 			{
-				options.AddPolicy("AllowFrontend", builder =>
-				{
-					builder
-						.WithOrigins(webUrl)
-						.AllowAnyHeader()
+				options.AddPolicy("AllowAll",
+					policy => policy
 						.AllowAnyMethod()
-						.AllowCredentials();
-				});
+						.AllowAnyHeader()
+						.SetIsOriginAllowed(_ => true)
+						.AllowCredentials());
 			});
 
 			// Add hangfire client
