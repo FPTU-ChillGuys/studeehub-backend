@@ -1,4 +1,4 @@
-﻿using studeehub.Domain.Enums;
+﻿using studeehub.Domain.Enums.Subscriptions;
 
 namespace studeehub.Domain.Entities
 {

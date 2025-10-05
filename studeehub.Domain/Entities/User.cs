@@ -13,7 +13,7 @@ namespace studeehub.Domain.Entities
 		public virtual ICollection<PomodoroSession> PomodoroSessions { get; set; } = new List<PomodoroSession>();
 		public virtual ICollection<Streak> Streaks { get; set; } = new List<Streak>();
 		public virtual ICollection<Subscription> Subscriptions { get; set; } = new List<Subscription>();
-		public virtual ICollection<Achievement> Achievements { get; set; } = new List<Achievement>();
+		public virtual ICollection<UserAchievement> UserAchievements { get; set; } = new List<UserAchievement>();
 		public virtual ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
 	}
 }

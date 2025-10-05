@@ -1,4 +1,4 @@
-﻿namespace studeehub.Domain.Enums
+﻿namespace studeehub.Domain.Enums.Subscriptions
 {
 	public enum SubscriptionStatus
 	{

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using studeehub.Domain.Entities;
+using studeehub.Domain.Enums.Achievements;
 
 namespace studeehub.Persistence.Context
 {
@@ -19,6 +20,7 @@ namespace studeehub.Persistence.Context
 		public virtual DbSet<Note> Notes { get; set; } = null!;
 		public virtual DbSet<Subscription> Subscriptions { get; set; } = null!;
 		public virtual DbSet<Achievement> Achievements { get; set; } = null!;
+		public virtual DbSet<UserAchievement> UserAchievements { get; set; } = null!;
 		public virtual DbSet<PomodoroSession> PomodoroSessions { get; set; } = null!;
 		public virtual DbSet<Streak> Streaks { get; set; } = null!;
 
@@ -114,15 +116,9 @@ namespace studeehub.Persistence.Context
 				.HasForeignKey(s => s.UserId)
 				.OnDelete(DeleteBehavior.Cascade);
 
-			// Achievement -- User (two-sided)
+			// Achievement (catalog)
 			modelBuilder.Entity<Achievement>()
 				.HasKey(a => a.Id);
-
-			modelBuilder.Entity<Achievement>()
-				.HasOne(a => a.User)
-				.WithMany(u => u.Achievements)
-				.HasForeignKey(a => a.UserId)
-				.OnDelete(DeleteBehavior.Cascade);
 
 			// PomodoroSession -- User (two-sided)
 			modelBuilder.Entity<PomodoroSession>()
@@ -154,6 +150,22 @@ namespace studeehub.Persistence.Context
 				.HasForeignKey(s => s.UserId)
 				.OnDelete(DeleteBehavior.Cascade);
 
+			// UserAchievement (join)
+			modelBuilder.Entity<UserAchievement>()
+				.HasKey(ua => new { ua.UserId, ua.AchievementId });
+
+			modelBuilder.Entity<UserAchievement>()
+				.HasOne(ua => ua.User)
+				.WithMany(u => u.UserAchievements)
+				.HasForeignKey(ua => ua.UserId)
+				.OnDelete(DeleteBehavior.Cascade);
+
+			modelBuilder.Entity<UserAchievement>()
+				.HasOne(ua => ua.Achievement)
+				.WithMany(a => a.UserAchievements)
+				.HasForeignKey(ua => ua.AchievementId)
+				.OnDelete(DeleteBehavior.Cascade);
+
 			// Enums stored as strings (if used)
 			modelBuilder.Entity<Streak>()
 				.Property(s => s.Type)
@@ -164,12 +176,22 @@ namespace studeehub.Persistence.Context
 			modelBuilder.Entity<Subscription>()
 				.Property(s => s.Status)
 				.HasConversion<string>();
+			modelBuilder.Entity<Achievement>()
+				.Property(a => a.ConditionType)
+				.HasConversion<string>();
+			modelBuilder.Entity<Achievement>()
+				.Property(a => a.RewardType)
+				.HasConversion<string>();
 
+			// Seed lookup data: roles, users, achievements, user-achievements
 			OnModelCreatingPartial(modelBuilder);
 
 			modelBuilder.Entity<IdentityRole<Guid>>().HasData(SeedingRoles());
 			modelBuilder.Entity<User>().HasData(SeedingUsers());
 			modelBuilder.Entity<IdentityUserRole<Guid>>().HasData(SeedingUserRoles());
+
+			modelBuilder.Entity<Achievement>().HasData(SeedingAchievements());
+			modelBuilder.Entity<UserAchievement>().HasData(SeedingUserAchievements());
 		}
 
 		partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
@@ -241,6 +263,96 @@ namespace studeehub.Persistence.Context
 				{
 					UserId = Guid.Parse("09097277-2705-40c2-bce5-51dbd1f4c1e6"),
 					RoleId = Guid.Parse("51ef7e08-ff07-459b-8c55-c7ebac505103")
+				}
+			};
+		}
+
+		// Seed some common achievements for tests
+		private ICollection<Achievement> SeedingAchievements()
+		{
+			return new List<Achievement>
+			{
+				new Achievement
+				{
+					Id = Guid.Parse("a1f2c3d4-0001-4a1b-8c1d-000000000001"),
+					Code = "STREAK_3_DAYS",
+					Name = "3-Day Streak",
+					Description = "Maintain a 3-day streak.",
+					ConditionValue = 3,
+					ConditionType = ConditionType.Streak,
+					RewardType = RewardType.XP,
+					RewardValue = 50,
+					IsActive = true
+				},
+				new Achievement
+				{
+					Id = Guid.Parse("a1f2c3d4-0002-4a1b-8c1d-000000000002"),
+					Code = "STREAK_7_DAYS",
+					Name = "7-Day Streak",
+					Description = "Maintain a 7-day streak.",
+					ConditionValue = 7,
+					ConditionType = ConditionType.Streak,
+					RewardType = RewardType.XP,
+					RewardValue = 150,
+					IsActive = true
+				},
+				new Achievement
+				{
+					Id = Guid.Parse("a1f2c3d4-0003-4a1b-8c1d-000000000003"),
+					Code = "FIRST_QUIZ",
+					Name = "First Quiz Completed",
+					Description = "Complete your first quiz.",
+					ConditionValue = 1,
+					ConditionType = ConditionType.QuizCompleted,
+					RewardType = RewardType.Badge,
+					RewardValue = 1,
+					IsActive = true
+				},
+				new Achievement
+				{
+					Id = Guid.Parse("a1f2c3d4-0004-4a1b-8c1d-000000000004"),
+					Code = "TASKS_10",
+					Name = "10 Tasks Completed",
+					Description = "Complete 10 tasks.",
+					ConditionValue = 10,
+					ConditionType = ConditionType.TasksCompleted,
+					RewardType = RewardType.XP,
+					RewardValue = 100,
+					IsActive = true
+				},
+				new Achievement
+				{
+					Id = Guid.Parse("a1f2c3d4-0005-4a1b-8c1d-000000000005"),
+					Code = "HOURS_10",
+					Name = "10 Hours Studied",
+					Description = "Accumulate 10 hours of study.",
+					ConditionValue = 10,
+					ConditionType = ConditionType.HoursStudied,
+					RewardType = RewardType.XP,
+					RewardValue = 200,
+					IsActive = true
+				}
+			};
+		}
+
+		// Seed user achievement links for test user
+		private ICollection<UserAchievement> SeedingUserAchievements()
+		{
+			return new List<UserAchievement>
+			{
+				new UserAchievement
+				{
+					UserId = Guid.Parse("09097277-2705-40c2-bce5-51dbd1f4c1e6"), // seeded "user"
+					AchievementId = Guid.Parse("a1f2c3d4-0001-4a1b-8c1d-000000000001"), // STREAK_3_DAYS
+					UnlockedAt = new DateTime(2025, 10, 05, 0, 0, 0, DateTimeKind.Utc),
+					IsClaimed = false
+				},
+				new UserAchievement
+				{
+					UserId = Guid.Parse("09097277-2705-40c2-bce5-51dbd1f4c1e6"),
+					AchievementId = Guid.Parse("a1f2c3d4-0003-4a1b-8c1d-000000000003"), // FIRST_QUIZ
+					UnlockedAt = new DateTime(2025, 10, 04, 0, 0, 0, DateTimeKind.Utc),
+					IsClaimed = true
 				}
 			};
 		}
