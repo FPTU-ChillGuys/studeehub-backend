@@ -6,6 +6,7 @@ using studeehub.Application.DTOs.Requests.Achievement;
 using studeehub.Application.DTOs.Requests.Auth;
 using studeehub.Application.DTOs.Requests.Document;
 using studeehub.Application.DTOs.Requests.Note;
+using studeehub.Application.DTOs.Requests.Schedule;
 using studeehub.Application.DTOs.Requests.Streak;
 using studeehub.Application.DTOs.Requests.UserAchievem;
 using studeehub.Application.DTOs.Requests.WorkSpace;
@@ -16,6 +17,7 @@ using studeehub.Application.Validators.AchievemValidators;
 using studeehub.Application.Validators.AuthValidators;
 using studeehub.Application.Validators.DocumentValidators;
 using studeehub.Application.Validators.NoteValidators;
+using studeehub.Application.Validators.ScheduleValidators;
 using studeehub.Application.Validators.StreakValidators;
 using studeehub.Application.Validators.UserAchievemValidators;
 using studeehub.Application.Validators.WorkSpaceValidators;
@@ -35,6 +37,7 @@ namespace studeehub.Application.Extensions
 			services.AddScoped<IUserService, UserService>();
 			services.AddScoped<IAchievementService, AchievementService>();
 			services.AddScoped<IUserAchievementService, UserAchievementService>();
+			services.AddScoped<IScheduleService, ScheduleService>();
 
 			// Mapster configuration: clone global settings and scan this assembly for IRegister implementations
 			var config = TypeAdapterConfig.GlobalSettings.Clone();
@@ -44,6 +47,7 @@ namespace studeehub.Application.Extensions
 			config.Scan(typeof(StreakRegister).Assembly);
 			config.Scan(typeof(AchievementRegister).Assembly);
 			config.Scan(typeof(UserAchievementRegister).Assembly);
+			config.Scan(typeof(ScheduleRegister).Assembly);
 
 			// Register TypeAdapterConfig and Mapster IMapper (ServiceMapper)
 			services.AddSingleton(config);
@@ -62,6 +66,8 @@ namespace studeehub.Application.Extensions
 			services.AddScoped<IValidator<CreateAchievemRequest>, CreateAchievemValidator>();
 			services.AddScoped<IValidator<UpdateAchievemRequest>, UpdateAchievemValidator>();
 			services.AddScoped<IValidator<UnlockAchivemRequest>, UnclockAchievemValidator>();
+			services.AddScoped<IValidator<CreateScheduleRequest>, CreateScheduleValidator>();
+			services.AddScoped<IValidator<UpdateScheduleRequest>, UpdateScheduleValidator>();
 
 			// SignalR
 			services.AddSignalR();

@@ -19,6 +19,7 @@ namespace studeehub.Infrastructure.Extensions
 			var jobService = scope.ServiceProvider.GetRequiredService<ISendReminderJobService>();
 
 			jobService.ScheduleDailyStreakReminderJob();
+			jobService.ScheduleScheduleReminderJob();
 
 			return Task.CompletedTask;
 		}

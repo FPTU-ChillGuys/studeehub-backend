@@ -18,6 +18,7 @@ namespace studeehub.Persistence.Context
 		public virtual DbSet<Document> Documents { get; set; } = null!;
 		public virtual DbSet<Flashcard> Flashcards { get; set; } = null!;
 		public virtual DbSet<Note> Notes { get; set; } = null!;
+		public virtual DbSet<Schedule> Schedules { get; set; } = null!;
 		public virtual DbSet<Subscription> Subscriptions { get; set; } = null!;
 		public virtual DbSet<Achievement> Achievements { get; set; } = null!;
 		public virtual DbSet<UserAchievement> UserAchievements { get; set; } = null!;
@@ -119,6 +120,11 @@ namespace studeehub.Persistence.Context
 			// Achievement (catalog)
 			modelBuilder.Entity<Achievement>()
 				.HasKey(a => a.Id);
+
+			// enforce unique achievement codes
+			modelBuilder.Entity<Achievement>()
+				.HasIndex(a => a.Code)
+				.IsUnique();
 
 			// PomodoroSession -- User (two-sided)
 			modelBuilder.Entity<PomodoroSession>()
@@ -231,8 +237,8 @@ namespace studeehub.Persistence.Context
 				EmailConfirmed = true,
 				SecurityStamp = "seed-4",
 				ConcurrencyStamp = "seed-5",
-				PasswordHash = hasher.HashPassword(null!, "12345aA@")
 			};
+			admin.PasswordHash = hasher.HashPassword(admin, "12345aA@");
 
 			var user = new User
 			{
@@ -244,8 +250,8 @@ namespace studeehub.Persistence.Context
 				EmailConfirmed = true,
 				SecurityStamp = "seed-6",
 				ConcurrencyStamp = "seed-7",
-				PasswordHash = hasher.HashPassword(null!, "12345aA@")
 			};
+			user.PasswordHash = hasher.HashPassword(user, "12345aA@");
 
 			return new List<User> { admin, user };
 		}
@@ -350,7 +356,7 @@ namespace studeehub.Persistence.Context
 				new UserAchievement
 				{
 					UserId = Guid.Parse("09097277-2705-40c2-bce5-51dbd1f4c1e6"),
-					AchievementId = Guid.Parse("a1f2c3d4-0003-4a1b-8c1d-000000000003"), // FIRST_QUIZ
+					AchievementId = Guid.Parse("a1f2c3d4-0003-4a1b-8c1d-000000000003"), // FIRST_NOTE
 					UnlockedAt = new DateTime(2025, 10, 04, 0, 0, 0, DateTimeKind.Utc),
 					IsClaimed = true
 				}

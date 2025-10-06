@@ -96,8 +96,8 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 
-//app.UseCors("AllowFrontend");
-app.UseCors("AllowAll");
+app.UseCors("AllowFrontend");
+//app.UseCors("AllowAll");
 
 app.UseHttpsRedirection();
 

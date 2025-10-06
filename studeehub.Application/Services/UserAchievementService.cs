@@ -9,7 +9,6 @@ using studeehub.Domain.Entities;
 using studeehub.Domain.Enums;
 using studeehub.Domain.Enums.Achievements;
 using studeehub.Infrastructure.Extensions;
-using System.Text.Json;
 
 namespace studeehub.Application.Services
 {
@@ -103,17 +102,10 @@ namespace studeehub.Application.Services
 			// build DTO for notification and send to connected user(s)
 			var getAchievemRequest = _mapper.Map<GetAchievemRequest>(achievement);
 
-			try
-			{
-				await _hubContext.Clients.User(request.UserId.ToString())
-					.SendAsync("AchievementUnlocked", getAchievemRequest);
+			await _hubContext.Clients.User(request.UserId.ToString())
+				.SendAsync("AchievementUnlocked", getAchievemRequest);
 
-				Console.WriteLine($"[SignalR] Sent AchievementUnlocked to user {request.UserId}: {JsonSerializer.Serialize(getAchievemRequest)}");
-			}
-			catch
-			{
-				// Notification failures should not break flow; swallow or log as appropriate.
-			}
+			//Console.WriteLine($"[SignalR] Sent AchievementUnlocked to user {request.UserId}: {JsonSerializer.Serialize(getAchievemRequest)}");
 		}
 
 		private bool CheckCondition(User user, Achievement achievement)
@@ -150,6 +142,5 @@ namespace studeehub.Application.Services
 					return false;
 			}
 		}
-
 	}
 }

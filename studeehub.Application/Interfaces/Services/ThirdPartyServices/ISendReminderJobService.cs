@@ -4,5 +4,7 @@
 	{
 		public Task SendStreakRemindersAsync();
 		public void ScheduleDailyStreakReminderJob();
+		public Task SendScheduleReminderAsync();
+		public void ScheduleScheduleReminderJob();
 	}
 }

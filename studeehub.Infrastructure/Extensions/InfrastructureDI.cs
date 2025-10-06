@@ -21,6 +21,7 @@ namespace studeehub.Infrastructure.Extensions
 			services.AddScoped<IAuthRepository, AuthRepository>();
 			services.AddScoped<IWorkSpaceRepository, WorkSpaceRepository>();
 			services.AddScoped<IStreakRepository, StreakRepository>();
+			services.AddScoped<IScheduleRepository, ScheduleRepository>();
 
 			// Register Third-Party Services (e.g., Email, SMS)
 			services.AddTransient<IEmailService, EmailService>();
@@ -68,26 +69,26 @@ namespace studeehub.Infrastructure.Extensions
 
 			// - CORS
 			var webUrl = configuration["Front-end:webUrl"] ?? throw new Exception("Missing web url!!");
-			//services.AddCors(options =>
-			//{
-			//	options.AddPolicy("AllowFrontend", builder =>
-			//	{
-			//		builder
-			//			.WithOrigins(webUrl)
-			//			.AllowAnyHeader()
-			//			.AllowAnyMethod()
-			//			.AllowCredentials();
-			//	});
-			//});
 			services.AddCors(options =>
 			{
-				options.AddPolicy("AllowAll",
-					policy => policy
-						.AllowAnyMethod()
+				options.AddPolicy("AllowFrontend", builder =>
+				{
+					builder
+						.WithOrigins(webUrl)
 						.AllowAnyHeader()
-						.SetIsOriginAllowed(_ => true)
-						.AllowCredentials());
+						.AllowAnyMethod()
+						.AllowCredentials();
+				});
 			});
+			//services.AddCors(options =>
+			//{
+			//	options.AddPolicy("AllowAll",
+			//		policy => policy
+			//			.AllowAnyMethod()
+			//			.AllowAnyHeader()
+			//			.SetIsOriginAllowed(_ => true)
+			//			.AllowCredentials());
+			//});
 
 			// Add hangfire client
 			services.AddHangfire(config =>

@@ -10,5 +10,15 @@ namespace studeehub.Infrastructure.Extensions
 			await Clients.User(userId.ToString())
 				.SendAsync("AchievementUnlocked", achievement);
 		}
+		public async Task SendScheduleReminder(Guid userId, object scheduleInfo)
+		{
+			await Clients.User(userId.ToString())
+				.SendAsync("ScheduleReminder", scheduleInfo);
+		}
+		public async Task SendCheckinReminder(Guid userId, object scheduleInfo)
+		{
+			await Clients.User(userId.ToString())
+				.SendAsync("ScheduleCheckinReminder", scheduleInfo);
+		}
 	}
 }
