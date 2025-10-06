@@ -1,4 +1,4 @@
-﻿using studeehub.Domain.Enums;
+﻿using studeehub.Domain.Enums.Streaks;
 
 namespace studeehub.Application.DTOs.Requests.Streak
 {

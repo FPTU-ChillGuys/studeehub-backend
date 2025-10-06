@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using studeehub.Application.DTOs.Requests.Schedule;
 using studeehub.Application.DTOs.Responses.Base;
 using studeehub.Application.Interfaces.Services;
@@ -39,11 +38,11 @@ namespace studeehub.API.Controllers
 		public async Task<BaseResponse<string>> CheckIn(Guid id)
 			=> await _scheduleService.CheckIn(id);
 
-        [HttpDelete("{id:guid}")]
+		[HttpDelete("{id:guid}")]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status404NotFound)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
 		public async Task<BaseResponse<string>> DeleteSchedule(Guid id)
 			=> await _scheduleService.DeleteScheduleAsync(id);
-    }
+	}
 }

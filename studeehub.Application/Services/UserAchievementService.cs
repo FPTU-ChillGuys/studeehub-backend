@@ -6,8 +6,8 @@ using studeehub.Application.DTOs.Requests.UserAchievem;
 using studeehub.Application.Interfaces.Repositories;
 using studeehub.Application.Interfaces.Services;
 using studeehub.Domain.Entities;
-using studeehub.Domain.Enums;
 using studeehub.Domain.Enums.Achievements;
+using studeehub.Domain.Enums.Streaks;
 using studeehub.Infrastructure.Extensions;
 
 namespace studeehub.Application.Services

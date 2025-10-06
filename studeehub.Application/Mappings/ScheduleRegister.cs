@@ -17,14 +17,14 @@ namespace studeehub.Application.Mappings
 				.Map(dest => dest.EndTime, src => src.EndTime)
 				.Map(dest => dest.ReminderMinutesBefore, src => src.ReminderMinutesBefore)
 				.Map(dest => dest.IsReminded, src => false)
-                .Map(dest => dest.Description, src => src.Description);
+				.Map(dest => dest.Description, src => src.Description);
 
 			config.NewConfig<UpdateScheduleRequest, Schedule>()
 				.Map(dest => dest.Title, src => src.Title)
 				.Map(dest => dest.StartTime, src => src.StartTime)
 				.Map(dest => dest.EndTime, src => src.EndTime)
 				.Map(dest => dest.ReminderMinutesBefore, src => src.ReminderMinutesBefore)
-                .Map(dest => dest.Description, src => src.Description);
+				.Map(dest => dest.Description, src => src.Description);
 		}
 	}
 }

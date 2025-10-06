@@ -35,8 +35,8 @@ namespace studeehub.Application.Services
 			if (DateTime.UtcNow.AddMinutes(schedule.ReminderMinutesBefore) < schedule.StartTime)
 			{
 				return BaseResponse<string>.Fail("Cannot check in before the schedule starts", ErrorType.Validation);
-            }
-            schedule.IsCheckin = true;
+			}
+			schedule.IsCheckin = true;
 			schedule.CheckInTime = DateTime.UtcNow;
 
 			_scheduleRepository.Update(schedule);

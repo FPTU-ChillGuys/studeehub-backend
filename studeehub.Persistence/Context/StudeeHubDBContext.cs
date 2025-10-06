@@ -23,6 +23,8 @@ namespace studeehub.Persistence.Context
 		public virtual DbSet<Achievement> Achievements { get; set; } = null!;
 		public virtual DbSet<UserAchievement> UserAchievements { get; set; } = null!;
 		public virtual DbSet<PomodoroSession> PomodoroSessions { get; set; } = null!;
+		public virtual DbSet<SubscriptionPlan> SubscriptionPlans { get; set; } = null!;
+		public virtual DbSet<PaymentTransaction> PaymentTransactions { get; set; } = null!;
 		public virtual DbSet<Streak> Streaks { get; set; } = null!;
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -117,6 +119,50 @@ namespace studeehub.Persistence.Context
 				.HasForeignKey(s => s.UserId)
 				.OnDelete(DeleteBehavior.Cascade);
 
+			// Subscription -> SubscriptionPlan (many subscriptions belong to a plan)
+			modelBuilder.Entity<Subscription>()
+				.HasOne(s => s.SubscriptionPlan)
+				.WithMany(sp => sp.Subscriptions)
+				.HasForeignKey(s => s.SubscriptionPlanId)
+				.OnDelete(DeleteBehavior.Restrict);
+
+			// Subscription -> PaymentTransactions (one-to-many)
+			modelBuilder.Entity<Subscription>()
+				.HasMany(s => s.PaymentTransactions)
+				.WithOne(pt => pt.Subscription)
+				.HasForeignKey(pt => pt.SubscriptionId)
+				.OnDelete(DeleteBehavior.Cascade);
+
+			// SubscriptionPlan (catalog)
+			modelBuilder.Entity<SubscriptionPlan>()
+				.HasKey(sp => sp.Id);
+
+			// enforce unique plan codes
+			modelBuilder.Entity<SubscriptionPlan>()
+				.HasIndex(sp => sp.Code)
+				.IsUnique();
+
+			// prefer explicit precision for money
+			modelBuilder.Entity<SubscriptionPlan>()
+				.Property(sp => sp.Price)
+				.HasColumnType("decimal(18,2)");
+
+			// PaymentTransaction entity and relationships
+			modelBuilder.Entity<PaymentTransaction>()
+				.HasKey(pt => pt.Id);
+
+			modelBuilder.Entity<PaymentTransaction>()
+				.HasOne(pt => pt.User)
+				.WithMany()
+				.HasForeignKey(pt => pt.UserId)
+				.OnDelete(DeleteBehavior.Restrict);
+
+			modelBuilder.Entity<PaymentTransaction>()
+				.HasOne(pt => pt.Subscription)
+				.WithMany(s => s.PaymentTransactions)
+				.HasForeignKey(pt => pt.SubscriptionId)
+				.OnDelete(DeleteBehavior.Cascade);
+
 			// Achievement (catalog)
 			modelBuilder.Entity<Achievement>()
 				.HasKey(a => a.Id);
@@ -174,9 +220,6 @@ namespace studeehub.Persistence.Context
 
 			// Enums stored as strings (if used)
 			modelBuilder.Entity<Streak>()
-				.Property(s => s.Type)
-				.HasConversion<string>();
-			modelBuilder.Entity<Subscription>()
 				.Property(s => s.Type)
 				.HasConversion<string>();
 			modelBuilder.Entity<Subscription>()
