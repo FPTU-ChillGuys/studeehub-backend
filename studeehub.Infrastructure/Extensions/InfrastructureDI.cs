@@ -23,10 +23,14 @@ namespace studeehub.Infrastructure.Extensions
 			services.AddScoped<IStreakRepository, StreakRepository>();
 			services.AddScoped<IScheduleRepository, ScheduleRepository>();
 
+			// Register UnitOfWork
+			services.AddScoped<IUnitOfWork, UnitOfWork>();
+
 			// Register Third-Party Services (e.g., Email, SMS)
 			services.AddTransient<IEmailService, EmailService>();
 			services.AddTransient<IEmailTemplateService, EmailTemplateService>();
 			services.AddTransient<ISupabaseStorageService, SupabaseStorageService>();
+			services.AddTransient<IVnPayService, VnPayService>();
 
 			// - DBContext
 			var connectionString = configuration["DATABASE_CONNECTION_STRING"];

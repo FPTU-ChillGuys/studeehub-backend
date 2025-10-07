@@ -10,7 +10,7 @@ namespace studeehub.Domain.Entities
 
 		public DateTime StartDate { get; set; } = DateTime.UtcNow;
 		public DateTime EndDate { get; set; } = DateTime.UtcNow.AddMonths(1);
-		public SubscriptionStatus Status { get; set; } = SubscriptionStatus.Active;
+		public SubscriptionStatus Status { get; set; } 
 
 		public virtual User User { get; set; } = null!;
 		public virtual SubscriptionPlan SubscriptionPlan { get; set; } = null!;

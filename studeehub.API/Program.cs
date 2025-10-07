@@ -7,6 +7,12 @@ using studeehub.Infrastructure.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add logging providers
+builder.Logging
+	.ClearProviders()
+	.AddConsole()
+	.AddDebug();
+
 // Load .env manually in Development
 if (builder.Environment.IsDevelopment())
 {

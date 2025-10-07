@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using studeehub.Application.DTOs.Responses.Base;
+using studeehub.Domain.Enums;
 using System.Text;
 
 namespace studeehub.API.Extensions
@@ -29,7 +31,13 @@ namespace studeehub.API.Extensions
 
 						context.Response.StatusCode = StatusCodes.Status401Unauthorized;
 						context.Response.ContentType = "application/json";
-						return context.Response.WriteAsJsonAsync(new { message = "Missing or invalid token" });
+						return context.Response.WriteAsJsonAsync(BaseResponse<string>.Fail("Missing or invalid token", ErrorType.Unauthorized));
+					},
+					OnForbidden = context =>
+					{
+						context.Response.StatusCode = StatusCodes.Status403Forbidden;
+						context.Response.ContentType = "application/json";
+						return context.Response.WriteAsJsonAsync(BaseResponse<string>.Fail("You are not authorized to access this resource", ErrorType.Forbidden));
 					}
 				};
 

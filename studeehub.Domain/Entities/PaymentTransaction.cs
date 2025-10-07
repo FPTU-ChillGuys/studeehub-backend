@@ -1,4 +1,6 @@
-﻿namespace studeehub.Domain.Entities
+﻿using studeehub.Domain.Enums.TransactionStatus;
+
+namespace studeehub.Domain.Entities
 {
 	public class PaymentTransaction
 	{
@@ -7,15 +9,14 @@
 		public Guid SubscriptionId { get; set; }
 
 		public string PaymentMethod { get; set; } = "VNPAY";
-		public string TransactionCode { get; set; } = string.Empty; // e.g., vnp_TxnRef
+		public string TransactionCode { get; set; } = string.Empty;
 		public decimal Amount { get; set; }
 		public string Currency { get; set; } = "VND";
 
-		public string Status { get; set; } = "Pending"; // "Pending", "Success", "Failed"
+		public TransactionStatus Status { get; set; }
 		public string? ResponseCode { get; set; }
-		public string? BankCode { get; set; }
 
-		public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+		public DateTime CreatedAt { get; set; }
 		public DateTime? CompletedAt { get; set; }
 
 		public virtual User User { get; set; } = null!;

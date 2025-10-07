@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using studeehub.Persistence.Context;
 
@@ -11,9 +12,11 @@ using studeehub.Persistence.Context;
 namespace studeehub.Persistence.Migrations
 {
     [DbContext(typeof(StudeeHubDBContext))]
-    partial class StudeeHubDBContextModelSnapshot : ModelSnapshot
+    [Migration("20251007033459_SubscriptionPlan_seedingdata")]
+    partial class SubscriptionPlan_seedingdata
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -404,6 +407,9 @@ namespace studeehub.Persistence.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<string>("BankCode")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("datetime2");
 
@@ -752,10 +758,10 @@ namespace studeehub.Persistence.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@EXAMPLE.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEArNEpvEBhKIdI30tk9GG2Vfo30M4Jcr/6L5tIGhh1fn3V0mYplGWlgk8mufaHbDFw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEAk01bYu4iAvqhFAEESq33pWSx+XyW8p1FQlcmF6chE+SQVb3pPeD0sElea2womtMQ==",
                             PhoneNumberConfirmed = false,
                             RefreshToken = "",
-                            RefreshTokenExpiryTime = new DateTime(2025, 10, 14, 15, 8, 54, 705, DateTimeKind.Utc).AddTicks(625),
+                            RefreshTokenExpiryTime = new DateTime(2025, 10, 14, 3, 34, 58, 759, DateTimeKind.Utc).AddTicks(957),
                             SecurityStamp = "seed-4",
                             TwoFactorEnabled = false,
                             UserName = "admin"
@@ -772,10 +778,10 @@ namespace studeehub.Persistence.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "USER@EXAMPLE.COM",
                             NormalizedUserName = "USER",
-                            PasswordHash = "AQAAAAIAAYagAAAAEF25bX7+3aKMDCRXwPH1L7T7D2izxlnMYjTHbm3OV4V1I1yqo/MtSdgVzZXjU3sOWQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEAtvGN4GcVe5xEXkB6r3wWNUdXMioFvSBGTLripZOZdV272oXc01ZWqc6YtfyJCTbw==",
                             PhoneNumberConfirmed = false,
                             RefreshToken = "",
-                            RefreshTokenExpiryTime = new DateTime(2025, 10, 14, 15, 8, 54, 756, DateTimeKind.Utc).AddTicks(1452),
+                            RefreshTokenExpiryTime = new DateTime(2025, 10, 14, 3, 34, 58, 809, DateTimeKind.Utc).AddTicks(3243),
                             SecurityStamp = "seed-6",
                             TwoFactorEnabled = false,
                             UserName = "user"

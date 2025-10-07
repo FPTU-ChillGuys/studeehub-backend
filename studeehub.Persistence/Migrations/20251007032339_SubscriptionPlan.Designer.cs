@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using studeehub.Persistence.Context;
 
@@ -11,9 +12,11 @@ using studeehub.Persistence.Context;
 namespace studeehub.Persistence.Migrations
 {
     [DbContext(typeof(StudeeHubDBContext))]
-    partial class StudeeHubDBContextModelSnapshot : ModelSnapshot
+    [Migration("20251007032339_SubscriptionPlan")]
+    partial class SubscriptionPlan
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -404,6 +407,9 @@ namespace studeehub.Persistence.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<string>("BankCode")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("datetime2");
 
@@ -614,50 +620,6 @@ namespace studeehub.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("SubscriptionPlans");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("d2f1c3a4-1001-4a1b-8c1d-000000000101"),
-                            Code = "BASIC_MONTHLY",
-                            Currency = "VND",
-                            Description = "Gói cơ bản theo tháng với dung lượng và số lượng tài liệu giới hạn.",
-                            DurationInDays = 30,
-                            HasAIAnalysis = false,
-                            IsActive = true,
-                            MaxDocuments = 50,
-                            MaxStorageMB = 500,
-                            Name = "Gói Cơ Bản (Theo Tháng)",
-                            Price = 0m
-                        },
-                        new
-                        {
-                            Id = new Guid("d2f1c3a4-1002-4a1b-8c1d-000000000102"),
-                            Code = "PRO_MONTHLY",
-                            Currency = "VND",
-                            Description = "Gói chuyên nghiệp theo tháng với giới hạn cao hơn và có tính năng AI.",
-                            DurationInDays = 30,
-                            HasAIAnalysis = true,
-                            IsActive = true,
-                            MaxDocuments = 1000,
-                            MaxStorageMB = 10240,
-                            Name = "Gói Chuyên Nghiệp (Theo Tháng)",
-                            Price = 49.9m
-                        },
-                        new
-                        {
-                            Id = new Guid("d2f1c3a4-1003-4a1b-8c1d-000000000103"),
-                            Code = "PRO_YEARLY",
-                            Currency = "VND",
-                            Description = "Gói chuyên nghiệp theo năm với mức giá ưu đãi khi thanh toán hàng năm.",
-                            DurationInDays = 365,
-                            HasAIAnalysis = true,
-                            IsActive = true,
-                            MaxDocuments = 1000,
-                            MaxStorageMB = 10240,
-                            Name = "Gói Chuyên Nghiệp (Theo Năm)",
-                            Price = 499.99m
-                        });
                 });
 
             modelBuilder.Entity("studeehub.Domain.Entities.User", b =>
@@ -752,10 +714,10 @@ namespace studeehub.Persistence.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@EXAMPLE.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEArNEpvEBhKIdI30tk9GG2Vfo30M4Jcr/6L5tIGhh1fn3V0mYplGWlgk8mufaHbDFw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEMfbcSn8imR14CEOX1QXhv8E4K+p3c7am3ftHiDKl2anT8EBsf3wNk4t2bEsiUMdxQ==",
                             PhoneNumberConfirmed = false,
                             RefreshToken = "",
-                            RefreshTokenExpiryTime = new DateTime(2025, 10, 14, 15, 8, 54, 705, DateTimeKind.Utc).AddTicks(625),
+                            RefreshTokenExpiryTime = new DateTime(2025, 10, 14, 3, 23, 38, 768, DateTimeKind.Utc).AddTicks(7852),
                             SecurityStamp = "seed-4",
                             TwoFactorEnabled = false,
                             UserName = "admin"
@@ -772,10 +734,10 @@ namespace studeehub.Persistence.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "USER@EXAMPLE.COM",
                             NormalizedUserName = "USER",
-                            PasswordHash = "AQAAAAIAAYagAAAAEF25bX7+3aKMDCRXwPH1L7T7D2izxlnMYjTHbm3OV4V1I1yqo/MtSdgVzZXjU3sOWQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAECJwSHwZVutU72z/aNgnPVBuCivv2LxAHmhcertjXzJUULdzwTnwKO5FAW9ALymkEA==",
                             PhoneNumberConfirmed = false,
                             RefreshToken = "",
-                            RefreshTokenExpiryTime = new DateTime(2025, 10, 14, 15, 8, 54, 756, DateTimeKind.Utc).AddTicks(1452),
+                            RefreshTokenExpiryTime = new DateTime(2025, 10, 14, 3, 23, 38, 817, DateTimeKind.Utc).AddTicks(7090),
                             SecurityStamp = "seed-6",
                             TwoFactorEnabled = false,
                             UserName = "user"
