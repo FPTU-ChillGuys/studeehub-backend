@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Hangfire;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using studeehub.Application.Interfaces.Services.ThirdPartyServices;
 
@@ -21,7 +22,14 @@ namespace studeehub.Infrastructure.Extensions
 			jobService.ScheduleDailyStreakReminderJob();
 			jobService.ScheduleScheduleReminderJob();
 
-			return Task.CompletedTask;
+            var subscriptionJob = scope.ServiceProvider.GetRequiredService<ISubscriptionJobService>();
+            RecurringJob.AddOrUpdate<ISubscriptionJobService>(
+                "check-pending-subscriptions",
+                svc => svc.CheckPendingSubscriptionsAsync(),
+                "*/15 * * * *" // every 15 minutes
+            );
+
+            return Task.CompletedTask;
 		}
 
 		public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;

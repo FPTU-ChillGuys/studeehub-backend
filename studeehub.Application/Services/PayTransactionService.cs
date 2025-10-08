@@ -151,12 +151,9 @@ namespace studeehub.Application.Services
                         s => s.Id == payment.SubscriptionId,
                         q => q.Include(s => s.SubscriptionPlan),
                         asNoTracking: false
-                    );
+                    ) ?? throw new Exception("Subscription not found for payment");
 
-                    if (subscription == null)
-                        throw new Exception("Subscription not found for payment");
-
-                    subscription.Status = SubscriptionStatus.Active;
+					subscription.Status = SubscriptionStatus.Active;
 
                     // Extend subscription duration properly
                     var startDate = subscription.EndDate > DateTime.UtcNow
@@ -174,18 +171,15 @@ namespace studeehub.Application.Services
                     var subscription = await _subscriptionRepository.GetByIdAsync(
                         s => s.Id == payment.SubscriptionId,
                         asNoTracking: false
-                    );
+                    ) ?? throw new Exception("Subscription not found for payment");
 
-                    if (subscription == null)
-                        throw new Exception("Subscription not found for payment");
-
-                    subscription.Status = SubscriptionStatus.Failed;
+					subscription.Status = SubscriptionStatus.Failed;
 
                     _subscriptionRepository.Update(subscription);
                     await _unitOfWork.SaveChangesAsync();
                 }
 
-					await _unitOfWork.CommitAsync(transaction);
+				await _unitOfWork.CommitAsync(transaction);
 
                 var message = payment.Status == TransactionStatus.Success
                     ? "VNPay payment successful"

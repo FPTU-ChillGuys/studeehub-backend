@@ -31,6 +31,7 @@ namespace studeehub.Infrastructure.Extensions
 			services.AddTransient<IEmailTemplateService, EmailTemplateService>();
 			services.AddTransient<ISupabaseStorageService, SupabaseStorageService>();
 			services.AddTransient<IVnPayService, VnPayService>();
+			services.AddTransient<ISubscriptionJobService, SubscriptionJobService>();
 
 			// - DBContext
 			var connectionString = configuration["DATABASE_CONNECTION_STRING"];

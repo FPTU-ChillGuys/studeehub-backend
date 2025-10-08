@@ -6,6 +6,7 @@ using studeehub.Application.Interfaces.Repositories;
 using studeehub.Application.Interfaces.Services;
 using studeehub.Domain.Entities;
 using studeehub.Domain.Enums;
+using studeehub.Domain.Enums.Subscriptions;
 
 namespace studeehub.Application.Services
 {
@@ -56,7 +57,13 @@ namespace studeehub.Application.Services
 				return BaseResponse<string>.Fail("Subscription plan not found.", ErrorType.NotFound);
 			}
 
-			_subPlanRepository.Remove(existingPlan);
+			var activeSubscriptions = existingPlan.Subscriptions.Any(s => s.Status == SubscriptionStatus.Active);
+			if (activeSubscriptions)
+			{
+				return BaseResponse<string>.Fail("Cannot delete subscription plan with active subscriptions.", ErrorType.Conflict);
+            }
+
+            _subPlanRepository.Remove(existingPlan);
 			var result = await _subPlanRepository.SaveChangesAsync();
 			return result
 				? BaseResponse<string>.Ok("Subscription plan deleted successfully.")
