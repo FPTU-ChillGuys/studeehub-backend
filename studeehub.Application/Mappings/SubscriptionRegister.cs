@@ -1,7 +1,4 @@
 ﻿using Mapster;
-using studeehub.Application.DTOs.Requests.Subscription;
-using studeehub.Domain.Entities;
-using studeehub.Domain.Enums.Subscriptions;
 
 namespace studeehub.Application.Mappings
 {
@@ -9,7 +6,7 @@ namespace studeehub.Application.Mappings
 	{
 		public void Register(TypeAdapterConfig config)
 		{
-			
+
 		}
 	}
 }

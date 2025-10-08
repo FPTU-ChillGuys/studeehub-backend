@@ -21,15 +21,21 @@ namespace studeehub.Infrastructure.Extensions
 
 			jobService.ScheduleDailyStreakReminderJob();
 			jobService.ScheduleScheduleReminderJob();
+			jobService.ScheduleExpiredSubscriptionReminderJob();
 
-            var subscriptionJob = scope.ServiceProvider.GetRequiredService<ISubscriptionJobService>();
-            RecurringJob.AddOrUpdate<ISubscriptionJobService>(
-                "check-pending-subscriptions",
-                svc => svc.CheckPendingSubscriptionsAsync(),
-                "*/15 * * * *" // every 15 minutes
-            );
+			var subscriptionJob = scope.ServiceProvider.GetRequiredService<ISubscriptionJobService>();
+			RecurringJob.AddOrUpdate<ISubscriptionJobService>(
+				"check-pending-subscriptions",
+				svc => svc.CheckPendingSubscriptionsAsync(),
+				"*/15 * * * *" // every 15 minutes
+			);
+			RecurringJob.AddOrUpdate<ISubscriptionJobService>(
+				"check-expired-subscriptions",
+				svc => svc.CheckExpiredSubscriptionsAsync(),
+				"0 0 * * *" // daily at midnight
+			);
 
-            return Task.CompletedTask;
+			return Task.CompletedTask;
 		}
 
 		public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;

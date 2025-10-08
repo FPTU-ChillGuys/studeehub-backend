@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using studeehub.Persistence.Context;
 
@@ -11,9 +12,11 @@ using studeehub.Persistence.Context;
 namespace studeehub.Persistence.Migrations
 {
     [DbContext(typeof(StudeeHubDBContext))]
-    partial class StudeeHubDBContextModelSnapshot : ModelSnapshot
+    [Migration("20251008165337_ModifySubscription_addIsExpiredNotifi")]
+    partial class ModifySubscription_addIsExpiredNotifi
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -544,7 +547,7 @@ namespace studeehub.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTime>("CreateAt")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime>("EndDate")
@@ -563,7 +566,7 @@ namespace studeehub.Persistence.Migrations
                     b.Property<Guid>("SubscriptionPlanId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("UpdatedAt")
+                    b.Property<DateTime>("UpdateAt")
                         .HasColumnType("datetime2");
 
                     b.Property<Guid>("UserId")
@@ -761,10 +764,10 @@ namespace studeehub.Persistence.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@EXAMPLE.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEO9gcdf2lvXRvp2ophM98Zng7dU5TRMp0N+XVKLsoWc7XCR5vLABHUsnjcqAm6KczQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEOYyc32NoMQG3+5GYCMGkyJXwdPQwI+ps36vqGYiqK65mjRhsAfL+J9cuE+rdmL6Pg==",
                             PhoneNumberConfirmed = false,
                             RefreshToken = "",
-                            RefreshTokenExpiryTime = new DateTime(2025, 10, 15, 17, 6, 4, 724, DateTimeKind.Utc).AddTicks(6463),
+                            RefreshTokenExpiryTime = new DateTime(2025, 10, 15, 16, 53, 36, 89, DateTimeKind.Utc).AddTicks(718),
                             SecurityStamp = "seed-4",
                             TwoFactorEnabled = false,
                             UserName = "admin"
@@ -781,10 +784,10 @@ namespace studeehub.Persistence.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "USER@EXAMPLE.COM",
                             NormalizedUserName = "USER",
-                            PasswordHash = "AQAAAAIAAYagAAAAEOnSzeWD91AQLu3pKxB4yHId4woT1YkN4o7S6PbbjADw82oWADTbPndnQVJ5XeZhnQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAECXc+6T3A3J0HUVdSx92+a7tlUh2CvndBPhXMirxW1lRbQH9YgTjpttZDksyu6AX+Q==",
                             PhoneNumberConfirmed = false,
                             RefreshToken = "",
-                            RefreshTokenExpiryTime = new DateTime(2025, 10, 15, 17, 6, 4, 773, DateTimeKind.Utc).AddTicks(9681),
+                            RefreshTokenExpiryTime = new DateTime(2025, 10, 15, 16, 53, 36, 136, DateTimeKind.Utc).AddTicks(3682),
                             SecurityStamp = "seed-6",
                             TwoFactorEnabled = false,
                             UserName = "user"

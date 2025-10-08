@@ -42,7 +42,7 @@ namespace studeehub.Application.Extensions
 			services.AddScoped<IScheduleService, ScheduleService>();
 			services.AddScoped<IPayTransactionService, PayTransactionService>();
 			services.AddScoped<ISubPlanService, SubPlanService>();
-			//services.AddScoped<ISubscriptionService, SubscriptionService>();
+			services.AddScoped<ISubscriptionService, SubscriptionService>();
 
 			// Mapster configuration: clone global settings and scan this assembly for IRegister implementations
 			var config = TypeAdapterConfig.GlobalSettings.Clone();

@@ -1,5 +1,4 @@
-﻿using MapsterMapper;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using studeehub.Application.DTOs.Requests.PaymentTransaction;
@@ -65,7 +64,9 @@ namespace studeehub.Application.Services
 					SubscriptionPlanId = plan.Id,
 					StartDate = DateTime.UtcNow,
 					EndDate = DateTime.UtcNow,
-					Status = SubscriptionStatus.Pending
+					Status = SubscriptionStatus.Pending,
+					IsExpiryNotified = false,
+					CreatedAt = DateTime.UtcNow
 				};
 
 				await _subscriptionRepository.AddAsync(subscription);
@@ -107,92 +108,92 @@ namespace studeehub.Application.Services
 			}
 		}
 
-        public async Task<BaseResponse<string>> HandleVnPayCallbackAsync(IQueryCollection query)
-        {
-            // STEP 1: Verify checksum & parse response
-            var vnResponse = _vnPayService.PaymentExcute(query);
-            if (vnResponse == null)
-                return BaseResponse<string>.Fail("Invalid VNPay response", ErrorType.Validation);
+		public async Task<BaseResponse<string>> HandleVnPayCallbackAsync(IQueryCollection query)
+		{
+			// STEP 1: Verify checksum & parse response
+			var vnResponse = _vnPayService.PaymentExcute(query);
+			if (vnResponse == null)
+				return BaseResponse<string>.Fail("Invalid VNPay response", ErrorType.Validation);
 
-            // If signature invalid, do not trust anything
-            if (!vnResponse.Success && vnResponse.VnPayResponseCode == null)
-                return BaseResponse<string>.Fail("Signature validation failed", ErrorType.Validation);
+			// If signature invalid, do not trust anything
+			if (!vnResponse.Success && vnResponse.VnPayResponseCode == null)
+				return BaseResponse<string>.Fail("Signature validation failed", ErrorType.Validation);
 
-            // STEP 2: Load the payment transaction
-            var payment = await _paymentTransactionRepository.GetByConditionAsync(p => p.Id == vnResponse.TransactionId);
-            if (payment == null)
-                return BaseResponse<string>.Fail("Payment transaction not found", ErrorType.NotFound);
+			// STEP 2: Load the payment transaction
+			var payment = await _paymentTransactionRepository.GetByConditionAsync(p => p.Id == vnResponse.TransactionId);
+			if (payment == null)
+				return BaseResponse<string>.Fail("Payment transaction not found", ErrorType.NotFound);
 
-            // Avoid double processing
-            if (payment.Status == TransactionStatus.Success)
-                return BaseResponse<string>.Ok("Payment already processed");
+			// Avoid double processing
+			if (payment.Status == TransactionStatus.Success)
+				return BaseResponse<string>.Ok("Payment already processed");
 
-            // STEP 3: Start transaction
-            using var transaction = await _unitOfWork.BeginTransactionAsync();
+			// STEP 3: Start transaction
+			using var transaction = await _unitOfWork.BeginTransactionAsync();
 
-            try
-            {
-                // --- Always update transaction state, even on failure ---
-                payment.Status = vnResponse.VnPayResponseCode == "00"
-                    ? TransactionStatus.Success
-                    : TransactionStatus.Failed;
+			try
+			{
+				// --- Always update transaction state, even on failure ---
+				payment.Status = vnResponse.VnPayResponseCode == "00"
+					? TransactionStatus.Success
+					: TransactionStatus.Failed;
 
-                payment.ResponseCode = vnResponse.VnPayResponseCode;
-                payment.TransactionCode = vnResponse.TransactionNo;
-                payment.CompletedAt = DateTime.UtcNow;
+				payment.ResponseCode = vnResponse.VnPayResponseCode;
+				payment.TransactionCode = vnResponse.TransactionNo;
+				payment.CompletedAt = DateTime.UtcNow;
 
-                _paymentTransactionRepository.Update(payment);
-                await _unitOfWork.SaveChangesAsync();
+				_paymentTransactionRepository.Update(payment);
+				await _unitOfWork.SaveChangesAsync();
 
-                // --- Only activate subscription when payment succeeded ---
-                if (payment.Status == TransactionStatus.Success)
-                {
-                    var subscription = await _subscriptionRepository.GetByConditionAsync(
-                        s => s.Id == payment.SubscriptionId,
-                        q => q.Include(s => s.SubscriptionPlan),
-                        asNoTracking: false
-                    ) ?? throw new Exception("Subscription not found for payment");
+				// --- Only activate subscription when payment succeeded ---
+				if (payment.Status == TransactionStatus.Success)
+				{
+					var subscription = await _subscriptionRepository.GetByConditionAsync(
+						s => s.Id == payment.SubscriptionId,
+						q => q.Include(s => s.SubscriptionPlan),
+						asNoTracking: false
+					) ?? throw new Exception("Subscription not found for payment");
 
 					subscription.Status = SubscriptionStatus.Active;
 
-                    // Extend subscription duration properly
-                    var startDate = subscription.EndDate > DateTime.UtcNow
-                        ? subscription.EndDate
-                        : DateTime.UtcNow;
+					// Extend subscription duration properly
+					var startDate = subscription.EndDate > DateTime.UtcNow
+						? subscription.EndDate
+						: DateTime.UtcNow;
 
-                    subscription.StartDate = startDate;
-                    subscription.EndDate = startDate.AddDays(subscription.SubscriptionPlan.DurationInDays);
+					subscription.StartDate = startDate;
+					subscription.EndDate = startDate.AddDays(subscription.SubscriptionPlan.DurationInDays);
 
-                    _subscriptionRepository.Update(subscription);
-                    await _unitOfWork.SaveChangesAsync();
+					_subscriptionRepository.Update(subscription);
+					await _unitOfWork.SaveChangesAsync();
 				}
 				else
 				{
-                    var subscription = await _subscriptionRepository.GetByConditionAsync(
-                        s => s.Id == payment.SubscriptionId,
-                        asNoTracking: false
-                    ) ?? throw new Exception("Subscription not found for payment");
+					var subscription = await _subscriptionRepository.GetByConditionAsync(
+						s => s.Id == payment.SubscriptionId,
+						asNoTracking: false
+					) ?? throw new Exception("Subscription not found for payment");
 
 					subscription.Status = SubscriptionStatus.Failed;
 
-                    _subscriptionRepository.Update(subscription);
-                    await _unitOfWork.SaveChangesAsync();
-                }
+					_subscriptionRepository.Update(subscription);
+					await _unitOfWork.SaveChangesAsync();
+				}
 
 				await _unitOfWork.CommitAsync(transaction);
 
-                var message = payment.Status == TransactionStatus.Success
-                    ? "VNPay payment successful"
-                    : $"VNPay payment failed (code: {vnResponse.VnPayResponseCode})";
+				var message = payment.Status == TransactionStatus.Success
+					? "VNPay payment successful"
+					: $"VNPay payment failed (code: {vnResponse.VnPayResponseCode})";
 
-                return BaseResponse<string>.Ok(message);
-            }
-            catch (Exception ex)
-            {
-                await _unitOfWork.RollbackAsync(transaction);
-                _logger.LogError(ex, "VNPay callback processing failed");
-                return BaseResponse<string>.Fail("VNPay callback processing failed", ErrorType.ServerError);
-            }
-        }
-    }
+				return BaseResponse<string>.Ok(message);
+			}
+			catch (Exception ex)
+			{
+				await _unitOfWork.RollbackAsync(transaction);
+				_logger.LogError(ex, "VNPay callback processing failed");
+				return BaseResponse<string>.Fail("VNPay callback processing failed", ErrorType.ServerError);
+			}
+		}
+	}
 }

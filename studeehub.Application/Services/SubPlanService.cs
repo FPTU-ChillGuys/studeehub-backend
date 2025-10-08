@@ -61,9 +61,9 @@ namespace studeehub.Application.Services
 			if (activeSubscriptions)
 			{
 				return BaseResponse<string>.Fail("Cannot delete subscription plan with active subscriptions.", ErrorType.Conflict);
-            }
+			}
 
-            _subPlanRepository.Remove(existingPlan);
+			_subPlanRepository.Remove(existingPlan);
 			var result = await _subPlanRepository.SaveChangesAsync();
 			return result
 				? BaseResponse<string>.Ok("Subscription plan deleted successfully.")

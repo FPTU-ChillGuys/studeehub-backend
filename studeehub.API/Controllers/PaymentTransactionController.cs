@@ -17,19 +17,19 @@ namespace studeehub.API.Controllers
 		}
 
 		[HttpPost]
-        [ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
-        public async Task<BaseResponse<string>> CreatePaymentSession([FromBody] CreatePaymentSessionRequest request)
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status400BadRequest)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status404NotFound)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
+		public async Task<BaseResponse<string>> CreatePaymentSession([FromBody] CreatePaymentSessionRequest request)
 			=> await _payTransactionService.CreatePaymentSessionAsync(request, HttpContext);
 
 		[HttpGet("vnpay-callback")]
-        [ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
-        public async Task<BaseResponse<string>> VnPayCallback()
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status400BadRequest)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status404NotFound)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
+		public async Task<BaseResponse<string>> VnPayCallback()
 			=> await _payTransactionService.HandleVnPayCallbackAsync(Request.Query);
 	}
 }

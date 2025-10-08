@@ -45,7 +45,7 @@ namespace studeehub.Infrastructure.Services
 			var orderInfo = $"Thanh toan don hang: {requestModel.SubscriptionId} | Txn:{requestModel.PaymentTransactionId}";
 			vnpay.AddRequestData("vnp_OrderInfo", orderInfo);
 			vnpay.AddRequestData("vnp_OrderType", "190000"); // intertainment and education
-            vnpay.AddRequestData("vnp_ReturnUrl", returnUrl ?? string.Empty);
+			vnpay.AddRequestData("vnp_ReturnUrl", returnUrl ?? string.Empty);
 
 			// Use GUID string for txn reference (matches PaymentTransaction.Id)
 			vnpay.AddRequestData("vnp_TxnRef", requestModel.PaymentTransactionId.ToString());

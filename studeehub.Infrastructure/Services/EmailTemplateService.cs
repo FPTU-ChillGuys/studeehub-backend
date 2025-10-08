@@ -122,5 +122,18 @@ namespace studeehub.Infrastructure.Services
 
 			return WrapHtml("Keep your streak alive", "Streak reminder", body);
 		}
+
+		public string ExpiredSubscriptionTemplate(string fullname, string planName, DateTime endDate)
+		{
+			var safeName = WebUtility.HtmlEncode(fullname);
+			var safePlanName = WebUtility.HtmlEncode(planName);
+			var safeEndDate = WebUtility.HtmlEncode(endDate.ToString("yyyy-MM-dd"));
+			var body = $@"
+				<h2 style='margin-top:0;'>Hi {safeName},</h2>
+				<p>Your subscription to <strong>{safePlanName}</strong> expired on <strong>{safeEndDate}</strong>.</p>
+				<p>To continue enjoying premium features, please renew your subscription.</p>
+				<p style='text-align:center; margin-top:20px;'><a class='button' href='#'>Renew now</a></p>";
+			return WrapHtml("Your subscription has expired", "Subscription expired", body);
+		}
 	}
 }
