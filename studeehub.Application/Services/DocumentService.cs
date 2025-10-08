@@ -72,7 +72,7 @@ namespace studeehub.Application.Services
 				return BaseResponse<string>.Fail(errors, Domain.Enums.ErrorType.Validation);
 			}
 
-			var document = await _genericRepository.GetByIdAsync(d => d.Id == id);
+			var document = await _genericRepository.GetByConditionAsync(d => d.Id == id);
 
 			if (document == null)
 			{

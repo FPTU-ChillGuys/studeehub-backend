@@ -72,7 +72,7 @@ namespace studeehub.Persistence.Repositories
 			return (items, totalCount);
 		}
 
-		public async Task<T?> GetByIdAsync(
+        public async Task<T?> GetByConditionAsync(
 			Expression<Func<T, bool>> predicate,
 			Func<IQueryable<T>, IIncludableQueryable<T, object>>? include = null,
 			bool asNoTracking = false)

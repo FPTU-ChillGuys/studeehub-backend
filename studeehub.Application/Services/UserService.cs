@@ -20,7 +20,7 @@ namespace studeehub.Application.Services
 
 		public Task<User?> GetUserByIdAsync(Guid userId)
 		{
-			return _userRepository.GetByIdAsync(u => u.Id == userId);
+			return _userRepository.GetByConditionAsync(u => u.Id == userId);
 		}
 	}
 }

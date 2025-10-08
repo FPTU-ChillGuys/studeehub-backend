@@ -75,14 +75,14 @@ namespace studeehub.Application.Services
 			}
 
 			// ensure achievement exists
-			var achievement = await _achievementRepository.GetByIdAsync(a => a.Id == request.AchievementId);
+			var achievement = await _achievementRepository.GetByConditionAsync(a => a.Id == request.AchievementId);
 			if (achievement == null || !achievement.IsActive)
 			{
 				return;
 			}
 
 			// avoid duplicate unlocks
-			var existing = await _userAchievementRepository.GetByIdAsync(ua => ua.UserId == request.UserId && ua.AchievementId == request.AchievementId);
+			var existing = await _userAchievementRepository.GetByConditionAsync(ua => ua.UserId == request.UserId && ua.AchievementId == request.AchievementId);
 			if (existing != null)
 			{
 				return;

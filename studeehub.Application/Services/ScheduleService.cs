@@ -26,7 +26,7 @@ namespace studeehub.Application.Services
 
 		public async Task<BaseResponse<string>> CheckIn(Guid id)
 		{
-			var schedule = await _scheduleRepository.GetByIdAsync(s => s.Id == id);
+			var schedule = await _scheduleRepository.GetByConditionAsync(s => s.Id == id);
 			if (schedule == null)
 			{
 				return BaseResponse<string>.Fail("Schedule not found", ErrorType.NotFound);
@@ -74,7 +74,7 @@ namespace studeehub.Application.Services
 				return BaseResponse<string>.Fail("Validation failed", ErrorType.Validation, errors);
 			}
 
-			var existingSchedule = await _scheduleRepository.GetByIdAsync(s => s.Id == id);
+			var existingSchedule = await _scheduleRepository.GetByConditionAsync(s => s.Id == id);
 
 			if (existingSchedule == null)
 				return BaseResponse<string>.Fail("Schedule not found", ErrorType.NotFound);
@@ -90,7 +90,7 @@ namespace studeehub.Application.Services
 
 		public async Task<BaseResponse<string>> DeleteScheduleAsync(Guid id)
 		{
-			var existingSchedule = await _scheduleRepository.GetByIdAsync(s => s.Id == id);
+			var existingSchedule = await _scheduleRepository.GetByConditionAsync(s => s.Id == id);
 			if (existingSchedule == null)
 				return BaseResponse<string>.Fail("Schedule not found", ErrorType.NotFound);
 

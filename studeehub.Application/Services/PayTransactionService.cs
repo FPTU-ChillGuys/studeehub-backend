@@ -43,12 +43,12 @@ namespace studeehub.Application.Services
 		public async Task<BaseResponse<string>> CreatePaymentSessionAsync(CreatePaymentSessionRequest request, HttpContext httpContext)
 		{
 			// 1️⃣ Validate plan
-			var plan = await _subscriptionPlanRepository.GetByIdAsync(p => p.Id == request.SubscriptionPlanId);
+			var plan = await _subscriptionPlanRepository.GetByConditionAsync(p => p.Id == request.SubscriptionPlanId);
 			if (plan == null)
 				return BaseResponse<string>.Fail("Subscription plan not found", ErrorType.NotFound);
 
 			// 2️⃣ Prevent duplicate active subscription
-			var existing = await _subscriptionRepository.GetByIdAsync(
+			var existing = await _subscriptionRepository.GetByConditionAsync(
 				s => s.UserId == request.UserId && s.Status == SubscriptionStatus.Active);
 			if (existing != null)
 				return BaseResponse<string>.Fail("User already has an active subscription", ErrorType.Validation);
@@ -119,7 +119,7 @@ namespace studeehub.Application.Services
                 return BaseResponse<string>.Fail("Signature validation failed", ErrorType.Validation);
 
             // STEP 2: Load the payment transaction
-            var payment = await _paymentTransactionRepository.GetByIdAsync(p => p.Id == vnResponse.TransactionId);
+            var payment = await _paymentTransactionRepository.GetByConditionAsync(p => p.Id == vnResponse.TransactionId);
             if (payment == null)
                 return BaseResponse<string>.Fail("Payment transaction not found", ErrorType.NotFound);
 
@@ -147,7 +147,7 @@ namespace studeehub.Application.Services
                 // --- Only activate subscription when payment succeeded ---
                 if (payment.Status == TransactionStatus.Success)
                 {
-                    var subscription = await _subscriptionRepository.GetByIdAsync(
+                    var subscription = await _subscriptionRepository.GetByConditionAsync(
                         s => s.Id == payment.SubscriptionId,
                         q => q.Include(s => s.SubscriptionPlan),
                         asNoTracking: false
@@ -168,7 +168,7 @@ namespace studeehub.Application.Services
 				}
 				else
 				{
-                    var subscription = await _subscriptionRepository.GetByIdAsync(
+                    var subscription = await _subscriptionRepository.GetByConditionAsync(
                         s => s.Id == payment.SubscriptionId,
                         asNoTracking: false
                     ) ?? throw new Exception("Subscription not found for payment");

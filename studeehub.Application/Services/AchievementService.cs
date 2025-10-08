@@ -33,7 +33,7 @@ namespace studeehub.Application.Services
 				return BaseResponse<string>.Fail("Validation failed", ErrorType.Validation, errors);
 			}
 
-			var existingAchievement = await _achievementRepository.GetByIdAsync(a => a.Code == request.Code);
+			var existingAchievement = await _achievementRepository.GetByConditionAsync(a => a.Code == request.Code);
 			if (existingAchievement != null)
 			{
 				return BaseResponse<string>.Fail($"Achievement with code {request.Code} already exists", ErrorType.Conflict);
@@ -57,7 +57,7 @@ namespace studeehub.Application.Services
 				return BaseResponse<string>.Fail("Validation failed", ErrorType.Validation, errors);
 			}
 
-			var achievement = await _achievementRepository.GetByIdAsync(a => a.Id == id);
+			var achievement = await _achievementRepository.GetByConditionAsync(a => a.Id == id);
 
 			if (achievement == null)
 			{

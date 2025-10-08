@@ -57,7 +57,7 @@ namespace studeehub.Application.Services
 				return BaseResponse<string>.Fail(errors, Domain.Enums.ErrorType.Validation);
 			}
 
-			var existingWorkSpace = await _repository.GetByIdAsync(ws => ws.Id == id);
+			var existingWorkSpace = await _repository.GetByConditionAsync(ws => ws.Id == id);
 
 			if (existingWorkSpace == null)
 			{

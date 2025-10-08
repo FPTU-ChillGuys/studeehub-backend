@@ -21,14 +21,15 @@ namespace studeehub.Application.Interfaces.Repositories
 			bool asNoTracking = false
 		);
 
-		Task<T?> GetByIdAsync(
-			Expression<Func<T, bool>> predicate,
-			Func<IQueryable<T>, IIncludableQueryable<T, object>>? include = null,
-			bool asNoTracking = false
-		);
+        Task<T?> GetByConditionAsync(
+            Expression<Func<T, bool>> predicate,
+            Func<IQueryable<T>, IIncludableQueryable<T, object>>? include = null,
+            bool asNoTracking = false
+        );
 
-		//Task<int> CountAsync(Expression<Func<T, bool>>? filter = null);
-		Task<bool> AnyAsync(Expression<Func<T, bool>> predicate);
+
+        //Task<int> CountAsync(Expression<Func<T, bool>>? filter = null);
+        Task<bool> AnyAsync(Expression<Func<T, bool>> predicate);
 		Task AddAsync(T entity);
 		Task AddRangeAsync(IEnumerable<T> entities);
 		void Update(T entity);

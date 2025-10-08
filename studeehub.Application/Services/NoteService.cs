@@ -31,7 +31,7 @@ namespace studeehub.Application.Services
 		public async Task<BaseResponse<string>> BecomeDocumentAsync(Guid noteId)
 		{
 			// 1. Load note
-			var note = await _noteRepository.GetByIdAsync(n => n.Id == noteId);
+			var note = await _noteRepository.GetByConditionAsync(n => n.Id == noteId);
 			if (note == null)
 				return BaseResponse<string>.Fail("Note not found.", ErrorType.NotFound);
 
@@ -114,7 +114,7 @@ namespace studeehub.Application.Services
 				return BaseResponse<string>.Fail("Validation failed", ErrorType.Validation, errors);
 			}
 
-			var note = await _noteRepository.GetByIdAsync(n => n.Id == id);
+			var note = await _noteRepository.GetByConditionAsync(n => n.Id == id);
 			if (note == null)
 			{
 				return BaseResponse<string>.Fail("Note not found", ErrorType.NotFound);

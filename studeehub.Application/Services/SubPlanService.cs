@@ -34,7 +34,7 @@ namespace studeehub.Application.Services
 				return BaseResponse<string>.Fail("Validation failed", ErrorType.Validation, errors);
 			}
 
-			var existingPlan = await _subPlanRepository.GetByIdAsync(sp => sp.Code == request.Code);
+			var existingPlan = await _subPlanRepository.GetByConditionAsync(sp => sp.Code == request.Code);
 			if (existingPlan != null)
 			{
 				return BaseResponse<string>.Fail($"A subscription plan with code '{request.Code}' already exists.", ErrorType.Conflict);
@@ -51,7 +51,7 @@ namespace studeehub.Application.Services
 
 		public async Task<BaseResponse<string>> DeleteSubPlanAsync(Guid id)
 		{
-			var existingPlan = await _subPlanRepository.GetByIdAsync(sp => sp.Id == id);
+			var existingPlan = await _subPlanRepository.GetByConditionAsync(sp => sp.Id == id);
 			if (existingPlan == null)
 			{
 				return BaseResponse<string>.Fail("Subscription plan not found.", ErrorType.NotFound);
@@ -79,7 +79,7 @@ namespace studeehub.Application.Services
 				return BaseResponse<string>.Fail("Validation failed", ErrorType.Validation, errors);
 			}
 
-			var existingPlan = await _subPlanRepository.GetByIdAsync(sp => sp.Id == id);
+			var existingPlan = await _subPlanRepository.GetByConditionAsync(sp => sp.Id == id);
 			if (existingPlan == null)
 			{
 				return BaseResponse<string>.Fail("Subscription plan not found.", ErrorType.NotFound);
@@ -88,7 +88,7 @@ namespace studeehub.Application.Services
 			// Check for code uniqueness if the code is being changed
 			if (!string.Equals(existingPlan.Code, request.Code, StringComparison.OrdinalIgnoreCase))
 			{
-				var codeConflictPlan = await _subPlanRepository.GetByIdAsync(sp => sp.Code == request.Code);
+				var codeConflictPlan = await _subPlanRepository.GetByConditionAsync(sp => sp.Code == request.Code);
 				if (codeConflictPlan != null)
 				{
 					return BaseResponse<string>.Fail($"A subscription plan with code '{request.Code}' already exists.", ErrorType.Conflict);

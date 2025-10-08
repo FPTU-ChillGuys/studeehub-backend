@@ -41,7 +41,7 @@ namespace studeehub.Application.Services
 			}
 
 			// Prevent duplicate streak for same user and type
-			var existing = await _streakRepository.GetByIdAsync(s => s.UserId == request.UserId && s.Type == request.Type);
+			var existing = await _streakRepository.GetByConditionAsync(s => s.UserId == request.UserId && s.Type == request.Type);
 
 			if (existing != null)
 				return BaseResponse<string>.Fail("Streak already exists for this type", ErrorType.Conflict);
@@ -64,7 +64,7 @@ namespace studeehub.Application.Services
 				return BaseResponse<string>.Fail("Validation failed", ErrorType.Validation, errors);
 			}
 
-			var existingStreak = await _streakRepository.GetByIdAsync(s => s.UserId == userId && s.Type == request.Type);
+			var existingStreak = await _streakRepository.GetByConditionAsync(s => s.UserId == userId && s.Type == request.Type);
 			if (existingStreak == null)
 			{
 				var createReq = new CreateStreakRequest
