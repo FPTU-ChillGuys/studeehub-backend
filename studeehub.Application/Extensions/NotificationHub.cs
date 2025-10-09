@@ -1,12 +1,12 @@
 ﻿using Microsoft.AspNetCore.SignalR;
-using studeehub.Application.DTOs.Requests.Achievement;
+using studeehub.Application.DTOs.Responses.Achievement;
 
 namespace studeehub.Infrastructure.Extensions
 {
 	public class NotificationHub : Hub
 	{
-        // user achievement service
-        public async Task SendAchievementUnlocked(Guid userId, GetAchievemRequest achievement)
+		// user achievement service
+		public async Task SendAchievementUnlocked(Guid userId, GetAchievemResponse achievement)
 		{
 			await Clients.User(userId.ToString())
 				.SendAsync("AchievementUnlocked", achievement);

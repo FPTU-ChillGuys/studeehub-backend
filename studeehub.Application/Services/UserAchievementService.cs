@@ -1,8 +1,8 @@
 ﻿using FluentValidation;
 using MapsterMapper;
 using Microsoft.AspNetCore.SignalR;
-using studeehub.Application.DTOs.Requests.Achievement;
 using studeehub.Application.DTOs.Requests.UserAchievem;
+using studeehub.Application.DTOs.Responses.Achievement;
 using studeehub.Application.Interfaces.Repositories;
 using studeehub.Application.Interfaces.Services;
 using studeehub.Domain.Entities;
@@ -100,7 +100,7 @@ namespace studeehub.Application.Services
 			}
 
 			// build DTO for notification and send to connected user(s)
-			var getAchievemRequest = _mapper.Map<GetAchievemRequest>(achievement);
+			var getAchievemRequest = _mapper.Map<GetAchievemResponse>(achievement);
 
 			await _hubContext.Clients.User(request.UserId.ToString())
 				.SendAsync("AchievementUnlocked", getAchievemRequest);

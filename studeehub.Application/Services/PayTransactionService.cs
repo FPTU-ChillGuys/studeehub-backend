@@ -22,7 +22,7 @@ namespace studeehub.Application.Services
 		private readonly IVnPayService _vnPayService;
 		private readonly IEmailService _emailService;
 		private readonly IEmailTemplateService _emailTemplateService;
-        private readonly ILogger<PayTransactionService> _logger;
+		private readonly ILogger<PayTransactionService> _logger;
 		private readonly IUnitOfWork _unitOfWork;
 
 		public PayTransactionService(
@@ -169,9 +169,9 @@ namespace studeehub.Application.Services
 					if (subscription == null)
 					{
 						return BaseResponse<string>.Fail("Subscription not found for payment", ErrorType.NotFound);
-                    }
+					}
 
-                    subscription.Status = SubscriptionStatus.Active;
+					subscription.Status = SubscriptionStatus.Active;
 
 					// Defensive check: ensure SubscriptionPlan is present
 					if (subscription.SubscriptionPlan == null)
@@ -229,9 +229,9 @@ namespace studeehub.Application.Services
 							var endDate = subscription.EndDate;
 
 							var subject = $"Your subscription \"{planName}\" is now active";
-                            var htmlBody = _emailTemplateService.SubscriptionActivatedTemplate(fullName, planName, endDate);
+							var htmlBody = _emailTemplateService.SubscriptionActivatedTemplate(fullName, planName, endDate);
 
-                            await _emailService.SendEmailAsync(userEmail, subject, htmlBody);
+							await _emailService.SendEmailAsync(userEmail, subject, htmlBody);
 						}
 						else
 						{

@@ -1,5 +1,6 @@
 ﻿using Mapster;
 using studeehub.Application.DTOs.Requests.Achievement;
+using studeehub.Application.DTOs.Responses.Achievement;
 using studeehub.Domain.Entities;
 
 namespace studeehub.Application.Mappings
@@ -16,9 +17,7 @@ namespace studeehub.Application.Mappings
 				.Map(dest => dest.ConditionType, src => src.ConditionType)
 				.Map(dest => dest.ConditionValue, src => src.ConditionValue)
 				.Map(dest => dest.RewardType, src => src.RewardType)
-				.Map(dest => dest.RewardValue, src => src.RewardValue)
-				// IsActive default is true on entity; no need to map explicitly for create.
-				;
+				.Map(dest => dest.RewardValue, src => src.RewardValue);
 
 			config.NewConfig<UpdateAchievemRequest, Achievement>()
 				.Map(dest => dest.Code, src => src.Code)
@@ -30,7 +29,7 @@ namespace studeehub.Application.Mappings
 				.Map(dest => dest.RewardValue, src => src.RewardValue)
 				.Map(dest => dest.IsActive, src => src.IsActive);
 
-			config.NewConfig<Achievement, GetAchievemRequest>()
+			config.NewConfig<Achievement, GetAchievemResponse>()
 				.Map(dest => dest.Id, src => src.Id)
 				.Map(dest => dest.Name, src => src.Name)
 				.Map(dest => dest.Description, src => src.Description)

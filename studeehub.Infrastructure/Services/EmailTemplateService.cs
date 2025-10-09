@@ -211,13 +211,13 @@ namespace studeehub.Infrastructure.Services
 			return WrapHtml("Gói đăng ký StudeeHub của bạn đã hết hạn", "Thông báo gia hạn đăng ký", body);
 		}
 
-        public string SubscriptionActivatedTemplate(string fullName, string planName, DateTime endDate)
-        {
-            var safeName = WebUtility.HtmlEncode(fullName);
-            var safePlan = WebUtility.HtmlEncode(planName);
-            var formattedEnd = WebUtility.HtmlEncode(endDate.ToString("MMMM dd, yyyy"));
+		public string SubscriptionActivatedTemplate(string fullName, string planName, DateTime endDate)
+		{
+			var safeName = WebUtility.HtmlEncode(fullName);
+			var safePlan = WebUtility.HtmlEncode(planName);
+			var formattedEnd = WebUtility.HtmlEncode(endDate.ToString("MMMM dd, yyyy"));
 
-            var body = $@"
+			var body = $@"
 	<h2 class='greeting'>Chào mừng {safeName},</h2>
 
 	<p class='message'>
@@ -250,11 +250,11 @@ namespace studeehub.Infrastructure.Services
 		Cảm ơn bạn đã đồng hành cùng <strong>StudeeHub</strong>!
 	</p>";
 
-            return WrapHtml(
-                $"Gói {planName} đã được kích hoạt thành công",
-                $"Kích hoạt thành công — {planName}",
-                body
-            );
-        }
-    }
+			return WrapHtml(
+				$"Gói {planName} đã được kích hoạt thành công",
+				$"Kích hoạt thành công — {planName}",
+				body
+			);
+		}
+	}
 }

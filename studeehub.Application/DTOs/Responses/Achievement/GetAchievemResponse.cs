@@ -1,8 +1,8 @@
 ﻿using studeehub.Domain.Enums.Achievements;
 
-namespace studeehub.Application.DTOs.Requests.Achievement
+namespace studeehub.Application.DTOs.Responses.Achievement
 {
-	public class GetAchievemRequest
+	public class GetAchievemResponse
 	{
 		public Guid Id { get; set; }
 		public string Name { get; set; } = string.Empty;

@@ -69,6 +69,7 @@ namespace studeehub.Application.Extensions
 			services.AddScoped<IValidator<UpdateNoteRequest>, UpdateNoteValidator>();
 			services.AddScoped<IValidator<CreateStreakRequest>, CreateStreakValidator>();
 			services.AddScoped<IValidator<UpdateStreakRequest>, UpdateStreakValidator>();
+			services.AddScoped<IValidator<GetAchievemsRequest>, GetAchievemValidator>();
 			services.AddScoped<IValidator<CreateAchievemRequest>, CreateAchievemValidator>();
 			services.AddScoped<IValidator<UpdateAchievemRequest>, UpdateAchievemValidator>();
 			services.AddScoped<IValidator<UnlockAchivemRequest>, UnclockAchievemValidator>();
