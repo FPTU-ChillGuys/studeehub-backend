@@ -20,7 +20,9 @@ namespace studeehub.Application.Services
 		private readonly IGenericRepository<Subscription> _subscriptionRepository;
 		private readonly IGenericRepository<SubscriptionPlan> _subscriptionPlanRepository;
 		private readonly IVnPayService _vnPayService;
-		private readonly ILogger<PayTransactionService> _logger;
+		private readonly IEmailService _emailService;
+		private readonly IEmailTemplateService _emailTemplateService;
+        private readonly ILogger<PayTransactionService> _logger;
 		private readonly IUnitOfWork _unitOfWork;
 
 		public PayTransactionService(
@@ -29,7 +31,9 @@ namespace studeehub.Application.Services
 			IGenericRepository<SubscriptionPlan> subscriptionPlanRepository,
 			IVnPayService vnPayService,
 			ILogger<PayTransactionService> logger,
-			IUnitOfWork unitOfWork)
+			IUnitOfWork unitOfWork,
+			IEmailService emailService,
+			IEmailTemplateService emailTemplateService)
 		{
 			_paymentTransactionRepository = paymentTransactionRepository;
 			_subscriptionRepository = subscriptionRepository;
@@ -37,6 +41,8 @@ namespace studeehub.Application.Services
 			_vnPayService = vnPayService;
 			_logger = logger;
 			_unitOfWork = unitOfWork;
+			_emailService = emailService;
+			_emailTemplateService = emailTemplateService;
 		}
 
 		public async Task<BaseResponse<string>> CreatePaymentSessionAsync(CreatePaymentSessionRequest request, HttpContext httpContext)
@@ -134,6 +140,9 @@ namespace studeehub.Application.Services
 			// STEP 3: Start transaction
 			using var transaction = await _unitOfWork.BeginTransactionAsync();
 
+			Subscription? subscription = null;
+			var paymentSucceeded = false;
+
 			try
 			{
 				// --- Always update transaction state, even on failure ---
@@ -151,13 +160,18 @@ namespace studeehub.Application.Services
 				// --- Only activate subscription when payment succeeded ---
 				if (payment.Status == TransactionStatus.Success)
 				{
-					var subscription = await _subscriptionRepository.GetByConditionAsync(
+					subscription = await _subscriptionRepository.GetByConditionAsync(
 						s => s.Id == payment.SubscriptionId,
-						q => q.Include(s => s.SubscriptionPlan),
+						q => q.Include(s => s.SubscriptionPlan).Include(s => s.User),
 						asNoTracking: false
-					) ?? throw new Exception("Subscription not found for payment");
+					);
 
-					subscription.Status = SubscriptionStatus.Active;
+					if (subscription == null)
+					{
+						return BaseResponse<string>.Fail("Subscription not found for payment", ErrorType.NotFound);
+                    }
+
+                    subscription.Status = SubscriptionStatus.Active;
 
 					// Defensive check: ensure SubscriptionPlan is present
 					if (subscription.SubscriptionPlan == null)
@@ -176,10 +190,12 @@ namespace studeehub.Application.Services
 
 					_subscriptionRepository.Update(subscription);
 					await _unitOfWork.SaveChangesAsync();
+
+					paymentSucceeded = true;
 				}
 				else
 				{
-					var subscription = await _subscriptionRepository.GetByConditionAsync(
+					subscription = await _subscriptionRepository.GetByConditionAsync(
 						s => s.Id == payment.SubscriptionId,
 						asNoTracking: false
 					);
@@ -197,6 +213,37 @@ namespace studeehub.Application.Services
 				}
 
 				await _unitOfWork.CommitAsync(transaction);
+
+				// --- Send notification email if payment succeeded and we have user email ---
+				if (paymentSucceeded && subscription != null)
+				{
+					try
+					{
+						var userEmail = subscription.User?.Email;
+						if (!string.IsNullOrWhiteSpace(userEmail))
+						{
+							// Prefer a template if available. There is no explicit "activation" template,
+							// reuse upcoming-expiry template to communicate activation + expiry date.
+							var fullName = subscription.User?.UserName ?? userEmail;
+							var planName = subscription.SubscriptionPlan?.Name ?? "your plan";
+							var endDate = subscription.EndDate;
+
+							var subject = $"Your subscription \"{planName}\" is now active";
+                            var htmlBody = _emailTemplateService.SubscriptionActivatedTemplate(fullName, planName, endDate);
+
+                            await _emailService.SendEmailAsync(userEmail, subject, htmlBody);
+						}
+						else
+						{
+							_logger.LogWarning("Subscription {SubscriptionId} activated but user email is missing", subscription.Id);
+						}
+					}
+					catch (Exception ex)
+					{
+						// Log errors while sending email but do not fail the whole callback processing.
+						_logger.LogError(ex, "Failed to send subscription activation email for subscription {SubscriptionId}", subscription.Id);
+					}
+				}
 
 				var message = payment.Status == TransactionStatus.Success
 					? "VNPay payment successful"

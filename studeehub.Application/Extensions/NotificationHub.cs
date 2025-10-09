@@ -5,11 +5,14 @@ namespace studeehub.Infrastructure.Extensions
 {
 	public class NotificationHub : Hub
 	{
-		public async Task SendAchievementUnlocked(Guid userId, GetAchievemRequest achievement)
+        // user achievement service
+        public async Task SendAchievementUnlocked(Guid userId, GetAchievemRequest achievement)
 		{
 			await Clients.User(userId.ToString())
 				.SendAsync("AchievementUnlocked", achievement);
 		}
+
+		// send remider job service
 		public async Task SendScheduleReminder(Guid userId, object scheduleInfo)
 		{
 			await Clients.User(userId.ToString())

@@ -210,5 +210,51 @@ namespace studeehub.Infrastructure.Services
 
 			return WrapHtml("Gói đăng ký StudeeHub của bạn đã hết hạn", "Thông báo gia hạn đăng ký", body);
 		}
-	}
+
+        public string SubscriptionActivatedTemplate(string fullName, string planName, DateTime endDate)
+        {
+            var safeName = WebUtility.HtmlEncode(fullName);
+            var safePlan = WebUtility.HtmlEncode(planName);
+            var formattedEnd = WebUtility.HtmlEncode(endDate.ToString("MMMM dd, yyyy"));
+
+            var body = $@"
+	<h2 class='greeting'>Chào mừng {safeName},</h2>
+
+	<p class='message'>
+		🎉 Chúc mừng! Gói <strong>{safePlan}</strong> của bạn đã được <span class='highlight'>kích hoạt thành công</span>.
+	</p>
+
+	<div class='info-box'>
+		<p style='margin-top:0; font-weight:600; color:#667eea; font-size:15px;'>THÔNG TIN GÓI CỦA BẠN</p>
+		<ul style='list-style:none; padding:0;'>
+			<li style='margin:12px 0;'><strong>Tên gói:</strong> {safePlan}</li>
+			<li style='margin:12px 0;'><strong>Ngày hết hạn:</strong> {formattedEnd}</li>
+		</ul>
+	</div>
+
+	<p class='message'>
+		Từ giờ bạn đã có quyền truy cập đầy đủ vào tất cả các tính năng cao cấp của <span class='highlight'>StudeeHub</span> —
+		gồm AI Note Assistant, Flashcard thông minh, và hệ thống nhắc học tập tự động.
+	</p>
+
+	<div class='divider'></div>
+
+	<p style='text-align:center; margin:32px 0;'>
+		<a class='button' href='https://studeehub.app/dashboard'>
+			Bắt đầu học ngay
+		</a>
+	</p>
+
+	<p class='small' style='text-align:center;'>
+		Hãy tận dụng sức mạnh của công cụ học tập cá nhân hóa để đạt hiệu quả tối đa.
+		Cảm ơn bạn đã đồng hành cùng <strong>StudeeHub</strong>!
+	</p>";
+
+            return WrapHtml(
+                $"Gói {planName} đã được kích hoạt thành công",
+                $"Kích hoạt thành công — {planName}",
+                body
+            );
+        }
+    }
 }

@@ -1,4 +1,6 @@
-﻿namespace studeehub.Application.Interfaces.Services.ThirdPartyServices
+﻿using System.Net;
+
+namespace studeehub.Application.Interfaces.Services.ThirdPartyServices
 {
 	public interface IEmailTemplateService
 	{
@@ -9,6 +11,6 @@
 		public string StreakReminderTemplate(string fullname);
 		public string ExpiredSubscriptionTemplate(string fullname, string planName, DateTime endDate);
 		public string UpcomingExpiryTemplate(string fullname, string planName, DateTime endDate);
-
-	}
+		public string SubscriptionActivatedTemplate(string fullName, string planName, DateTime endDate);
+    }
 }
