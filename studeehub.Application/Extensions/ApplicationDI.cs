@@ -54,8 +54,6 @@ namespace studeehub.Application.Extensions
 			config.Scan(typeof(UserAchievementRegister).Assembly);
 			config.Scan(typeof(ScheduleRegister).Assembly);
 			config.Scan(typeof(SubscriptionPlanRegister).Assembly);
-			config.Scan(typeof(PayTransactionRegister).Assembly);
-			config.Scan(typeof(SubscriptionRegister).Assembly);
 
 			// Register TypeAdapterConfig and Mapster IMapper (ServiceMapper)
 			services.AddSingleton(config);

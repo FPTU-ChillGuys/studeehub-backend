@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using MapsterMapper;
+using Microsoft.Extensions.Logging;
 using studeehub.Application.DTOs.Requests.Document;
 using studeehub.Application.DTOs.Responses.Base;
 using studeehub.Application.DTOs.Responses.Document;
@@ -7,6 +8,7 @@ using studeehub.Application.Interfaces.Repositories;
 using studeehub.Application.Interfaces.Services;
 using studeehub.Application.Interfaces.Services.ThirdPartyServices;
 using studeehub.Domain.Entities;
+using studeehub.Domain.Enums;
 
 namespace studeehub.Application.Services
 {
@@ -17,14 +19,16 @@ namespace studeehub.Application.Services
 		private readonly IValidator<CreateDocumentRequest> _createDocumentValidator;
 		private readonly IValidator<UpdateDocumentRequest> _updateDocumentValidator;
 		private readonly IMapper _mapper;
+		private readonly ILogger<DocumentService> _logger;
 
-		public DocumentService(ISupabaseStorageService supabaseStorageService, IGenericRepository<Document> genericRepository, IValidator<CreateDocumentRequest> createDocumentValidator, IMapper mapper, IValidator<UpdateDocumentRequest> updateDocumentValidator)
+		public DocumentService(ISupabaseStorageService supabaseStorageService, IGenericRepository<Document> genericRepository, IValidator<CreateDocumentRequest> createDocumentValidator, IMapper mapper, IValidator<UpdateDocumentRequest> updateDocumentValidator, ILogger<DocumentService> logger)
 		{
 			_supabaseStorageService = supabaseStorageService;
 			_genericRepository = genericRepository;
 			_createDocumentValidator = createDocumentValidator;
 			_mapper = mapper;
 			_updateDocumentValidator = updateDocumentValidator;
+			_logger = logger;
 		}
 
 		public async Task<BaseResponse<string>> CreateDocumentAsync(CreateDocumentRequest request)
@@ -86,6 +90,49 @@ namespace studeehub.Application.Services
 			return result
 				? BaseResponse<string>.Ok("Document updated successfully")
 				: BaseResponse<string>.Fail("Failed to update Document", Domain.Enums.ErrorType.ServerError);
+		}
+
+		public async Task<BaseResponse<string>> DeleteDocumentAsync(Guid id)
+		{
+			var document = await _genericRepository.GetByConditionAsync(d => d.Id == id);
+			if (document == null)
+				return BaseResponse<string>.Fail("Document not found", ErrorType.NotFound);
+
+			try
+			{
+				// If there is a FilePath, attempt to delete it from storage. Do not fail the entire operation
+				// if extraction or deletion of the file path fails — continue and still attempt DB removal.
+				if (!string.IsNullOrWhiteSpace(document.FilePath))
+				{
+					try
+					{
+						var filePath = await _supabaseStorageService.ExtractFilePathFromUrl(document.FilePath);
+
+						// If delete fails, do not throw; log/continue. We don't have a logger here so observe the boolean.
+						var deleted = await _supabaseStorageService.DeleteFileAsync(filePath);
+						// If you want to fail the whole operation when storage delete fails, change behavior here.
+					}
+					catch (Exception ex)
+					{
+						_logger.LogError(ex, "Error deleting file from storage for Document ID {DocumentId}", id);
+						// Swallow per-file-delete errors to avoid leaving the DB entry undeleted.
+						// Consider logging this exception with a real ILogger in production.
+					}
+				}
+
+				// Delete DB entry
+				_genericRepository.Remove(document);
+				var result = await _genericRepository.SaveChangesAsync();
+
+				return result
+					? BaseResponse<string>.Ok("Document deleted successfully")
+					: BaseResponse<string>.Fail("Failed to delete document", ErrorType.ServerError);
+			}
+			catch (Exception ex)
+			{
+				// Handle partial failures (file deleted but db not saved, etc.)
+				return BaseResponse<string>.Fail($"Error deleting document: {ex.Message}", ErrorType.ServerError);
+			}
 		}
 	}
 }

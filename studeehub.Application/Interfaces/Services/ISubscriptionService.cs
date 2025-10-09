@@ -6,5 +6,6 @@ namespace studeehub.Application.Interfaces.Services
 	{
 		public Task<List<Subscription>> GetExpiringSubscriptionsAsync(int daysBeforeExpiration);
 		public Task Update(Subscription subscription);
+		public Task<IEnumerable<Subscription>> GetExpiredSubscriptionsAsync();
 	}
 }

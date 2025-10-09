@@ -12,6 +12,8 @@ namespace studeehub.Domain.Entities
 		public int LongestCount { get; set; } = 0;
 		public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
 
+		public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
 		public virtual User User { get; set; } = null!;
 	}
 }

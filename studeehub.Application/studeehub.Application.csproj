@@ -20,10 +20,4 @@
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.20" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="DTOs\Requests\Subscription\" />
-    <Folder Include="Validators\PaymentTXNValidators\" />
-    <Folder Include="Validators\SubscriptionValidators\" />
-  </ItemGroup>
-
 </Project>

@@ -18,13 +18,22 @@ namespace studeehub.Persistence.Repositories
 		/// </summary>
 		public async Task<IEnumerable<Schedule>> GetUpcomingSchedulesToRemindAsync(DateTime now)
 		{
-			// Server-side safe filter: schedules starting in the next hour and not yet reminded.
+			// Determine server-side lookahead based on maximum ReminderMinutesBefore in DB.
+			// Use a sensible fallback (60 minutes) if there are no schedules or the value is small.
+			var maxReminder = await _context.Schedules
+				.AsNoTracking()
+				.Select(s => (int?)s.ReminderMinutesBefore)
+				.MaxAsync() ?? 0;
+
+			var lookaheadMinutes = Math.Max(maxReminder, 60); // at least 60 minutes lookahead
+
+			// Server-side safe filter: schedules starting in the next lookahead and not yet reminded.
 			var candidates = await _context.Schedules
 				.AsNoTracking()
 				.Include(s => s.User)
 				.Where(s =>
 					s.StartTime > now &&
-					s.StartTime <= now.AddMinutes(60) && // starts within an hour
+					s.StartTime <= now.AddMinutes(lookaheadMinutes) && // starts within lookahead
 					!s.IsReminded)
 				.ToListAsync();
 

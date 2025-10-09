@@ -19,6 +19,11 @@
 		public int MaxStorageMB { get; set; } = 0;
 		public bool HasAIAnalysis { get; set; } = true;
 
+		public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+		public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+		public DateTime? DeletedAt { get; set; }
+		public bool IsDeleted { get; set; } = false;
+
 		public virtual ICollection<Subscription> Subscriptions { get; set; } = new List<Subscription>();
 	}
 }

@@ -8,5 +8,7 @@
 		public string GetForgotPasswordTemplate(string username, string resetUrl);
 		public string StreakReminderTemplate(string fullname);
 		public string ExpiredSubscriptionTemplate(string fullname, string planName, DateTime endDate);
+		public string UpcomingExpiryTemplate(string fullname, string planName, DateTime endDate);
+
 	}
 }

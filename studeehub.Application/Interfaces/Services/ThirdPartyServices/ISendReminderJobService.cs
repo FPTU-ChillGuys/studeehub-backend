@@ -7,6 +7,8 @@
 		public Task SendScheduleReminderAsync();
 		public void ScheduleScheduleReminderJob();
 		public Task SendExpiredSubscriptionReminderAsync();
-		public void ScheduleExpiredSubscriptionReminderJob();
+		public Task SendUpcomingSubscriptionReminderAsync();
+		public void ScheduleSubscriptionReminderJobs();
+
 	}
 }

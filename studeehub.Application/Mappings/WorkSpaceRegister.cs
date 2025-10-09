@@ -17,6 +17,7 @@ namespace studeehub.Application.Mappings
 
 			config.NewConfig<UpdateWorkSpaceRequest, WorkSpace>()
 				.Map(dest => dest.Name, src => src.Name)
+				.Map(dest => dest.Description, src => src.Description)
 				.Map(dest => dest.UpdatedAt, src => DateTime.UtcNow);
 		}
 	}

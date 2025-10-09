@@ -42,9 +42,9 @@ namespace studeehub.Application.Services
 		public async Task<BaseResponse<string>> CreatePaymentSessionAsync(CreatePaymentSessionRequest request, HttpContext httpContext)
 		{
 			// 1️⃣ Validate plan
-			var plan = await _subscriptionPlanRepository.GetByConditionAsync(p => p.Id == request.SubscriptionPlanId);
+			var plan = await _subscriptionPlanRepository.GetByConditionAsync(p => p.Id == request.SubscriptionPlanId && p.IsActive);
 			if (plan == null)
-				return BaseResponse<string>.Fail("Subscription plan not found", ErrorType.NotFound);
+				return BaseResponse<string>.Fail("Subscription plan not found or Inactive", ErrorType.NotFound);
 
 			// 2️⃣ Prevent duplicate active subscription
 			var existing = await _subscriptionRepository.GetByConditionAsync(
@@ -57,16 +57,19 @@ namespace studeehub.Application.Services
 			try
 			{
 				// 4️⃣ Create subscription
+				var now = DateTime.UtcNow;
 				var subscription = new Subscription
 				{
 					Id = Guid.NewGuid(),
 					UserId = request.UserId,
 					SubscriptionPlanId = plan.Id,
-					StartDate = DateTime.UtcNow,
-					EndDate = DateTime.UtcNow,
+					StartDate = now,
+					EndDate = now,
 					Status = SubscriptionStatus.Pending,
-					IsExpiryNotified = false,
-					CreatedAt = DateTime.UtcNow
+					IsPreExpiryNotified = false,
+					IsPostExpiryNotified = false,
+					CreatedAt = now,
+					UpdatedAt = now // <-- ensure UpdatedAt is initialized
 				};
 
 				await _subscriptionRepository.AddAsync(subscription);
@@ -156,6 +159,12 @@ namespace studeehub.Application.Services
 
 					subscription.Status = SubscriptionStatus.Active;
 
+					// Defensive check: ensure SubscriptionPlan is present
+					if (subscription.SubscriptionPlan == null)
+					{
+						return BaseResponse<string>.Fail("Subscription plan data missing", ErrorType.ServerError);
+					}
+
 					// Extend subscription duration properly
 					var startDate = subscription.EndDate > DateTime.UtcNow
 						? subscription.EndDate
@@ -163,6 +172,7 @@ namespace studeehub.Application.Services
 
 					subscription.StartDate = startDate;
 					subscription.EndDate = startDate.AddDays(subscription.SubscriptionPlan.DurationInDays);
+					subscription.UpdatedAt = DateTime.UtcNow; // <-- set UpdatedAt
 
 					_subscriptionRepository.Update(subscription);
 					await _unitOfWork.SaveChangesAsync();
@@ -172,9 +182,15 @@ namespace studeehub.Application.Services
 					var subscription = await _subscriptionRepository.GetByConditionAsync(
 						s => s.Id == payment.SubscriptionId,
 						asNoTracking: false
-					) ?? throw new Exception("Subscription not found for payment");
+					);
+
+					if (subscription == null)
+					{
+						return BaseResponse<string>.Fail("Subscription not found for payment", ErrorType.NotFound);
+					}
 
 					subscription.Status = SubscriptionStatus.Failed;
+					subscription.UpdatedAt = DateTime.UtcNow; // <-- set UpdatedAt
 
 					_subscriptionRepository.Update(subscription);
 					await _unitOfWork.SaveChangesAsync();

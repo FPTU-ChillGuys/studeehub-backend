@@ -32,5 +32,12 @@ namespace studeehub.API.Controllers
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
 		public async Task<BaseResponse<string>> UpdateWorkSpace([FromRoute] Guid id, [FromBody] UpdateWorkSpaceRequest requests)
 			=> await _workSpaceService.UpdateWorkSpaceAsync(id, requests);
+
+		[HttpDelete("{id:Guid}")]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status404NotFound)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
+		public async Task<BaseResponse<string>> DeleteWorkSpace([FromRoute] Guid id)
+			=> await _workSpaceService.DeleteWorkSpaceAsync(id);
 	}
 }

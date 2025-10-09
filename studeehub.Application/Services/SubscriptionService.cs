@@ -13,6 +13,9 @@ namespace studeehub.Application.Services
 			_subscriptionRepository = subscriptionRepository;
 		}
 
+		public async Task<IEnumerable<Subscription>> GetExpiredSubscriptionsAsync()
+		 => await _subscriptionRepository.GetExpiredSubscriptionsAsync();
+
 		public async Task<List<Subscription>> GetExpiringSubscriptionsAsync(int daysBeforeExpiration)
 			=> await _subscriptionRepository.GetExpiringSubscriptionsAsync(daysBeforeExpiration);
 

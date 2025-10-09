@@ -47,6 +47,11 @@ namespace studeehub.Infrastructure.Services
 				try
 				{
 					var template = _emailTemplateService.StreakReminderTemplate(user.FullName);
+					if (string.IsNullOrWhiteSpace(user.Email))
+					{
+						_logger.LogWarning("Skipping streak reminder because email is missing for user {UserId}", user.Id);
+						continue;
+					}
 					await _emailService.SendEmailAsync(user.Email!, "🔥 Don’t lose your streak!", template);
 				}
 				catch (Exception ex)
@@ -66,6 +71,17 @@ namespace studeehub.Infrastructure.Services
 			foreach (var schedule in upcomingSchedules)
 			{
 				var user = schedule.User;
+				if (user == null)
+				{
+					_logger.LogWarning("Skipping schedule reminder for schedule {ScheduleId} because User is null", schedule.Id);
+					continue;
+				}
+				if (string.IsNullOrWhiteSpace(user.Email))
+				{
+					_logger.LogWarning("Skipping schedule reminder for schedule {ScheduleId} because user {UserId} has no email", schedule.Id, user.Id);
+					continue;
+				}
+
 				var subject = $"⏰ Reminder: {schedule.Title} starts soon!";
 				var body = _emailTemplateService.ScheduleReminderTemplate(user.FullName, schedule.Title, schedule.StartTime);
 
@@ -95,7 +111,15 @@ namespace studeehub.Infrastructure.Services
 				}
 
 				schedule.IsReminded = true;
-				await _scheduleService.UpdateAsync(schedule);
+
+				try
+				{
+					await _scheduleService.UpdateAsync(schedule);
+				}
+				catch (Exception ex)
+				{
+					_logger.LogError(ex, "Failed to update schedule {ScheduleId} after sending reminder", schedule.Id);
+				}
 			}
 
 			// Check-in reminders (event already started but not checked in)
@@ -104,6 +128,12 @@ namespace studeehub.Infrastructure.Services
 			foreach (var schedule in checkinSchedules)
 			{
 				var user = schedule.User;
+				if (user == null || string.IsNullOrWhiteSpace(user.Email))
+				{
+					_logger.LogWarning("Skipping check-in reminder for schedule {ScheduleId} because user or email missing", schedule.Id);
+					continue;
+				}
+
 				var subject = $"📅 Time to check in: {schedule.Title}";
 				var body = _emailTemplateService.ScheduleCheckinTemplate(user.FullName, schedule.Title);
 
@@ -133,6 +163,91 @@ namespace studeehub.Infrastructure.Services
 			}
 		}
 
+		public async Task SendUpcomingSubscriptionReminderAsync()
+		{
+			const int daysBeforeExpiration = 3;
+			var now = DateTime.UtcNow;
+
+			var upcoming = await _subscriptionService.GetExpiringSubscriptionsAsync(daysBeforeExpiration);
+
+			if (upcoming == null || upcoming.Count == 0)
+			{
+				_logger.LogInformation("No upcoming subscriptions found for pre-expiry reminder.");
+				return;
+			}
+
+			foreach (var sub in upcoming)
+			{
+				if (sub.IsPreExpiryNotified) continue;
+				var user = sub.User;
+				if (user == null || string.IsNullOrWhiteSpace(user.Email)) continue;
+
+				var daysLeft = Math.Max(0, (int)Math.Ceiling((sub.EndDate - now).TotalDays));
+
+				var subject = $"⏰ Gói StudeeHub của bạn sẽ hết hạn sau {daysLeft} ngày";
+				var body = _emailTemplateService.UpcomingExpiryTemplate(
+					string.IsNullOrWhiteSpace(user.FullName) ? user.UserName ?? "Học viên" : user.FullName,
+					sub.SubscriptionPlan?.Name ?? "Gói hiện tại",
+					sub.EndDate);
+
+				try
+				{
+					await _emailService.SendEmailAsync(user.Email!, subject, body);
+					sub.IsPreExpiryNotified = true;
+					sub.PreExpiryNotifiedAt = DateTime.UtcNow;
+
+					await _subscriptionService.Update(sub);
+					_logger.LogInformation("Sent pre-expiry email to {Email}", user.Email);
+				}
+				catch (Exception ex)
+				{
+					_logger.LogError(ex, "Failed to send pre-expiry email to {Email}", user.Email);
+				}
+			}
+		}
+
+		public async Task SendExpiredSubscriptionReminderAsync()
+		{
+			var now = DateTime.UtcNow;
+
+			var expiredSubs = await _subscriptionService.GetExpiredSubscriptionsAsync();
+
+			if (expiredSubs == null || !expiredSubs.Any())
+			{
+				_logger.LogInformation("No expired subscriptions found for post-expiry reminder.");
+				return;
+			}
+
+			foreach (var sub in expiredSubs)
+			{
+				if (sub.IsPostExpiryNotified) continue;
+				if (sub.EndDate > now) continue;
+
+				var user = sub.User;
+				if (user == null || string.IsNullOrWhiteSpace(user.Email)) continue;
+
+				var subject = "⚠️ Gói StudeeHub của bạn đã hết hạn";
+				var body = _emailTemplateService.ExpiredSubscriptionTemplate(
+					string.IsNullOrWhiteSpace(user.FullName) ? user.UserName ?? "Học viên" : user.FullName,
+					sub.SubscriptionPlan?.Name ?? "Gói đăng ký",
+					sub.EndDate);
+
+				try
+				{
+					await _emailService.SendEmailAsync(user.Email!, subject, body);
+					sub.IsPostExpiryNotified = true;
+					sub.PostExpiryNotifiedAt = DateTime.UtcNow;
+
+					await _subscriptionService.Update(sub);
+					_logger.LogInformation("Sent post-expiry email to {Email}", user.Email);
+				}
+				catch (Exception ex)
+				{
+					_logger.LogError(ex, "Failed to send post-expiry email to {Email}", user.Email);
+				}
+			}
+		}
+
 		public void ScheduleDailyStreakReminderJob()
 		{
 			_recurringJobManager.AddOrUpdate<ISendReminderJobService>(
@@ -149,80 +264,19 @@ namespace studeehub.Infrastructure.Services
 				"*/5 * * * *"); // every 5 minutes
 		}
 
-		public async Task SendExpiredSubscriptionReminderAsync()
+		public void ScheduleSubscriptionReminderJobs()
 		{
-			const int daysBeforeExpiration = 3; // consider moving to configuration
-			var now = DateTime.UtcNow;
+			// Pre-expiry reminder (daily 9 AM UTC)
+			_recurringJobManager.AddOrUpdate<ISendReminderJobService>(
+				"upcoming-subscription-reminder-job",
+				svc => svc.SendUpcomingSubscriptionReminderAsync(),
+				"0 9 * * *");
 
-			var expiringSubscriptions = await _subscriptionService.GetExpiringSubscriptionsAsync(daysBeforeExpiration);
-			if (expiringSubscriptions == null || !expiringSubscriptions.Any())
-			{
-				_logger.LogInformation("No expiring subscriptions found for reminder.");
-				return;
-			}
-
-			// De-duplicate so each user receives a single reminder (choose the most relevant subscription)
-			var latestPerUser = expiringSubscriptions
-				.GroupBy(s => s.UserId)
-				.Select(g => g.OrderByDescending(s => s.EndDate).First())
-				.ToList();
-
-			foreach (var subscription in latestPerUser)
-			{
-				var user = subscription.User;
-				if (user == null || string.IsNullOrWhiteSpace(user.Email))
-				{
-					_logger.LogWarning("Skipping subscription {SubscriptionId} because user or email is missing", subscription.Id);
-					continue;
-				}
-
-				var daysLeftDouble = (subscription.EndDate - now).TotalDays;
-				var daysLeft = daysLeftDouble <= 0 ? 0 : (int)Math.Ceiling(daysLeftDouble);
-
-				var subject = $"🔔 Your subscription expires in {daysLeft} day{(daysLeft == 1 ? "" : "s")}";
-				var body = _emailTemplateService.ExpiredSubscriptionTemplate(
-					string.IsNullOrWhiteSpace(user.FullName) ? user.UserName ?? "User" : user.FullName,
-					subscription.SubscriptionPlan?.Name ?? "your plan",
-					subscription.EndDate);
-
-				try
-				{
-					await _emailService.SendEmailAsync(user.Email!, subject, body);
-					_logger.LogInformation("Sent subscription expiry email to {Email} for subscription {SubscriptionId}", user.Email, subscription.Id);
-				}
-				catch (Exception ex)
-				{
-					_logger.LogError(ex, "Failed to send subscription expiry email to {Email} for subscription {SubscriptionId}", user.Email, subscription.Id);
-				}
-
-				// SignalR push - best effort
-				try
-				{
-					await _hubContext.Clients.User(user.Id.ToString())
-						.SendAsync("SubscriptionExpiring", new
-						{
-							SubscriptionId = subscription.Id,
-							ExpiresAt = subscription.EndDate,
-							DaysLeft = daysLeft
-						});
-				}
-				catch (Exception ex)
-				{
-					_logger.LogDebug(ex, "SignalR push failed for subscription reminder to user {UserId}", user.Id);
-				}
-
-				subscription.IsExpiryNotified = true;
-				subscription.UpdatedAt = DateTime.UtcNow;
-				await _subscriptionService.Update(subscription);
-			}
-		}
-
-		public void ScheduleExpiredSubscriptionReminderJob()
-		{
+			// Post-expiry follow-up (daily 10 AM UTC)
 			_recurringJobManager.AddOrUpdate<ISendReminderJobService>(
 				"expired-subscription-reminder-job",
 				svc => svc.SendExpiredSubscriptionReminderAsync(),
-				"0 9 * * *"); // Runs daily at 09:00 UTC
+				"0 10 * * *");
 		}
 	}
 }

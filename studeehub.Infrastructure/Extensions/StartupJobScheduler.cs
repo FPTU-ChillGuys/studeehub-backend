@@ -21,7 +21,7 @@ namespace studeehub.Infrastructure.Extensions
 
 			jobService.ScheduleDailyStreakReminderJob();
 			jobService.ScheduleScheduleReminderJob();
-			jobService.ScheduleExpiredSubscriptionReminderJob();
+			jobService.ScheduleSubscriptionReminderJobs();
 
 			var subscriptionJob = scope.ServiceProvider.GetRequiredService<ISubscriptionJobService>();
 			RecurringJob.AddOrUpdate<ISubscriptionJobService>(

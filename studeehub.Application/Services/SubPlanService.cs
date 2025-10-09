@@ -1,12 +1,12 @@
 ﻿using FluentValidation;
 using MapsterMapper;
+using Microsoft.EntityFrameworkCore;
 using studeehub.Application.DTOs.Requests.Subscription;
 using studeehub.Application.DTOs.Responses.Base;
 using studeehub.Application.Interfaces.Repositories;
 using studeehub.Application.Interfaces.Services;
 using studeehub.Domain.Entities;
 using studeehub.Domain.Enums;
-using studeehub.Domain.Enums.Subscriptions;
 
 namespace studeehub.Application.Services
 {
@@ -34,13 +34,19 @@ namespace studeehub.Application.Services
 				return BaseResponse<string>.Fail("Validation failed", ErrorType.Validation, errors);
 			}
 
-			var existingPlan = await _subPlanRepository.GetByConditionAsync(sp => sp.Code == request.Code);
+			var existingPlan = await _subPlanRepository.GetByConditionAsync(sp => sp.Code == request.Code && !sp.IsDeleted);
 			if (existingPlan != null)
 			{
 				return BaseResponse<string>.Fail($"A subscription plan with code '{request.Code}' already exists.", ErrorType.Conflict);
 			}
 
 			var newPlan = _mapper.Map<SubscriptionPlan>(request);
+
+			// Ensure entity has an Id and timestamps before persisting
+			newPlan.Id = Guid.NewGuid();
+			newPlan.CreatedAt = DateTime.UtcNow;
+			newPlan.UpdatedAt = DateTime.UtcNow;
+
 			await _subPlanRepository.AddAsync(newPlan);
 			var result = await _subPlanRepository.SaveChangesAsync();
 
@@ -51,20 +57,30 @@ namespace studeehub.Application.Services
 
 		public async Task<BaseResponse<string>> DeleteSubPlanAsync(Guid id)
 		{
-			var existingPlan = await _subPlanRepository.GetByConditionAsync(sp => sp.Id == id);
+			var existingPlan = await _subPlanRepository.GetByConditionAsync(
+				sp => sp.Id == id && !sp.IsDeleted,
+				include: q => q.Include(sp => sp.Subscriptions)
+			);
+
 			if (existingPlan == null)
-			{
 				return BaseResponse<string>.Fail("Subscription plan not found.", ErrorType.NotFound);
-			}
 
-			var activeSubscriptions = existingPlan.Subscriptions.Any(s => s.Status == SubscriptionStatus.Active);
-			if (activeSubscriptions)
+			// If any subscriptions exist, even if expired/cancelled → keep for data integrity
+			var hasAnySubscriptions = existingPlan.Subscriptions?.Any() ?? false;
+
+			if (hasAnySubscriptions)
 			{
-				return BaseResponse<string>.Fail("Cannot delete subscription plan with active subscriptions.", ErrorType.Conflict);
+				existingPlan.IsDeleted = true;
+				existingPlan.DeletedAt = DateTime.UtcNow;
+				_subPlanRepository.Update(existingPlan);
+			}
+			else
+			{
+				_subPlanRepository.Remove(existingPlan);
 			}
 
-			_subPlanRepository.Remove(existingPlan);
 			var result = await _subPlanRepository.SaveChangesAsync();
+
 			return result
 				? BaseResponse<string>.Ok("Subscription plan deleted successfully.")
 				: BaseResponse<string>.Fail("Failed to delete subscription plan.", ErrorType.ServerError);
@@ -85,17 +101,20 @@ namespace studeehub.Application.Services
 				return BaseResponse<string>.Fail("Subscription plan not found.", ErrorType.NotFound);
 			}
 
-			// Check for code uniqueness if the code is being changed
+			// Check for code uniqueness if the code is being changed (ignore deleted plans)
 			if (!string.Equals(existingPlan.Code, request.Code, StringComparison.OrdinalIgnoreCase))
 			{
-				var codeConflictPlan = await _subPlanRepository.GetByConditionAsync(sp => sp.Code == request.Code);
+				var codeConflictPlan = await _subPlanRepository.GetByConditionAsync(sp => sp.Code == request.Code && !sp.IsDeleted);
 				if (codeConflictPlan != null)
 				{
 					return BaseResponse<string>.Fail($"A subscription plan with code '{request.Code}' already exists.", ErrorType.Conflict);
 				}
 			}
 
+			// Map updates (SubscriptionPlanRegister now maps IsActive)
 			_mapper.Map(request, existingPlan);
+			existingPlan.UpdatedAt = DateTime.UtcNow;
+
 			_subPlanRepository.Update(existingPlan);
 			var result = await _subPlanRepository.SaveChangesAsync();
 			return result

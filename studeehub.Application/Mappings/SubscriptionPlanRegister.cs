@@ -15,7 +15,7 @@ namespace studeehub.Application.Mappings
 				.Map(dest => dest.Price, src => src.Price)
 				.Map(dest => dest.Currency, src => src.Currency)
 				.Map(dest => dest.DurationInDays, src => src.DurationInDays)
-				.Map(dest => dest.IsActive, src => true)
+				.Map(dest => dest.IsDeleted, src => false)
 				.Map(dest => dest.MaxDocuments, src => src.MaxDocuments)
 				.Map(dest => dest.MaxStorageMB, src => src.MaxStorageMB)
 				.Map(dest => dest.HasAIAnalysis, src => src.HasAIAnalysis);
@@ -27,7 +27,7 @@ namespace studeehub.Application.Mappings
 				.Map(dest => dest.Price, src => src.Price)
 				.Map(dest => dest.Currency, src => src.Currency)
 				.Map(dest => dest.DurationInDays, src => src.DurationInDays)
-				.Map(dest => dest.IsActive, src => src.IsActive)
+				.Map(dest => dest.IsActive, src => src.IsActive) // ensure IsActive is mapped on update
 				.Map(dest => dest.MaxDocuments, src => src.MaxDocuments)
 				.Map(dest => dest.MaxStorageMB, src => src.MaxStorageMB)
 				.Map(dest => dest.HasAIAnalysis, src => src.HasAIAnalysis);

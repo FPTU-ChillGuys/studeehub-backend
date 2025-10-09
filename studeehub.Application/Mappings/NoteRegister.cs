@@ -12,7 +12,8 @@ namespace studeehub.Application.Mappings
 				.Map(dest => dest.Id, src => Guid.NewGuid())
 				.Map(dest => dest.WorkSpaceId, src => src.WorkSpaceId)
 				.Map(dest => dest.UserId, src => src.OwnerId)
-				.Map(dest => dest.Title, src => "New Note")
+				.Map(dest => dest.Title, src => string.IsNullOrWhiteSpace(src.Title) ? "New Note" : src.Title)
+				.Map(dest => dest.Content, src => src.Content ?? string.Empty)
 				.Map(dest => dest.CreatedAt, src => DateTime.UtcNow);
 
 			config.NewConfig<UpdateNoteRequest, Note>()

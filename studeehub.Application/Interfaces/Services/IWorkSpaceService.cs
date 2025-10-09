@@ -7,5 +7,6 @@ namespace studeehub.Application.Interfaces.Services
 	{
 		public Task<BaseResponse<string>> CreateWorkSpaceAsync(CreateWorkSpaceRequest requests);
 		public Task<BaseResponse<string>> UpdateWorkSpaceAsync(Guid id, UpdateWorkSpaceRequest requests);
+		public Task<BaseResponse<string>> DeleteWorkSpaceAsync(Guid id);
 	}
 }

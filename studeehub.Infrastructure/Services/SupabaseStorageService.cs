@@ -17,7 +17,64 @@ namespace studeehub.Infrastructure.Services
 			);
 		}
 
-		public async Task<string?> UploadFileAsync(Stream fileStream, string fileName, string bucket = "Studeehub_Bucket")
+		// Synchronous extraction returned as a Task to match the interface signature.
+		public Task<string> ExtractFilePathFromUrl(string fileUrl)
+		{
+			if (string.IsNullOrWhiteSpace(fileUrl))
+				throw new ArgumentException("fileUrl is null or empty", nameof(fileUrl));
+
+			// Use Uri to safely parse
+			var uri = new Uri(fileUrl);
+			var path = uri.AbsolutePath;
+
+			// Supabase URLs typically have this pattern:
+			// /storage/v1/object/sign/<bucket>/<file-path>
+			var marker = "/storage/v1/object/sign/";
+			var idx = path.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+			if (idx < 0)
+				throw new ArgumentException("Invalid Supabase file URL format", nameof(fileUrl));
+
+			// Extract the part after the marker
+			var relativePath = path.Substring(idx + marker.Length);
+
+			// Optional: if you only want the path *inside* the bucket (remove bucket name)
+			var firstSlash = relativePath.IndexOf('/');
+			if (firstSlash > -1)
+				relativePath = relativePath.Substring(firstSlash + 1);
+
+			return Task.FromResult(relativePath);
+		}
+
+		public async Task<bool> DeleteFileAsync(string filePath, string bucket = "studeehub_bucket")
+		{
+			await _client.InitializeAsync();
+
+			var storage = _client.Storage;
+			var bucketRef = storage.From(bucket);
+
+			var response = await bucketRef.Remove(new List<string> { filePath });
+
+			// If SDK returns a list of removed files, ensure there is at least one removed.
+			if (response == null)
+				return false;
+
+			// Try to determine success in a safe way
+			try
+			{
+				// If response is a list-like object
+				if (response is IEnumerable<string> list)
+					return list.Any();
+
+				// Fallback: non-null response indicates success for some SDK versions
+				return true;
+			}
+			catch
+			{
+				return false;
+			}
+		}
+
+		public async Task<string?> UploadFileAsync(Stream fileStream, string fileName, string bucket = "studeehub_bucket")
 		{
 			await _client.InitializeAsync();
 
@@ -41,13 +98,50 @@ namespace studeehub.Infrastructure.Services
 
 			var response = await bucketRef.Upload(fileBytes, uniqueName);
 
-			if (!string.IsNullOrEmpty(response))
+			// SDKs differ on return types. Treat non-null/non-empty as success and return public URL.
+			if (response != null)
 			{
-				// Return public URL
-				return bucketRef.GetPublicUrl(uniqueName);
+				try
+				{
+					var signedUrl = await GenerateSignedUrlAsync(uniqueName, 3600, bucket);
+					return signedUrl;
+				}
+				catch
+				{
+					// If GetPublicUrl throws for some SDK changes, return null to indicate failure.
+					return null;
+				}
 			}
 
 			return null;
+		}
+
+		public async Task<string> GenerateSignedUrlAsync(string filePath, int expiresInSeconds = 3600, string bucket = "studeehub_bucket")
+		{
+			if (string.IsNullOrWhiteSpace(filePath))
+				throw new ArgumentException("filePath is null or empty", nameof(filePath));
+
+			if (expiresInSeconds <= 0)
+				throw new ArgumentOutOfRangeException(nameof(expiresInSeconds), "expiresInSeconds must be greater than zero.");
+
+			await _client.InitializeAsync();
+
+			var storage = _client.Storage;
+			var bucketRef = storage.From(bucket);
+
+			try
+			{
+				var signedUrl = await bucketRef.CreateSignedUrl(filePath, expiresInSeconds);
+
+				if (string.IsNullOrWhiteSpace(signedUrl))
+					throw new InvalidOperationException("Supabase SDK returned an empty signed URL.");
+
+				return signedUrl;
+			}
+			catch (Exception ex)
+			{
+				throw new InvalidOperationException($"Failed to create signed URL for '{filePath}' in bucket '{bucket}'.", ex);
+			}
 		}
 	}
 }

@@ -32,5 +32,12 @@ namespace studeehub.API.Controllers
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
 		public async Task<BaseResponse<string>> UpdateAchievement([FromRoute] Guid id, [FromBody] UpdateAchievemRequest request)
 			=> await _achievementService.UpdateAchievementAsync(id, request);
+
+		[HttpDelete("{id:Guid}")]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
+		[ProducesResponseType(typeof(BaseResponse), StatusCodes.Status404NotFound)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
+		public async Task<BaseResponse<string>> DeleteAchievement([FromRoute] Guid id)
+			=> await _achievementService.DeleteAchievementAsync(id);
 	}
 }

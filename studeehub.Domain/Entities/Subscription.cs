@@ -15,7 +15,12 @@ namespace studeehub.Domain.Entities
 		public DateTime CreatedAt { get; set; }
 		public DateTime UpdatedAt { get; set; }
 
-		public bool IsExpiryNotified { get; set; } = false;
+		// --- Reminder Tracking ---
+		public bool IsPreExpiryNotified { get; set; } = false;
+		public DateTime? PreExpiryNotifiedAt { get; set; }
+
+		public bool IsPostExpiryNotified { get; set; } = false;
+		public DateTime? PostExpiryNotifiedAt { get; set; }
 
 		public virtual User User { get; set; } = null!;
 		public virtual SubscriptionPlan SubscriptionPlan { get; set; } = null!;

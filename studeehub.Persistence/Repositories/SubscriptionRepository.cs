@@ -32,5 +32,22 @@ namespace studeehub.Persistence.Repositories
 				)
 				.ToListAsync();
 		}
+
+		public async Task<IEnumerable<Subscription>> GetExpiredSubscriptionsAsync()
+		{
+			var now = DateTime.UtcNow;
+			return await _context.Subscriptions
+				.AsNoTracking()
+				.Include(s => s.User)
+				.Include(s => s.SubscriptionPlan)
+				.Where(s =>
+					s.EndDate <= now &&
+					!s.IsPostExpiryNotified &&
+					(
+						s.Status == SubscriptionStatus.Active ||
+						s.Status == SubscriptionStatus.Trial)
+					)
+				.ToListAsync();
+		}
 	}
 }

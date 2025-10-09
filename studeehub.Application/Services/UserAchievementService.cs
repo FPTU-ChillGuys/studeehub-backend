@@ -39,7 +39,7 @@ namespace studeehub.Application.Services
 
 		public async Task CheckAndUnlockAsync(User user)
 		{
-			var allAchievements = await _achievementRepository.GetAllAsync(a => a.IsActive);
+			var allAchievements = await _achievementRepository.GetAllAsync(a => !a.IsDeleted);
 
 			foreach (var achievement in allAchievements)
 			{
@@ -76,7 +76,7 @@ namespace studeehub.Application.Services
 
 			// ensure achievement exists
 			var achievement = await _achievementRepository.GetByConditionAsync(a => a.Id == request.AchievementId);
-			if (achievement == null || !achievement.IsActive)
+			if (achievement == null || achievement.IsDeleted)
 			{
 				return;
 			}

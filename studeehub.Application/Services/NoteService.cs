@@ -105,6 +105,20 @@ namespace studeehub.Application.Services
 			}
 		}
 
+		public async Task<BaseResponse<string>> DeleteNoteAsync(Guid noteId)
+		{
+			var note = await _noteRepository.GetByConditionAsync(n => n.Id == noteId);
+			if (note == null)
+			{
+				return BaseResponse<string>.Fail("Note not found", ErrorType.NotFound);
+			}
+			_noteRepository.Remove(note);
+			var result = await _noteRepository.SaveChangesAsync();
+			return result
+				? BaseResponse<string>.Ok("Note deleted successfully")
+				: BaseResponse<string>.Fail("Failed to delete note", ErrorType.ServerError);
+		}
+
 		public async Task<BaseResponse<string>> UpdateNoteAsync(Guid id, UpdateNoteRequest request)
 		{
 			var validationResult = _updateNoteValidator.Validate(request);

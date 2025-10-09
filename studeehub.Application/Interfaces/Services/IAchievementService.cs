@@ -7,5 +7,6 @@ namespace studeehub.Application.Interfaces.Services
 	{
 		public Task<BaseResponse<string>> CreateAchievementAsync(CreateAchievemRequest request);
 		public Task<BaseResponse<string>> UpdateAchievementAsync(Guid id, UpdateAchievemRequest request);
+		public Task<BaseResponse<string>> DeleteAchievementAsync(Guid id);
 	}
 }

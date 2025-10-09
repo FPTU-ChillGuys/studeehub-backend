@@ -32,12 +32,26 @@ namespace studeehub.Application.Services
 				return BaseResponse<string>.Fail("Schedule not found", ErrorType.NotFound);
 			}
 
-			if (DateTime.UtcNow.AddMinutes(schedule.ReminderMinutesBefore) < schedule.StartTime)
+			if (schedule.IsCheckin)
+				return BaseResponse<string>.Fail("You already checked in.", ErrorType.Validation);
+
+			var earliestCheckIn = schedule.StartTime.AddMinutes(-schedule.ReminderMinutesBefore);
+			if (DateTime.UtcNow < earliestCheckIn)
 			{
-				return BaseResponse<string>.Fail("Cannot check in before the schedule starts", ErrorType.Validation);
+				return BaseResponse<string>.Fail(
+					$"You can only check in within {schedule.ReminderMinutesBefore} minutes before the schedule starts.",
+					ErrorType.Validation
+				);
 			}
+
+			if (DateTime.UtcNow > schedule.EndTime)
+			{
+				return BaseResponse<string>.Fail("Cannot check in after the schedule has ended.", ErrorType.Validation);
+			}
+
 			schedule.IsCheckin = true;
 			schedule.CheckInTime = DateTime.UtcNow;
+			schedule.UpdatedAt = DateTime.UtcNow;
 
 			_scheduleRepository.Update(schedule);
 			var result = await _scheduleRepository.SaveChangesAsync();
@@ -56,7 +70,19 @@ namespace studeehub.Application.Services
 				return BaseResponse<string>.Fail("Validation failed", ErrorType.Validation, errors);
 			}
 
+			var hasConflict = await _scheduleRepository.AnyAsync(s =>
+																	s.UserId == request.UserId &&
+																	s.EndTime > request.StartTime &&
+																	s.StartTime < request.EndTime
+																);
+
+			if (hasConflict)
+				return BaseResponse<string>.Fail("Schedule time overlaps with another schedule.", ErrorType.Conflict);
+
 			var schedule = _mapper.Map<Schedule>(request);
+			// Ensure UpdatedAt is set on creation
+			schedule.UpdatedAt = DateTime.UtcNow;
+
 			await _scheduleRepository.AddAsync(schedule);
 			var result = await _scheduleRepository.SaveChangesAsync();
 
@@ -79,7 +105,15 @@ namespace studeehub.Application.Services
 			if (existingSchedule == null)
 				return BaseResponse<string>.Fail("Schedule not found", ErrorType.NotFound);
 
+			if (existingSchedule.IsCheckin)
+				return BaseResponse<string>.Fail("Cannot update a checked-in schedule.", ErrorType.Validation);
+
+			if (existingSchedule.EndTime < DateTime.UtcNow)
+				return BaseResponse<string>.Fail("Cannot update a past schedule.", ErrorType.Validation);
+
 			_mapper.Map(request, existingSchedule);
+			existingSchedule.UpdatedAt = DateTime.UtcNow;
+
 			_scheduleRepository.Update(existingSchedule);
 			var result = await _scheduleRepository.SaveChangesAsync();
 
@@ -90,9 +124,12 @@ namespace studeehub.Application.Services
 
 		public async Task<BaseResponse<string>> DeleteScheduleAsync(Guid id)
 		{
-			var existingSchedule = await _scheduleRepository.GetByConditionAsync(s => s.Id == id);
+			var existingSchedule = await _scheduleRepository.GetByConditionAsync(s => s.Id == id && !s.IsCheckin);
 			if (existingSchedule == null)
-				return BaseResponse<string>.Fail("Schedule not found", ErrorType.NotFound);
+				return BaseResponse<string>.Fail("Schedule not found or already check-in", ErrorType.NotFound);
+
+			if (existingSchedule.EndTime < DateTime.UtcNow)
+				return BaseResponse<string>.Fail("Cannot delete past schedules.", ErrorType.Validation);
 
 			_scheduleRepository.Remove(existingSchedule);
 			var result = await _scheduleRepository.SaveChangesAsync();
@@ -109,6 +146,7 @@ namespace studeehub.Application.Services
 
 		public async Task UpdateAsync(Schedule schedule)
 		{
+			schedule.UpdatedAt = DateTime.UtcNow;
 			_scheduleRepository.Update(schedule);
 			await _scheduleRepository.SaveChangesAsync();
 		}

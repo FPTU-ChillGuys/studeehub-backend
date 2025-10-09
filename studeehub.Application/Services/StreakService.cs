@@ -16,28 +16,31 @@ namespace studeehub.Application.Services
 		private readonly IValidator<UpdateStreakRequest> _updateStreakValidator;
 		private readonly IUserService _userService;
 		private readonly IStreakRepository _streakRepository;
-		private readonly IAchievementService _achievementService;
 		private readonly IUserAchievementService _userAchievementService;
 
-		public StreakService(IMapper mapper, IValidator<CreateStreakRequest> createStreakValidator, IStreakRepository streakRepository, IValidator<UpdateStreakRequest> updateStreakValidator, IUserService userService, IAchievementService achievementService, IUserAchievementService userAchievementService)
+		public StreakService(IMapper mapper, IValidator<CreateStreakRequest> createStreakValidator, IStreakRepository streakRepository, IValidator<UpdateStreakRequest> updateStreakValidator, IUserService userService, IUserAchievementService userAchievementService)
 		{
 			_mapper = mapper;
 			_createStreakValidator = createStreakValidator;
 			_streakRepository = streakRepository;
 			_updateStreakValidator = updateStreakValidator;
 			_userService = userService;
-			_achievementService = achievementService;
 			_userAchievementService = userAchievementService;
 		}
 
 		public async Task<BaseResponse<string>> CreateStreakAsync(CreateStreakRequest request)
 		{
 			var validationResult = _createStreakValidator.Validate(request);
-			var userExists = await _userService.IsUserExistAsync(request.UserId);
-			if (!validationResult.IsValid || !userExists)
+			if (!validationResult.IsValid)
 			{
 				var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
 				return BaseResponse<string>.Fail("Validation failed", ErrorType.Validation, errors);
+			}
+
+			var userExists = await _userService.IsUserExistAsync(request.UserId);
+			if (!userExists)
+			{
+				return BaseResponse<string>.Fail("User not found", ErrorType.NotFound);
 			}
 
 			// Prevent duplicate streak for same user and type

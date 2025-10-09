@@ -10,14 +10,15 @@ namespace studeehub.Application.Mappings
 		{
 			config.NewConfig<CreateAchievemRequest, Achievement>()
 				.Map(dest => dest.Id, src => Guid.NewGuid())
-				.Map(dest => dest.IsActive, src => true)
 				.Map(dest => dest.Code, src => src.Code)
 				.Map(dest => dest.Name, src => src.Name)
 				.Map(dest => dest.Description, src => src.Description)
 				.Map(dest => dest.ConditionType, src => src.ConditionType)
 				.Map(dest => dest.ConditionValue, src => src.ConditionValue)
 				.Map(dest => dest.RewardType, src => src.RewardType)
-				.Map(dest => dest.RewardValue, src => src.RewardValue);
+				.Map(dest => dest.RewardValue, src => src.RewardValue)
+				// IsActive default is true on entity; no need to map explicitly for create.
+				;
 
 			config.NewConfig<UpdateAchievemRequest, Achievement>()
 				.Map(dest => dest.Code, src => src.Code)

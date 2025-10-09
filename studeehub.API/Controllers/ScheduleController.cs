@@ -19,6 +19,7 @@ namespace studeehub.API.Controllers
 		[HttpPost]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status400BadRequest)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status409Conflict)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
 		public async Task<BaseResponse<string>> CreateSchedule(CreateScheduleRequest request)
 			=> await _scheduleService.CreateScheduleAsync(request);
@@ -34,6 +35,7 @@ namespace studeehub.API.Controllers
 		[HttpPatch("{id:guid}/checkin")]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status404NotFound)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
 		public async Task<BaseResponse<string>> CheckIn(Guid id)
 			=> await _scheduleService.CheckIn(id);
@@ -41,6 +43,7 @@ namespace studeehub.API.Controllers
 		[HttpDelete("{id:guid}")]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status404NotFound)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
 		public async Task<BaseResponse<string>> DeleteSchedule(Guid id)
 			=> await _scheduleService.DeleteScheduleAsync(id);

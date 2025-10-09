@@ -37,5 +37,12 @@ namespace studeehub.API.Controllers
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
 		public async Task<BaseResponse<string>> UpdateNote([FromRoute] Guid id, [FromBody] UpdateNoteRequest request)
 			=> await _noteService.UpdateNoteAsync(id, request);
+
+		[HttpDelete("{id:Guid}")]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status404NotFound)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
+		public async Task<BaseResponse<string>> DeleteNote([FromRoute] Guid id)
+			=> await _noteService.DeleteNoteAsync(id);
 	}
 }
