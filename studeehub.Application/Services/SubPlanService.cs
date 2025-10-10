@@ -3,6 +3,7 @@ using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using studeehub.Application.DTOs.Requests.Subscription;
 using studeehub.Application.DTOs.Responses.Base;
+using studeehub.Application.DTOs.Responses.SubPlan;
 using studeehub.Application.Interfaces.Repositories;
 using studeehub.Application.Interfaces.Services;
 using studeehub.Domain.Entities;
@@ -84,6 +85,28 @@ namespace studeehub.Application.Services
 			return result
 				? BaseResponse<string>.Ok("Subscription plan deleted successfully.")
 				: BaseResponse<string>.Fail("Failed to delete subscription plan.", ErrorType.ServerError);
+		}
+
+		public async Task<BaseResponse<List<GetSubPlanResponse>>> GetAllSubPlansAsync()
+		{
+			var plans = await _subPlanRepository.GetAllAsync(sp => !sp.IsDeleted);
+			if (plans == null || !plans.Any())
+			{
+				return BaseResponse<List<GetSubPlanResponse>>.Fail("No subscription plans found.", ErrorType.NotFound);
+			}
+			var response = _mapper.Map<List<GetSubPlanResponse>>(plans);
+			return BaseResponse<List<GetSubPlanResponse>>.Ok(response);
+		}
+
+		public async Task<BaseResponse<GetSubPlanResponse>> GetSubPlanByIdAsync(Guid id)
+		{
+			var existingPlan = await _subPlanRepository.GetByConditionAsync(sp => sp.Id == id && !sp.IsDeleted);
+			if (existingPlan == null)
+			{
+				return BaseResponse<GetSubPlanResponse>.Fail("Subscription plan not found.", ErrorType.NotFound);
+			}
+			var response = _mapper.Map<GetSubPlanResponse>(existingPlan);
+			return BaseResponse<GetSubPlanResponse>.Ok(response);
 		}
 
 		public async Task<BaseResponse<string>> UpdateSubPlanAsync(Guid id, UpdateSubPlanRequest request)

@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using studeehub.Application.DTOs.Requests.Base;
 using studeehub.Application.DTOs.Requests.Schedule;
 using studeehub.Application.DTOs.Responses.Base;
+using studeehub.Application.DTOs.Responses.Schedule;
 using studeehub.Application.Interfaces.Services;
 
 namespace studeehub.API.Controllers
@@ -15,6 +17,18 @@ namespace studeehub.API.Controllers
 		{
 			_scheduleService = scheduleService;
 		}
+
+		[HttpGet("user/{userId:guid}")]
+		[ProducesResponseType(typeof(PagedResponse<GetScheduleResponse>), StatusCodes.Status200OK)]
+		[ProducesResponseType(typeof(PagedResponse<GetScheduleResponse>), StatusCodes.Status400BadRequest)]
+		public async Task<PagedResponse<GetScheduleResponse>> GetSchedulesByUserId(Guid userId, [FromQuery] PagedAndSortedRequest request)
+			=> await _scheduleService.GetSchedulesByUserIdAsync(userId, request);
+
+		[HttpGet("{id:guid}")]
+		[ProducesResponseType(typeof(BaseResponse<GetScheduleResponse>), StatusCodes.Status200OK)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status404NotFound)]
+		public async Task<BaseResponse<GetScheduleResponse>> GetScheduleById(Guid id)
+			=> await _scheduleService.GetScheduleByIdAsync(id);
 
 		[HttpPost]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]

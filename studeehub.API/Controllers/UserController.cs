@@ -1,0 +1,25 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using studeehub.Application.DTOs.Responses.Base;
+using studeehub.Application.DTOs.Responses.User;
+using studeehub.Application.Interfaces.Services;
+
+namespace studeehub.API.Controllers
+{
+	[Route("api/[controller]")]
+	[ApiController]
+	public class UserController : ControllerBase
+	{
+		private readonly IUserService _userService;
+
+		public UserController(IUserService userService)
+		{
+			_userService = userService;
+		}
+
+		[HttpGet("{id:Guid}")]
+		[ProducesResponseType(typeof(BaseResponse<GetUserResponse>), StatusCodes.Status200OK)]
+		[ProducesResponseType(typeof(BaseResponse<GetUserResponse>), StatusCodes.Status404NotFound)]
+		public async Task<BaseResponse<GetUserResponse>> GetProfileByIdAsync(Guid id)
+			=> await _userService.GetProfileByIdAsync(id);
+	}
+}

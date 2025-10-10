@@ -1,6 +1,6 @@
 ﻿namespace studeehub.Domain.Entities
 {
-	public class WorkSpace
+	public class Workspace
 	{
 		public Guid Id { get; set; }
 		public Guid UserId { get; set; }

@@ -1,6 +1,6 @@
-﻿namespace studeehub.Application.DTOs.Requests.WorkSpace
+﻿namespace studeehub.Application.DTOs.Requests.Workspace
 {
-	public class UpdateWorkSpaceRequest
+	public class UpdateWorkspaceRequest
 	{
 		public string Name { get; set; } = string.Empty;
 		public string Description { get; set; } = string.Empty;

@@ -19,7 +19,7 @@ namespace studeehub.Infrastructure.Extensions
 			// Register Repositories
 			services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 			services.AddScoped<IAuthRepository, AuthRepository>();
-			services.AddScoped<IWorkSpaceRepository, WorkSpaceRepository>();
+			services.AddScoped<IWorkSpaceRepository, WorkspaceRepository>();
 			services.AddScoped<IStreakRepository, StreakRepository>();
 			services.AddScoped<IScheduleRepository, ScheduleRepository>();
 			services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();

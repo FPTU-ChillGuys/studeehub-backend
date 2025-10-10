@@ -268,7 +268,7 @@ namespace studeehub.Persistence.Migrations
 				});
 
 			migrationBuilder.CreateTable(
-				name: "WorkSpaces",
+				name: "Workspaces",
 				columns: table => new
 				{
 					Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -314,7 +314,7 @@ namespace studeehub.Persistence.Migrations
 					table.ForeignKey(
 						name: "FK_Documents_WorkSpaces_WorkSpaceId",
 						column: x => x.WorkSpaceId,
-						principalTable: "WorkSpaces",
+						principalTable: "Workspaces",
 						principalColumn: "Id",
 						onDelete: ReferentialAction.Cascade);
 				});
@@ -343,7 +343,7 @@ namespace studeehub.Persistence.Migrations
 					table.ForeignKey(
 						name: "FK_Flashcards_WorkSpaces_WorkSpaceId",
 						column: x => x.WorkSpaceId,
-						principalTable: "WorkSpaces",
+						principalTable: "Workspaces",
 						principalColumn: "Id",
 						onDelete: ReferentialAction.Cascade);
 				});
@@ -373,7 +373,7 @@ namespace studeehub.Persistence.Migrations
 					table.ForeignKey(
 						name: "FK_Notes_WorkSpaces_WorkSpaceId",
 						column: x => x.WorkSpaceId,
-						principalTable: "WorkSpaces",
+						principalTable: "Workspaces",
 						principalColumn: "Id",
 						onDelete: ReferentialAction.Cascade);
 				});
@@ -501,7 +501,7 @@ namespace studeehub.Persistence.Migrations
 
 			migrationBuilder.CreateIndex(
 				name: "IX_WorkSpaces_UserId",
-				table: "WorkSpaces",
+				table: "Workspaces",
 				column: "UserId");
 		}
 
@@ -551,7 +551,7 @@ namespace studeehub.Persistence.Migrations
 				name: "AspNetRoles");
 
 			migrationBuilder.DropTable(
-				name: "WorkSpaces");
+				name: "Workspaces");
 
 			migrationBuilder.DropTable(
 				name: "AspNetUsers");

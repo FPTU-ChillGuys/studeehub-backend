@@ -549,7 +549,7 @@ namespace studeehub.Persistence.Migrations
                         });
                 });
 
-            modelBuilder.Entity("studeehub.Domain.Entities.WorkSpace", b =>
+            modelBuilder.Entity("studeehub.Domain.Entities.Workspace", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -575,7 +575,7 @@ namespace studeehub.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("WorkSpaces");
+                    b.ToTable("Workspaces");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -648,7 +648,7 @@ namespace studeehub.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("studeehub.Domain.Entities.WorkSpace", "WorkSpace")
+                    b.HasOne("studeehub.Domain.Entities.Workspace", "Workspace")
                         .WithMany("Documents")
                         .HasForeignKey("WorkSpaceId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -656,7 +656,7 @@ namespace studeehub.Persistence.Migrations
 
                     b.Navigation("User");
 
-                    b.Navigation("WorkSpace");
+                    b.Navigation("Workspace");
                 });
 
             modelBuilder.Entity("studeehub.Domain.Entities.Flashcard", b =>
@@ -667,7 +667,7 @@ namespace studeehub.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("studeehub.Domain.Entities.WorkSpace", "WorkSpace")
+                    b.HasOne("studeehub.Domain.Entities.Workspace", "Workspace")
                         .WithMany("Flashcards")
                         .HasForeignKey("WorkSpaceId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -675,7 +675,7 @@ namespace studeehub.Persistence.Migrations
 
                     b.Navigation("User");
 
-                    b.Navigation("WorkSpace");
+                    b.Navigation("Workspace");
                 });
 
             modelBuilder.Entity("studeehub.Domain.Entities.Note", b =>
@@ -686,7 +686,7 @@ namespace studeehub.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("studeehub.Domain.Entities.WorkSpace", "WorkSpace")
+                    b.HasOne("studeehub.Domain.Entities.Workspace", "Workspace")
                         .WithMany("Notes")
                         .HasForeignKey("WorkSpaceId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -694,7 +694,7 @@ namespace studeehub.Persistence.Migrations
 
                     b.Navigation("User");
 
-                    b.Navigation("WorkSpace");
+                    b.Navigation("Workspace");
                 });
 
             modelBuilder.Entity("studeehub.Domain.Entities.PomodoroSession", b =>
@@ -741,10 +741,10 @@ namespace studeehub.Persistence.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("studeehub.Domain.Entities.WorkSpace", b =>
+            modelBuilder.Entity("studeehub.Domain.Entities.Workspace", b =>
                 {
                     b.HasOne("studeehub.Domain.Entities.User", "User")
-                        .WithMany("WorkSpaces")
+                        .WithMany("Workspaces")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -764,10 +764,10 @@ namespace studeehub.Persistence.Migrations
 
                     b.Navigation("Subscriptions");
 
-                    b.Navigation("WorkSpaces");
+                    b.Navigation("Workspaces");
                 });
 
-            modelBuilder.Entity("studeehub.Domain.Entities.WorkSpace", b =>
+            modelBuilder.Entity("studeehub.Domain.Entities.Workspace", b =>
                 {
                     b.Navigation("Documents");
 

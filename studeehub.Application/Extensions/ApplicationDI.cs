@@ -10,7 +10,7 @@ using studeehub.Application.DTOs.Requests.Schedule;
 using studeehub.Application.DTOs.Requests.Streak;
 using studeehub.Application.DTOs.Requests.Subscription;
 using studeehub.Application.DTOs.Requests.UserAchievem;
-using studeehub.Application.DTOs.Requests.WorkSpace;
+using studeehub.Application.DTOs.Requests.Workspace;
 using studeehub.Application.Interfaces.Services;
 using studeehub.Application.Mappings;
 using studeehub.Application.Services;
@@ -32,7 +32,7 @@ namespace studeehub.Application.Extensions
 		{
 			// Add application services here, e.g. MediatR, AutoMapper, etc.
 			services.AddScoped<IAuthService, AuthService>();
-			services.AddScoped<IWorkSpaceService, WorkSpaceService>();
+			services.AddScoped<IWorkspaceService, WorkspaceService>();
 			services.AddScoped<IDocumentService, DocumentService>();
 			services.AddScoped<INoteService, NoteService>();
 			services.AddScoped<IStreakService, StreakService>();
@@ -54,6 +54,9 @@ namespace studeehub.Application.Extensions
 			config.Scan(typeof(UserAchievementRegister).Assembly);
 			config.Scan(typeof(ScheduleRegister).Assembly);
 			config.Scan(typeof(SubscriptionPlanRegister).Assembly);
+			config.Scan(typeof(SubscriptionRegister).Assembly);
+			config.Scan(typeof(PayTransactionRegister).Assembly);
+			config.Scan(typeof(UserRegister).Assembly);
 
 			// Register TypeAdapterConfig and Mapster IMapper (ServiceMapper)
 			services.AddSingleton(config);
@@ -61,8 +64,8 @@ namespace studeehub.Application.Extensions
 
 			// FluentValidation
 			services.AddScoped<IValidator<ResetPasswordRequest>, ResetPasswordValidator>();
-			services.AddScoped<IValidator<CreateWorkSpaceRequest>, CreateWorkSpaceValidator>();
-			services.AddScoped<IValidator<UpdateWorkSpaceRequest>, UpdateWorkSpaceValidator>();
+			services.AddScoped<IValidator<CreateWorkspaceRequest>, CreateWorkSpaceValidator>();
+			services.AddScoped<IValidator<UpdateWorkspaceRequest>, UpdateWorkSpaceValidator>();
 			services.AddScoped<IValidator<CreateDocumentRequest>, CreateDocumentValidator>();
 			services.AddScoped<IValidator<UpdateDocumentRequest>, UpdateDocumentValidator>();
 			services.AddScoped<IValidator<CreateNoteRequest>, CreateNoteValidator>();

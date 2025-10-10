@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using MapsterMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using studeehub.Application.DTOs.Requests.PaymentTransaction;
 using studeehub.Application.DTOs.Requests.VnPay;
 using studeehub.Application.DTOs.Responses.Base;
+using studeehub.Application.DTOs.Responses.PayTransaction;
 using studeehub.Application.Interfaces.Repositories;
 using studeehub.Application.Interfaces.Services;
 using studeehub.Application.Interfaces.Services.ThirdPartyServices;
@@ -24,6 +26,7 @@ namespace studeehub.Application.Services
 		private readonly IEmailTemplateService _emailTemplateService;
 		private readonly ILogger<PayTransactionService> _logger;
 		private readonly IUnitOfWork _unitOfWork;
+		private readonly IMapper _mapper;
 
 		public PayTransactionService(
 			IGenericRepository<PaymentTransaction> paymentTransactionRepository,
@@ -33,7 +36,8 @@ namespace studeehub.Application.Services
 			ILogger<PayTransactionService> logger,
 			IUnitOfWork unitOfWork,
 			IEmailService emailService,
-			IEmailTemplateService emailTemplateService)
+			IEmailTemplateService emailTemplateService,
+			IMapper mapper)
 		{
 			_paymentTransactionRepository = paymentTransactionRepository;
 			_subscriptionRepository = subscriptionRepository;
@@ -43,6 +47,7 @@ namespace studeehub.Application.Services
 			_unitOfWork = unitOfWork;
 			_emailService = emailService;
 			_emailTemplateService = emailTemplateService;
+			_mapper = mapper;
 		}
 
 		public async Task<BaseResponse<string>> CreatePaymentSessionAsync(CreatePaymentSessionRequest request, HttpContext httpContext)
@@ -115,6 +120,19 @@ namespace studeehub.Application.Services
 				await _unitOfWork.RollbackAsync(transaction);
 				return BaseResponse<string>.Fail($"Error creating payment session: {ex.Message}", ErrorType.ServerError);
 			}
+		}
+
+		public async Task<BaseResponse<List<GetPayTXNResponse>>> GetPayTransactionsBySubscriptionId(Guid subscriptionId)
+		{
+			var transactions = await _paymentTransactionRepository.GetAllAsync(
+				p => p.SubscriptionId == subscriptionId,
+				orderBy: q => q.OrderByDescending(p => p.CreatedAt)
+			);
+			if (transactions == null || !transactions.Any())
+				return BaseResponse<List<GetPayTXNResponse>>.Fail("No payment transactions found for this subscription", ErrorType.NotFound);
+
+			var response = _mapper.Map<List<GetPayTXNResponse>>(transactions);
+			return BaseResponse<List<GetPayTXNResponse>>.Ok(response, "Payment transactions retrieved");
 		}
 
 		public async Task<BaseResponse<string>> HandleVnPayCallbackAsync(IQueryCollection query)

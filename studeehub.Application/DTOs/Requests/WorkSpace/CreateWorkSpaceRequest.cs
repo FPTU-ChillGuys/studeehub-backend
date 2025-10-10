@@ -1,6 +1,6 @@
-﻿namespace studeehub.Application.DTOs.Requests.WorkSpace
+﻿namespace studeehub.Application.DTOs.Requests.Workspace
 {
-	public class CreateWorkSpaceRequest
+	public class CreateWorkspaceRequest
 	{
 		public Guid OwnerId { get; set; }
 		public string Name { get; set; } = string.Empty;

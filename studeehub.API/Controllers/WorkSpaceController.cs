@@ -1,43 +1,54 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using studeehub.Application.DTOs.Requests.WorkSpace;
+using studeehub.Application.DTOs.Requests.Workspace;
 using studeehub.Application.DTOs.Responses.Base;
+using studeehub.Application.DTOs.Responses.Workspace;
 using studeehub.Application.Interfaces.Services;
 
 namespace studeehub.API.Controllers
 {
 	[Route("api/[controller]")]
 	[ApiController]
-	public class WorkSpaceController : ControllerBase
+	public class WorkspaceController : ControllerBase
 	{
-		private readonly IWorkSpaceService _workSpaceService;
+		private readonly IWorkspaceService _workSpaceService;
 
-		public WorkSpaceController(IWorkSpaceService workSpaceService)
+		public WorkspaceController(IWorkspaceService workSpaceService)
 		{
 			_workSpaceService = workSpaceService;
 		}
 
+		[HttpGet("user/{userId:Guid}")]
+		[ProducesResponseType(typeof(BaseResponse<List<GetWorkspaceResponse>>), StatusCodes.Status200OK)]
+		[ProducesResponseType(typeof(BaseResponse<List<GetWorkspaceResponse>>), StatusCodes.Status404NotFound)]
+		public async Task<BaseResponse<List<GetWorkspaceResponse>>> GetWorkSpacesByUserId([FromRoute] Guid userId)
+			=> await _workSpaceService.GetWorkspacesByUserIdAsync(userId);
+
+		[HttpGet("{id:Guid}")]
+		[ProducesResponseType(typeof(BaseResponse<GetWorkspaceResponse>), StatusCodes.Status200OK)]
+		[ProducesResponseType(typeof(BaseResponse<GetWorkspaceResponse>), StatusCodes.Status404NotFound)]
+		public async Task<BaseResponse<GetWorkspaceResponse>> GetWorkSpaceById([FromRoute] Guid id)
+			=> await _workSpaceService.GetWorkspaceByIdAsync(id);
+
 		[HttpPost]
-		//[Authorize(Roles = "user")]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
-		public async Task<BaseResponse<string>> CreateWorkSpace([FromBody] CreateWorkSpaceRequest requests)
-			=> await _workSpaceService.CreateWorkSpaceAsync(requests);
+		public async Task<BaseResponse<string>> CreateWorkSpace([FromBody] CreateWorkspaceRequest requests)
+			=> await _workSpaceService.CreateWorkspaceAsync(requests);
 
 		[HttpPut("{id:Guid}")]
-		//[Authorize]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status404NotFound)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
-		public async Task<BaseResponse<string>> UpdateWorkSpace([FromRoute] Guid id, [FromBody] UpdateWorkSpaceRequest requests)
-			=> await _workSpaceService.UpdateWorkSpaceAsync(id, requests);
+		public async Task<BaseResponse<string>> UpdateWorkSpace([FromRoute] Guid id, [FromBody] UpdateWorkspaceRequest requests)
+			=> await _workSpaceService.UpdateWorkspaceAsync(id, requests);
 
 		[HttpDelete("{id:Guid}")]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status404NotFound)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
 		public async Task<BaseResponse<string>> DeleteWorkSpace([FromRoute] Guid id)
-			=> await _workSpaceService.DeleteWorkSpaceAsync(id);
+			=> await _workSpaceService.DeleteWorkspaceAsync(id);
 	}
 }

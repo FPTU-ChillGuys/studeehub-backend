@@ -3,6 +3,7 @@ using MapsterMapper;
 using studeehub.Application.DTOs.Requests.Document;
 using studeehub.Application.DTOs.Requests.Note;
 using studeehub.Application.DTOs.Responses.Base;
+using studeehub.Application.DTOs.Responses.Note;
 using studeehub.Application.Interfaces.Repositories;
 using studeehub.Application.Interfaces.Services;
 using studeehub.Domain.Entities;
@@ -117,6 +118,29 @@ namespace studeehub.Application.Services
 			return result
 				? BaseResponse<string>.Ok("Note deleted successfully")
 				: BaseResponse<string>.Fail("Failed to delete note", ErrorType.ServerError);
+		}
+
+		public async Task<BaseResponse<GetNoteResponse>> GetNoteByIdAsync(Guid noteId)
+		{
+			var note = await _noteRepository.GetByConditionAsync(n => n.Id == noteId);
+			if (note == null)
+			{
+				return BaseResponse<GetNoteResponse>.Fail("Note not found", ErrorType.NotFound);
+			}
+			var response = _mapper.Map<GetNoteResponse>(note);
+			return BaseResponse<GetNoteResponse>.Ok(response);
+		}
+
+		public async Task<BaseResponse<List<GetNoteResponse>>> GetNotesByWorkSpaceIdAsync(Guid workSpaceId)
+		{
+			var notes = await _noteRepository.GetAllAsync(n => n.WorkSpaceId == workSpaceId);
+			if (notes == null)
+			{
+				return BaseResponse<List<GetNoteResponse>>.Fail("No notes found for the specified Workspace", ErrorType.NotFound);
+			}
+			var response = _mapper.Map<List<GetNoteResponse>>(notes);
+			return BaseResponse<List<GetNoteResponse>>.Ok(response);
+
 		}
 
 		public async Task<BaseResponse<string>> UpdateNoteAsync(Guid id, UpdateNoteRequest request)
