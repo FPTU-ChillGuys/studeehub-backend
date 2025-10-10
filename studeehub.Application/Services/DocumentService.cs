@@ -134,5 +134,66 @@ namespace studeehub.Application.Services
 				return BaseResponse<string>.Fail($"Error deleting document: {ex.Message}", ErrorType.ServerError);
 			}
 		}
+
+		public async Task<BaseResponse<List<GetDocumentResponse>>> GetDocumentsByWorkSpaceIdAsync(Guid workSpaceId)
+		{
+			var documents = await _genericRepository.GetAllAsync(d => d.WorkSpaceId == workSpaceId);
+			if (documents == null || !documents.Any())
+			{
+				return BaseResponse<List<GetDocumentResponse>>.Fail("No documents found for the specified WorkSpaceId", ErrorType.NotFound);
+            }
+			var response = _mapper.Map<List<GetDocumentResponse>>(documents);
+			foreach (var doc in documents)
+			{
+				if (!string.IsNullOrWhiteSpace(doc.FilePath))
+				{
+					try
+					{
+						var filePath = await _supabaseStorageService.ExtractFilePathFromUrl(doc.FilePath);
+						var signedUrl = await _supabaseStorageService.GenerateSignedUrlAsync(filePath);
+						var respDoc = response.FirstOrDefault(r => r.Id == doc.Id);
+						if (respDoc != null)
+						{
+							respDoc.FilePath = signedUrl;
+						}
+					}
+					catch (Exception ex)
+					{
+						_logger.LogError(ex, "Error generating signed URL for Document ID {DocumentId}", doc.Id);
+						// If signed URL generation fails, we can still return the document without it.
+						var respDoc = response.FirstOrDefault(r => r.Id == doc.Id);
+						if (respDoc != null)
+						{
+							respDoc.FilePath = null;
+						}
+					}
+                }
+            }
+			return BaseResponse<List<GetDocumentResponse>>.Ok(response);
+        }
+
+		public async Task<BaseResponse<GetDocumentResponse>> GetDocumentByIdAsync(Guid id)
+		{
+			var document = await _genericRepository.GetByConditionAsync(d => d.Id == id);
+			if (document == null)
+				return BaseResponse<GetDocumentResponse>.Fail("Document not found", ErrorType.NotFound);
+			var response = _mapper.Map<GetDocumentResponse>(document);
+			if (!string.IsNullOrWhiteSpace(document.FilePath))
+			{
+				try
+				{
+					var filePath = await _supabaseStorageService.ExtractFilePathFromUrl(document.FilePath);
+					var signedUrl = await _supabaseStorageService.GenerateSignedUrlAsync(filePath);
+					response.FilePath = signedUrl;
+				}
+				catch (Exception ex)
+				{
+					_logger.LogError(ex, "Error generating signed URL for Document ID {DocumentId}", id);
+					// If signed URL generation fails, we can still return the document without it.
+					response.FilePath = null;
+				}
+			}
+			return BaseResponse<GetDocumentResponse>.Ok(response);
+        }
 	}
 }
