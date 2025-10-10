@@ -19,19 +19,19 @@ namespace studeehub.API.Controllers
 			_documentService = documentService;
 		}
 
-		[HttpGet("workspace/{workSpaceId:Guid}")]
+		[HttpGet("Workspace/{workSpaceId:Guid}")]
 		[ProducesResponseType(typeof(BaseResponse<List<GetDocumentResponse>>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<List<GetDocumentResponse>>), StatusCodes.Status404NotFound)]
 		public async Task<BaseResponse<List<GetDocumentResponse>>> GetDocumentsByWorkSpaceId([FromRoute] Guid workSpaceId)
 			=> await _documentService.GetDocumentsByWorkSpaceIdAsync(workSpaceId);
 
-        [HttpGet("{id:Guid}")]
+		[HttpGet("{id:Guid}")]
 		[ProducesResponseType(typeof(BaseResponse<GetDocumentResponse>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<GetDocumentResponse>), StatusCodes.Status404NotFound)]
 		public async Task<BaseResponse<GetDocumentResponse>> GetDocumentById([FromRoute] Guid id)
 			=> await _documentService.GetDocumentByIdAsync(id);
 
-        [HttpPost("upload")]
+		[HttpPost("upload")]
 		[Consumes("multipart/form-data")]
 		[ProducesResponseType(typeof(BaseResponse<UploadFileResponse>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status400BadRequest)]

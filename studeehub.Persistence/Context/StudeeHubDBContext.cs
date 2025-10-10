@@ -14,7 +14,7 @@ namespace studeehub.Persistence.Context
 		}
 
 		// DbSets for domain entities (updated)
-		public virtual DbSet<WorkSpace> WorkSpaces { get; set; } = null!;
+		public virtual DbSet<Workspace> Workspaces { get; set; } = null!;
 		public virtual DbSet<Document> Documents { get; set; } = null!;
 		public virtual DbSet<Flashcard> Flashcards { get; set; } = null!;
 		public virtual DbSet<Note> Notes { get; set; } = null!;
@@ -31,13 +31,13 @@ namespace studeehub.Persistence.Context
 		{
 			base.OnModelCreating(modelBuilder);
 
-			// WorkSpace -- User (two-sided)
-			modelBuilder.Entity<WorkSpace>()
+			// Workspace -- User (two-sided)
+			modelBuilder.Entity<Workspace>()
 				.HasKey(ws => ws.Id);
 
-			modelBuilder.Entity<WorkSpace>()
+			modelBuilder.Entity<Workspace>()
 				.HasOne(ws => ws.User)
-				.WithMany(u => u.WorkSpaces)
+				.WithMany(u => u.Workspaces)
 				.HasForeignKey(ws => ws.UserId)
 				.OnDelete(DeleteBehavior.Cascade);
 
@@ -48,13 +48,13 @@ namespace studeehub.Persistence.Context
 			modelBuilder.Entity<Document>()
 				.HasOne(d => d.User)
 				.WithMany()
-				// changed to Restrict to avoid multiple cascade paths (User -> Documents and User -> WorkSpaces -> Documents)
+				// changed to Restrict to avoid multiple cascade paths (User -> Documents and User -> Workspaces -> Documents)
 				.HasForeignKey(d => d.UserId)
 				.OnDelete(DeleteBehavior.Restrict);
 
-			// Document -- WorkSpace (two-sided)
+			// Document -- Workspace (two-sided)
 			modelBuilder.Entity<Document>()
-				.HasOne(d => d.WorkSpace)
+				.HasOne(d => d.Workspace)
 				.WithMany(ws => ws.Documents)
 				.HasForeignKey(d => d.WorkSpaceId)
 				.OnDelete(DeleteBehavior.Cascade);
@@ -84,9 +84,9 @@ namespace studeehub.Persistence.Context
 				.HasForeignKey(n => n.UserId)
 				.OnDelete(DeleteBehavior.Restrict);
 
-			// Note -- WorkSpace (two-sided)
+			// Note -- Workspace (two-sided)
 			modelBuilder.Entity<Note>()
-				.HasOne(n => n.WorkSpace)
+				.HasOne(n => n.Workspace)
 				.WithMany(ws => ws.Notes)
 				.HasForeignKey(n => n.WorkSpaceId)
 				.OnDelete(DeleteBehavior.Cascade);
@@ -102,9 +102,9 @@ namespace studeehub.Persistence.Context
 				.HasForeignKey(f => f.UserId)
 				.OnDelete(DeleteBehavior.Restrict);
 
-			// Flashcard -- WorkSpace (two-sided)
+			// Flashcard -- Workspace (two-sided)
 			modelBuilder.Entity<Flashcard>()
-				.HasOne(f => f.WorkSpace)
+				.HasOne(f => f.Workspace)
 				.WithMany(ws => ws.Flashcards)
 				.HasForeignKey(f => f.WorkSpaceId)
 				.OnDelete(DeleteBehavior.Cascade);

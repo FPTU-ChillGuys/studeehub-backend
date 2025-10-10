@@ -13,6 +13,7 @@ namespace studeehub.Domain.Entities
 		public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
 
 		public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+		public bool IsActive { get; set; } = true;
 
 		public virtual User User { get; set; } = null!;
 	}

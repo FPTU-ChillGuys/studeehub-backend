@@ -126,15 +126,15 @@ namespace studeehub.Application.Services
 						.Count(s => s.IsCheckin) >= required;
 
 				case ConditionType.DocumentUpload:
-					return (user.WorkSpaces ?? Enumerable.Empty<WorkSpace>())
+					return (user.Workspaces ?? Enumerable.Empty<Workspace>())
 						.Sum(ws => (ws.Documents).Count) >= required;
 
 				case ConditionType.NoteCreated:
-					return (user.WorkSpaces ?? Enumerable.Empty<WorkSpace>())
+					return (user.Workspaces ?? Enumerable.Empty<Workspace>())
 						.Sum(ws => (ws.Notes).Count) >= required;
 
 				case ConditionType.FlashcardReviewed:
-					return (user.WorkSpaces ?? Enumerable.Empty<WorkSpace>())
+					return (user.Workspaces ?? Enumerable.Empty<Workspace>())
 						.Sum(ws => (ws.Flashcards ?? Enumerable.Empty<Flashcard>())
 							.Count(fc => fc.LastReviewedAt != null)) >= required;
 

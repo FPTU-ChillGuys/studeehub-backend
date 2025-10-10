@@ -2,10 +2,12 @@
 using MapsterMapper;
 using studeehub.Application.DTOs.Requests.Streak;
 using studeehub.Application.DTOs.Responses.Base;
+using studeehub.Application.DTOs.Responses.Streak;
 using studeehub.Application.Interfaces.Repositories;
 using studeehub.Application.Interfaces.Services;
 using studeehub.Domain.Entities;
 using studeehub.Domain.Enums;
+using studeehub.Domain.Enums.Streaks;
 
 namespace studeehub.Application.Services
 {
@@ -67,13 +69,13 @@ namespace studeehub.Application.Services
 				return BaseResponse<string>.Fail("Validation failed", ErrorType.Validation, errors);
 			}
 
-			var existingStreak = await _streakRepository.GetByConditionAsync(s => s.UserId == userId && s.Type == request.Type);
+			var existingStreak = await _streakRepository.GetByConditionAsync(s => s.UserId == userId && s.Type == request.Type && s.IsActive);
 			if (existingStreak == null)
 			{
 				var createReq = new CreateStreakRequest
 				{
 					UserId = userId,
-					Type = request.Type,
+					Type = request.Type
 				};
 
 				return await CreateStreakAsync(createReq);
@@ -115,6 +117,52 @@ namespace studeehub.Application.Services
 				: BaseResponse<string>.Fail("Failed to update streak", ErrorType.ServerError);
 		}
 
-		public Task<IEnumerable<User>> GetUsersToRemindAsync() => _streakRepository.GetUsersToRemindAsync();
+		public async Task<IEnumerable<User>> GetUsersToRemindAsync() => await _streakRepository.GetUsersToRemindAsync();
+
+		public async Task<BaseResponse<List<GetStreakResponse>>> GetStreakByUserIdAsync(Guid userId, StreakType? type)
+		{
+			if (type.HasValue)
+			{
+				var streak = await _streakRepository.GetByConditionAsync(s => s.UserId == userId && s.Type == type && s.IsActive);
+				if (streak == null)
+				{
+					return BaseResponse<List<GetStreakResponse>>.Fail("No streak found for this user and type", ErrorType.NotFound);
+				}
+				else
+				{
+					var response = _mapper.Map<List<GetStreakResponse>>(new List<Streak> { streak });
+					return BaseResponse<List<GetStreakResponse>>.Ok(response);
+				}
+			}
+			else
+			{
+				var streaks = await _streakRepository.GetAllAsync(s => s.UserId == userId && s.IsActive);
+				if (streaks == null || !streaks.Any())
+				{
+					return BaseResponse<List<GetStreakResponse>>.Fail("No streaks found for this user", ErrorType.NotFound);
+
+				}
+				else
+				{
+					var response = _mapper.Map<List<GetStreakResponse>>(streaks);
+					return BaseResponse<List<GetStreakResponse>>.Ok(response);
+				}
+			}
+		}
+
+		public async Task<BaseResponse<GetStreakResponse>> GetStreakByIdAsync(Guid id)
+		{
+			var streak = await _streakRepository.GetByConditionAsync(s => s.Id == id && s.IsActive);
+			if (streak == null)
+			{
+				return BaseResponse<GetStreakResponse>.Fail("Streak not found", ErrorType.NotFound);
+
+			}
+			else
+			{
+				var response = _mapper.Map<GetStreakResponse>(streak);
+				return BaseResponse<GetStreakResponse>.Ok(response);
+			}
+		}
 	}
 }

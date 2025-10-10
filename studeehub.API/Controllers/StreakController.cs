@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using studeehub.Application.DTOs.Requests.Streak;
 using studeehub.Application.DTOs.Responses.Base;
+using studeehub.Application.DTOs.Responses.Streak;
 using studeehub.Application.Interfaces.Services;
+using studeehub.Domain.Enums.Streaks;
 
 namespace studeehub.API.Controllers
 {
@@ -15,6 +17,18 @@ namespace studeehub.API.Controllers
 		{
 			_streakService = streakService;
 		}
+
+		[HttpGet("user/{userId:Guid}")]
+		[ProducesResponseType(typeof(BaseResponse<List<GetStreakResponse>>), StatusCodes.Status200OK)]
+		[ProducesResponseType(typeof(BaseResponse<List<GetStreakResponse>>), StatusCodes.Status404NotFound)]
+		public async Task<BaseResponse<List<GetStreakResponse>>> GetStreakByUserId(Guid userId, StreakType? type)
+			=> await _streakService.GetStreakByUserIdAsync(userId, type);
+
+		[HttpGet("{id:Guid}")]
+		[ProducesResponseType(typeof(BaseResponse<GetStreakResponse>), StatusCodes.Status200OK)]
+		[ProducesResponseType(typeof(BaseResponse<GetStreakResponse>), StatusCodes.Status404NotFound)]
+		public async Task<BaseResponse<GetStreakResponse>> GetStreakById(Guid id)
+			=> await _streakService.GetStreakByIdAsync(id);
 
 		[HttpPost]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]

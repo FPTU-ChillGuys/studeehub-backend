@@ -241,14 +241,14 @@ namespace studeehub.Persistence.Migrations
                             Code = "STREAK_3_DAYS",
                             ConditionType = "Streak",
                             ConditionValue = 3,
-                            CreatedAt = new DateTime(2025, 10, 9, 9, 10, 16, 735, DateTimeKind.Utc).AddTicks(2025),
+                            CreatedAt = new DateTime(2025, 10, 10, 15, 8, 3, 397, DateTimeKind.Utc).AddTicks(9727),
                             Description = "Maintain a 3-day streak.",
                             IsActive = true,
                             IsDeleted = false,
                             Name = "3-Day Streak",
                             RewardType = "XP",
                             RewardValue = 50,
-                            UpdatedAt = new DateTime(2025, 10, 9, 9, 10, 16, 735, DateTimeKind.Utc).AddTicks(2026)
+                            UpdatedAt = new DateTime(2025, 10, 10, 15, 8, 3, 397, DateTimeKind.Utc).AddTicks(9727)
                         },
                         new
                         {
@@ -256,14 +256,14 @@ namespace studeehub.Persistence.Migrations
                             Code = "STREAK_7_DAYS",
                             ConditionType = "Streak",
                             ConditionValue = 7,
-                            CreatedAt = new DateTime(2025, 10, 9, 9, 10, 16, 735, DateTimeKind.Utc).AddTicks(2034),
+                            CreatedAt = new DateTime(2025, 10, 10, 15, 8, 3, 397, DateTimeKind.Utc).AddTicks(9736),
                             Description = "Maintain a 7-day streak.",
                             IsActive = true,
                             IsDeleted = false,
                             Name = "7-Day Streak",
                             RewardType = "XP",
                             RewardValue = 150,
-                            UpdatedAt = new DateTime(2025, 10, 9, 9, 10, 16, 735, DateTimeKind.Utc).AddTicks(2034)
+                            UpdatedAt = new DateTime(2025, 10, 10, 15, 8, 3, 397, DateTimeKind.Utc).AddTicks(9737)
                         },
                         new
                         {
@@ -271,14 +271,14 @@ namespace studeehub.Persistence.Migrations
                             Code = "FIRST_NOTE",
                             ConditionType = "NoteCreated",
                             ConditionValue = 1,
-                            CreatedAt = new DateTime(2025, 10, 9, 9, 10, 16, 735, DateTimeKind.Utc).AddTicks(2036),
+                            CreatedAt = new DateTime(2025, 10, 10, 15, 8, 3, 397, DateTimeKind.Utc).AddTicks(9740),
                             Description = "Create your first note.",
                             IsActive = true,
                             IsDeleted = false,
                             Name = "First Note Created",
                             RewardType = "Badge",
                             RewardValue = 1,
-                            UpdatedAt = new DateTime(2025, 10, 9, 9, 10, 16, 735, DateTimeKind.Utc).AddTicks(2036)
+                            UpdatedAt = new DateTime(2025, 10, 10, 15, 8, 3, 397, DateTimeKind.Utc).AddTicks(9740)
                         },
                         new
                         {
@@ -286,14 +286,14 @@ namespace studeehub.Persistence.Migrations
                             Code = "FLASHCARDS_REVIEWED_10",
                             ConditionType = "FlashcardReviewed",
                             ConditionValue = 10,
-                            CreatedAt = new DateTime(2025, 10, 9, 9, 10, 16, 735, DateTimeKind.Utc).AddTicks(2038),
+                            CreatedAt = new DateTime(2025, 10, 10, 15, 8, 3, 397, DateTimeKind.Utc).AddTicks(9742),
                             Description = "Review 10 flashcards.",
                             IsActive = true,
                             IsDeleted = false,
                             Name = "10 Flashcards Reviewed",
                             RewardType = "XP",
                             RewardValue = 100,
-                            UpdatedAt = new DateTime(2025, 10, 9, 9, 10, 16, 735, DateTimeKind.Utc).AddTicks(2038)
+                            UpdatedAt = new DateTime(2025, 10, 10, 15, 8, 3, 397, DateTimeKind.Utc).AddTicks(9742)
                         },
                         new
                         {
@@ -301,14 +301,14 @@ namespace studeehub.Persistence.Migrations
                             Code = "DOCUMENTS_UPLOADED_10",
                             ConditionType = "DocumentUpload",
                             ConditionValue = 10,
-                            CreatedAt = new DateTime(2025, 10, 9, 9, 10, 16, 735, DateTimeKind.Utc).AddTicks(2040),
+                            CreatedAt = new DateTime(2025, 10, 10, 15, 8, 3, 397, DateTimeKind.Utc).AddTicks(9744),
                             Description = "Upload 10 documents.",
                             IsActive = true,
                             IsDeleted = false,
                             Name = "10 Documents Uploaded",
                             RewardType = "XP",
                             RewardValue = 200,
-                            UpdatedAt = new DateTime(2025, 10, 9, 9, 10, 16, 735, DateTimeKind.Utc).AddTicks(2040)
+                            UpdatedAt = new DateTime(2025, 10, 10, 15, 8, 3, 397, DateTimeKind.Utc).AddTicks(9744)
                         });
                 });
 
@@ -557,6 +557,9 @@ namespace studeehub.Persistence.Migrations
                     b.Property<int>("CurrentCount")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime>("LastUpdated")
                         .HasColumnType("datetime2");
 
@@ -689,7 +692,7 @@ namespace studeehub.Persistence.Migrations
                         {
                             Id = new Guid("d2f1c3a4-1001-4a1b-8c1d-000000000101"),
                             Code = "BASIC_MONTHLY",
-                            CreatedAt = new DateTime(2025, 10, 9, 9, 10, 16, 735, DateTimeKind.Utc).AddTicks(1969),
+                            CreatedAt = new DateTime(2025, 10, 10, 15, 8, 3, 397, DateTimeKind.Utc).AddTicks(9667),
                             Currency = "VND",
                             Description = "Gói cơ bản theo tháng với dung lượng và số lượng tài liệu giới hạn.",
                             DurationInDays = 30,
@@ -700,13 +703,13 @@ namespace studeehub.Persistence.Migrations
                             MaxStorageMB = 500,
                             Name = "Gói Cơ Bản (Theo Tháng)",
                             Price = 0m,
-                            UpdatedAt = new DateTime(2025, 10, 9, 9, 10, 16, 735, DateTimeKind.Utc).AddTicks(1973)
+                            UpdatedAt = new DateTime(2025, 10, 10, 15, 8, 3, 397, DateTimeKind.Utc).AddTicks(9668)
                         },
                         new
                         {
                             Id = new Guid("d2f1c3a4-1002-4a1b-8c1d-000000000102"),
                             Code = "PRO_MONTHLY",
-                            CreatedAt = new DateTime(2025, 10, 9, 9, 10, 16, 735, DateTimeKind.Utc).AddTicks(1984),
+                            CreatedAt = new DateTime(2025, 10, 10, 15, 8, 3, 397, DateTimeKind.Utc).AddTicks(9684),
                             Currency = "VND",
                             Description = "Gói chuyên nghiệp theo tháng với giới hạn cao hơn và có tính năng AI.",
                             DurationInDays = 30,
@@ -717,13 +720,13 @@ namespace studeehub.Persistence.Migrations
                             MaxStorageMB = 10240,
                             Name = "Gói Chuyên Nghiệp (Theo Tháng)",
                             Price = 49.9m,
-                            UpdatedAt = new DateTime(2025, 10, 9, 9, 10, 16, 735, DateTimeKind.Utc).AddTicks(1984)
+                            UpdatedAt = new DateTime(2025, 10, 10, 15, 8, 3, 397, DateTimeKind.Utc).AddTicks(9684)
                         },
                         new
                         {
                             Id = new Guid("d2f1c3a4-1003-4a1b-8c1d-000000000103"),
                             Code = "PRO_YEARLY",
-                            CreatedAt = new DateTime(2025, 10, 9, 9, 10, 16, 735, DateTimeKind.Utc).AddTicks(1990),
+                            CreatedAt = new DateTime(2025, 10, 10, 15, 8, 3, 397, DateTimeKind.Utc).AddTicks(9691),
                             Currency = "VND",
                             Description = "Gói chuyên nghiệp theo năm với mức giá ưu đãi khi thanh toán hàng năm.",
                             DurationInDays = 365,
@@ -734,7 +737,7 @@ namespace studeehub.Persistence.Migrations
                             MaxStorageMB = 10240,
                             Name = "Gói Chuyên Nghiệp (Theo Năm)",
                             Price = 499.99m,
-                            UpdatedAt = new DateTime(2025, 10, 9, 9, 10, 16, 735, DateTimeKind.Utc).AddTicks(1990)
+                            UpdatedAt = new DateTime(2025, 10, 10, 15, 8, 3, 397, DateTimeKind.Utc).AddTicks(9691)
                         });
                 });
 
@@ -830,10 +833,10 @@ namespace studeehub.Persistence.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@EXAMPLE.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEBKhYRyMPvAbNvk0v3GZiE9cxJenWzaU6QnVEk3FKppxJiXyteukdvADjyBW6oyC0g==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEI76xDe2aX235Dxfv+LgXrI7q5kclBvoskB7j7y04sRmYpcOnOjnIGP0fbcetO0Vaw==",
                             PhoneNumberConfirmed = false,
                             RefreshToken = "",
-                            RefreshTokenExpiryTime = new DateTime(2025, 10, 16, 9, 10, 16, 639, DateTimeKind.Utc).AddTicks(2200),
+                            RefreshTokenExpiryTime = new DateTime(2025, 10, 17, 15, 8, 3, 302, DateTimeKind.Utc).AddTicks(7909),
                             SecurityStamp = "seed-4",
                             TwoFactorEnabled = false,
                             UserName = "admin"
@@ -850,10 +853,10 @@ namespace studeehub.Persistence.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "USER@EXAMPLE.COM",
                             NormalizedUserName = "USER",
-                            PasswordHash = "AQAAAAIAAYagAAAAECzzTN77SSVqYTwlnNB8dy9FWCcnurLh/SSjxAeWJDhBtl2L1nlQVTnyh/00oQU8+A==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEMIF80J4ouZ79qqdQd4KrHfT63BD86aFi90COXTFH+PWKu4dTCWNj5SUrvVlzEZqoA==",
                             PhoneNumberConfirmed = false,
                             RefreshToken = "",
-                            RefreshTokenExpiryTime = new DateTime(2025, 10, 16, 9, 10, 16, 687, DateTimeKind.Utc).AddTicks(3371),
+                            RefreshTokenExpiryTime = new DateTime(2025, 10, 17, 15, 8, 3, 350, DateTimeKind.Utc).AddTicks(4760),
                             SecurityStamp = "seed-6",
                             TwoFactorEnabled = false,
                             UserName = "user"
@@ -897,7 +900,7 @@ namespace studeehub.Persistence.Migrations
                         });
                 });
 
-            modelBuilder.Entity("studeehub.Domain.Entities.WorkSpace", b =>
+            modelBuilder.Entity("studeehub.Domain.Entities.Workspace", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -923,7 +926,7 @@ namespace studeehub.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("WorkSpaces");
+                    b.ToTable("Workspaces");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -985,7 +988,7 @@ namespace studeehub.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("studeehub.Domain.Entities.WorkSpace", "WorkSpace")
+                    b.HasOne("studeehub.Domain.Entities.Workspace", "Workspace")
                         .WithMany("Documents")
                         .HasForeignKey("WorkSpaceId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -993,7 +996,7 @@ namespace studeehub.Persistence.Migrations
 
                     b.Navigation("User");
 
-                    b.Navigation("WorkSpace");
+                    b.Navigation("Workspace");
                 });
 
             modelBuilder.Entity("studeehub.Domain.Entities.Flashcard", b =>
@@ -1004,7 +1007,7 @@ namespace studeehub.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("studeehub.Domain.Entities.WorkSpace", "WorkSpace")
+                    b.HasOne("studeehub.Domain.Entities.Workspace", "Workspace")
                         .WithMany("Flashcards")
                         .HasForeignKey("WorkSpaceId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1012,7 +1015,7 @@ namespace studeehub.Persistence.Migrations
 
                     b.Navigation("User");
 
-                    b.Navigation("WorkSpace");
+                    b.Navigation("Workspace");
                 });
 
             modelBuilder.Entity("studeehub.Domain.Entities.Note", b =>
@@ -1023,7 +1026,7 @@ namespace studeehub.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("studeehub.Domain.Entities.WorkSpace", "WorkSpace")
+                    b.HasOne("studeehub.Domain.Entities.Workspace", "Workspace")
                         .WithMany("Notes")
                         .HasForeignKey("WorkSpaceId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1031,7 +1034,7 @@ namespace studeehub.Persistence.Migrations
 
                     b.Navigation("User");
 
-                    b.Navigation("WorkSpace");
+                    b.Navigation("Workspace");
                 });
 
             modelBuilder.Entity("studeehub.Domain.Entities.PaymentTransaction", b =>
@@ -1124,10 +1127,10 @@ namespace studeehub.Persistence.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("studeehub.Domain.Entities.WorkSpace", b =>
+            modelBuilder.Entity("studeehub.Domain.Entities.Workspace", b =>
                 {
                     b.HasOne("studeehub.Domain.Entities.User", "User")
-                        .WithMany("WorkSpaces")
+                        .WithMany("Workspaces")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1162,10 +1165,10 @@ namespace studeehub.Persistence.Migrations
 
                     b.Navigation("UserAchievements");
 
-                    b.Navigation("WorkSpaces");
+                    b.Navigation("Workspaces");
                 });
 
-            modelBuilder.Entity("studeehub.Domain.Entities.WorkSpace", b =>
+            modelBuilder.Entity("studeehub.Domain.Entities.Workspace", b =>
                 {
                     b.Navigation("Documents");
 

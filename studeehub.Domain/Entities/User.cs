@@ -9,7 +9,7 @@ namespace studeehub.Domain.Entities
 		public DateTime RefreshTokenExpiryTime { get; set; } = DateTime.UtcNow.AddDays(7);
 		public bool IsActive { get; set; } = true;
 
-		public virtual ICollection<WorkSpace> WorkSpaces { get; set; } = new List<WorkSpace>();
+		public virtual ICollection<Workspace> Workspaces { get; set; } = new List<Workspace>();
 		public virtual ICollection<PomodoroSession> PomodoroSessions { get; set; } = new List<PomodoroSession>();
 		public virtual ICollection<Streak> Streaks { get; set; } = new List<Streak>();
 		public virtual ICollection<Subscription> Subscriptions { get; set; } = new List<Subscription>();

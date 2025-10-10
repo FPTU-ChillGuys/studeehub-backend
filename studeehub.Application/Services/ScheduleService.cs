@@ -1,11 +1,15 @@
 ﻿using FluentValidation;
 using MapsterMapper;
+using studeehub.Application.DTOs.Requests.Base;
 using studeehub.Application.DTOs.Requests.Schedule;
 using studeehub.Application.DTOs.Responses.Base;
+using studeehub.Application.DTOs.Responses.Schedule;
+using studeehub.Application.Extensions;
 using studeehub.Application.Interfaces.Repositories;
 using studeehub.Application.Interfaces.Services;
 using studeehub.Domain.Entities;
 using studeehub.Domain.Enums;
+using System.Linq.Expressions;
 
 namespace studeehub.Application.Services
 {
@@ -149,6 +153,42 @@ namespace studeehub.Application.Services
 			schedule.UpdatedAt = DateTime.UtcNow;
 			_scheduleRepository.Update(schedule);
 			await _scheduleRepository.SaveChangesAsync();
+		}
+
+		public async Task<PagedResponse<GetScheduleResponse>> GetSchedulesByUserIdAsync(Guid userId, PagedAndSortedRequest request)
+		{
+			// Build predicate to filter schedules by owner
+			Expression<Func<Schedule, bool>> filter = s => s.UserId == userId;
+
+			// Fetch paged data from repository.
+			// Note: repository is expected to return a tuple (totalCount, items)
+			var (schedules, totalCount) = await _scheduleRepository.GetPagedAsync(
+				filter: filter,
+				include: null,
+				orderBy: s => s.ApplySorting(request.SortBy, request.SortDescending),
+				request.PageNumber,
+				request.PageSize,
+				asNoTracking: true);
+
+			if (schedules == null || !schedules.Any())
+			{
+				return PagedResponse<GetScheduleResponse>.Ok(new List<GetScheduleResponse>(), 0, request.PageNumber, request.PageSize);
+			}
+
+			var responses = _mapper.Map<List<GetScheduleResponse>>(schedules);
+
+			return PagedResponse<GetScheduleResponse>.Ok(responses, totalCount, request.PageNumber, request.PageSize);
+		}
+
+		public async Task<BaseResponse<GetScheduleResponse>> GetScheduleByIdAsync(Guid id)
+		{
+			var schedule = await _scheduleRepository.GetByConditionAsync(s => s.Id == id);
+			if (schedule == null)
+			{
+				return BaseResponse<GetScheduleResponse>.Fail("Schedule not found", ErrorType.NotFound);
+			}
+			var response = _mapper.Map<GetScheduleResponse>(schedule);
+			return BaseResponse<GetScheduleResponse>.Ok(response);
 		}
 	}
 }

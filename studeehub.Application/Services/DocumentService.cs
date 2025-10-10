@@ -141,7 +141,7 @@ namespace studeehub.Application.Services
 			if (documents == null || !documents.Any())
 			{
 				return BaseResponse<List<GetDocumentResponse>>.Fail("No documents found for the specified WorkSpaceId", ErrorType.NotFound);
-            }
+			}
 			var response = _mapper.Map<List<GetDocumentResponse>>(documents);
 			foreach (var doc in documents)
 			{
@@ -167,10 +167,10 @@ namespace studeehub.Application.Services
 							respDoc.FilePath = null;
 						}
 					}
-                }
-            }
+				}
+			}
 			return BaseResponse<List<GetDocumentResponse>>.Ok(response);
-        }
+		}
 
 		public async Task<BaseResponse<GetDocumentResponse>> GetDocumentByIdAsync(Guid id)
 		{
@@ -194,6 +194,6 @@ namespace studeehub.Application.Services
 				}
 			}
 			return BaseResponse<GetDocumentResponse>.Ok(response);
-        }
+		}
 	}
 }

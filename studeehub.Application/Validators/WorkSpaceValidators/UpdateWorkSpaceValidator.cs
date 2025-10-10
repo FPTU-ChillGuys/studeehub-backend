@@ -1,9 +1,9 @@
 ﻿using FluentValidation;
-using studeehub.Application.DTOs.Requests.WorkSpace;
+using studeehub.Application.DTOs.Requests.Workspace;
 
 namespace studeehub.Application.Validators.WorkSpaceValidators
 {
-	public class UpdateWorkSpaceValidator : AbstractValidator<UpdateWorkSpaceRequest>
+	public class UpdateWorkSpaceValidator : AbstractValidator<UpdateWorkspaceRequest>
 	{
 		public UpdateWorkSpaceValidator()
 		{

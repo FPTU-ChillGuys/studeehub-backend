@@ -14,6 +14,6 @@
 		public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
 		public virtual User User { get; set; } = null!;
-		public virtual WorkSpace WorkSpace { get; set; } = null!;
+		public virtual Workspace Workspace { get; set; } = null!;
 	}
 }

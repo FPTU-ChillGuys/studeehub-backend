@@ -5,19 +5,19 @@ using studeehub.Persistence.Context;
 
 namespace studeehub.Persistence.Repositories
 {
-	public class WorkSpaceRepository : GenericRepository<WorkSpace>, IWorkSpaceRepository
+	public class WorkspaceRepository : GenericRepository<Workspace>, IWorkSpaceRepository
 	{
-		public WorkSpaceRepository(StudeeHubDBContext context) : base(context)
+		public WorkspaceRepository(StudeeHubDBContext context) : base(context)
 		{
 		}
 
 		public async Task<string> GenerateUniqueWorkspaceNameAsync(Guid userId)
 		{
-			const string baseName = "workspace";
+			const string baseName = "Workspace";
 
 			// Query DB for names starting with baseName for the given user,
 			// extract numeric suffix, parse, and get max
-			var workspaceNames = await _context.WorkSpaces
+			var workspaceNames = await _context.Workspaces
 				.AsNoTracking()
 				.Where(w => w.UserId == userId && EF.Functions.Like(w.Name, baseName + "%"))
 				.Select(w => w.Name.Substring(baseName.Length))

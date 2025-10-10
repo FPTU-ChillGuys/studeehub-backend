@@ -26,7 +26,7 @@ namespace studeehub.Application.Mappings
 			// This keeps mapping logic in one place and avoids accidental projection issues elsewhere.
 			config.NewConfig<Document, GetDocumentResponse>()
 				.Map(dest => dest.Id, src => src.Id)
-                .Map(dest => dest.Name, src => src.Name)
+				.Map(dest => dest.Name, src => src.Name)
 				.Map(dest => dest.Description, src => src.Description)
 				.Map(dest => dest.Type, src => src.Type)
 				.Map(dest => dest.FilePath, src => src.FilePath)

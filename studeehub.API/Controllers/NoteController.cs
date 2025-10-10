@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using studeehub.Application.DTOs.Requests.Note;
 using studeehub.Application.DTOs.Responses.Base;
+using studeehub.Application.DTOs.Responses.Note;
 using studeehub.Application.Interfaces.Services;
 
 namespace studeehub.API.Controllers
@@ -15,6 +16,18 @@ namespace studeehub.API.Controllers
 		{
 			_noteService = noteService;
 		}
+
+		[HttpGet("user/{userId:Guid}")]
+		[ProducesResponseType(typeof(BaseResponse<List<GetNoteResponse>>), StatusCodes.Status200OK)]
+		[ProducesResponseType(typeof(BaseResponse<List<GetNoteResponse>>), StatusCodes.Status404NotFound)]
+		public async Task<BaseResponse<List<GetNoteResponse>>> GetNotesByUserId([FromRoute] Guid userId)
+			=> await _noteService.GetNotesByWorkSpaceIdAsync(userId);
+
+		[HttpGet("{id:Guid}")]
+		[ProducesResponseType(typeof(BaseResponse<GetNoteResponse>), StatusCodes.Status200OK)]
+		[ProducesResponseType(typeof(BaseResponse<GetNoteResponse>), StatusCodes.Status404NotFound)]
+		public async Task<BaseResponse<GetNoteResponse>> GetNoteById([FromRoute] Guid id)
+			=> await _noteService.GetNoteByIdAsync(id);
 
 		[HttpPost]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
