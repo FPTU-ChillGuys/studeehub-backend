@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Net.payOS;
 using studeehub.Application.Interfaces.Repositories;
 using studeehub.Application.Interfaces.Services.ThirdPartyServices;
 using studeehub.Domain.Entities;
@@ -33,6 +34,7 @@ namespace studeehub.Infrastructure.Extensions
 			services.AddTransient<ISupabaseStorageService, SupabaseStorageService>();
 			services.AddTransient<IVnPayService, VnPayService>();
 			services.AddTransient<ISubscriptionJobService, SubscriptionJobService>();
+			services.AddTransient<IPayOSService, PayOSService>();
 
 			// - DBContext
 			var connectionString = configuration["DATABASE_CONNECTION_STRING"];
@@ -72,6 +74,14 @@ namespace studeehub.Infrastructure.Extensions
 					"áàảãạấầẩẫậắằẳẵặéèẻẽẹếềểễệíìỉĩịóòỏõọốồổỗộớờởỡợúùủũụứừửữựýỳỷỹỵ" +
 					"ÁÀẢÃẠẤẦẨẪẬẮẰẲẴẶÉÈẺẼẸẾỀỂỄỆÍÌỈĨỊÓÒỎÕỌỐỒỔỖỘỚỜỞỠỢÚÙỦŨỤỨỪỬỮỰÝỲỶỸỴ";
 			});
+
+			// create and register PayOS in DI so it can be injected across the project
+			var apiKey = configuration["PayOS:ApiKey"] ?? throw new Exception("Missing PayOS ApiKey!!");
+			var clientId = configuration["PayOS:ClientId"] ?? throw new Exception("Missing PayOS ClientId!!");
+			var checksumKey = configuration["PayOS:ChecksumKey"] ?? throw new Exception("Missing PayOS ChecksumKey!!");
+			var partnerCode = configuration["PayOS:PartnerCode"];
+			var payOS = new PayOS(clientId, apiKey, checksumKey, partnerCode);
+			services.AddSingleton(payOS);
 
 			// - CORS
 			var webUrl = configuration["Front-end:webUrl"] ?? throw new Exception("Missing web url!!");

@@ -6,6 +6,7 @@ using studeehub.Application.DTOs.Requests.Achievement;
 using studeehub.Application.DTOs.Requests.Auth;
 using studeehub.Application.DTOs.Requests.Document;
 using studeehub.Application.DTOs.Requests.Note;
+using studeehub.Application.DTOs.Requests.PayOS;
 using studeehub.Application.DTOs.Requests.Schedule;
 using studeehub.Application.DTOs.Requests.Streak;
 using studeehub.Application.DTOs.Requests.Subscription;
@@ -18,6 +19,7 @@ using studeehub.Application.Validators.AchievemValidators;
 using studeehub.Application.Validators.AuthValidators;
 using studeehub.Application.Validators.DocumentValidators;
 using studeehub.Application.Validators.NoteValidators;
+using studeehub.Application.Validators.PayOsValidators;
 using studeehub.Application.Validators.ScheduleValidators;
 using studeehub.Application.Validators.StreakValidators;
 using studeehub.Application.Validators.SubscriptionValidators;
@@ -80,6 +82,7 @@ namespace studeehub.Application.Extensions
 			services.AddScoped<IValidator<UpdateScheduleRequest>, UpdateScheduleValidator>();
 			services.AddScoped<IValidator<CreateSubPlanRequest>, CreateSubPlanValidator>();
 			services.AddScoped<IValidator<UpdateSubPlanRequest>, UpdateSubPlanValidator>();
+			services.AddScoped<IValidator<CreatePaymentLinkRequest>, CreatePaymentLinkRequestValidator>();
 
 			// SignalR
 			services.AddSignalR();

@@ -8,11 +8,11 @@ namespace studeehub.API.Controllers
 {
 	[Route("api/[controller]")]
 	[ApiController]
-	public class PaymentTransactionController : ControllerBase
+	public class VnPayController : ControllerBase
 	{
 		private readonly IPayTransactionService _payTransactionService;
 
-		public PaymentTransactionController(IPayTransactionService payTransactionService)
+		public VnPayController(IPayTransactionService payTransactionService)
 		{
 			_payTransactionService = payTransactionService;
 		}
@@ -31,7 +31,7 @@ namespace studeehub.API.Controllers
 		public async Task<BaseResponse<string>> CreatePaymentSession([FromBody] CreatePaymentSessionRequest request)
 			=> await _payTransactionService.CreatePaymentSessionAsync(request, HttpContext);
 
-		[HttpGet("vnpay-callback")]
+		[HttpGet("callback")]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status404NotFound)]
