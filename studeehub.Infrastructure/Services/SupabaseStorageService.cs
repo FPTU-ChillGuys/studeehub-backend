@@ -7,6 +7,8 @@ namespace studeehub.Infrastructure.Services
 	{
 		private readonly Supabase.Client _client;
 		private readonly IConfiguration _config;
+		private readonly SemaphoreSlim _initLock = new(1, 1);
+		private volatile bool _initialized;
 
 		public SupabaseStorageService(IConfiguration config)
 		{
@@ -15,6 +17,26 @@ namespace studeehub.Infrastructure.Services
 				_config["Supabase:Url"] ?? throw new Exception("Supabase url not found!"),
 				_config["Supabase:Key"]
 			);
+		}
+
+		// Ensure InitializeAsync is only called once concurrently and is safe for many parallel uploads.
+		private async Task EnsureInitializedAsync()
+		{
+			if (_initialized) return;
+
+			await _initLock.WaitAsync();
+			try
+			{
+				if (!_initialized)
+				{
+					await _client.InitializeAsync();
+					_initialized = true;
+				}
+			}
+			finally
+			{
+				_initLock.Release();
+			}
 		}
 
 		// Synchronous extraction returned as a Task to match the interface signature.
@@ -47,7 +69,10 @@ namespace studeehub.Infrastructure.Services
 
 		public async Task<bool> DeleteFileAsync(string filePath, string bucket = "studeehub_bucket")
 		{
-			await _client.InitializeAsync();
+			if (string.IsNullOrWhiteSpace(filePath))
+				throw new ArgumentException("filePath is null or empty", nameof(filePath));
+
+			await EnsureInitializedAsync();
 
 			var storage = _client.Storage;
 			var bucketRef = storage.From(bucket);
@@ -76,7 +101,12 @@ namespace studeehub.Infrastructure.Services
 
 		public async Task<string?> UploadFileAsync(Stream fileStream, string fileName, string bucket = "studeehub_bucket")
 		{
-			await _client.InitializeAsync();
+			if (fileStream == null)
+				throw new ArgumentNullException(nameof(fileStream));
+			if (string.IsNullOrWhiteSpace(fileName))
+				throw new ArgumentException("fileName is null or empty", nameof(fileName));
+
+			await EnsureInitializedAsync();
 
 			var storage = _client.Storage;
 			var bucketRef = storage.From(bucket);
@@ -98,7 +128,7 @@ namespace studeehub.Infrastructure.Services
 
 			var response = await bucketRef.Upload(fileBytes, uniqueName);
 
-			// SDKs differ on return types. Treat non-null/non-empty as success and return public URL.
+			// SDKs differ on return types. Treat non-null/non-empty as success and return signed URL.
 			if (response != null)
 			{
 				try
@@ -108,12 +138,30 @@ namespace studeehub.Infrastructure.Services
 				}
 				catch
 				{
-					// If GetPublicUrl throws for some SDK changes, return null to indicate failure.
+					// If CreateSignedUrl throws for some SDK changes, return null to indicate failure.
 					return null;
 				}
 			}
 
 			return null;
+		}
+
+		// Optional: a convenience batch upload that reuses UploadFileAsync internally.
+		// Not required by the interface but can be used by concrete callers if desired.
+		public async Task<IList<string?>> UploadFilesAsync(IEnumerable<(Stream FileStream, string FileName)> files, string bucket = "studeehub_bucket")
+		{
+			if (files == null)
+				throw new ArgumentNullException(nameof(files));
+
+			var results = new List<string?>();
+
+			// Sequential to avoid overwhelming SDK / concurrency issues; callers can run parallel if needed.
+			foreach (var (stream, name) in files)
+			{
+				results.Add(await UploadFileAsync(stream, name, bucket));
+			}
+
+			return results;
 		}
 
 		public async Task<string> GenerateSignedUrlAsync(string filePath, int expiresInSeconds = 3600, string bucket = "studeehub_bucket")
@@ -124,7 +172,7 @@ namespace studeehub.Infrastructure.Services
 			if (expiresInSeconds <= 0)
 				throw new ArgumentOutOfRangeException(nameof(expiresInSeconds), "expiresInSeconds must be greater than zero.");
 
-			await _client.InitializeAsync();
+			await EnsureInitializedAsync();
 
 			var storage = _client.Storage;
 			var bucketRef = storage.From(bucket);

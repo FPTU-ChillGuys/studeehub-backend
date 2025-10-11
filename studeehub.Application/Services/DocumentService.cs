@@ -9,6 +9,7 @@ using studeehub.Application.Interfaces.Services;
 using studeehub.Application.Interfaces.Services.ThirdPartyServices;
 using studeehub.Domain.Entities;
 using studeehub.Domain.Enums;
+using System.Text.RegularExpressions;
 
 namespace studeehub.Application.Services
 {
@@ -47,15 +48,27 @@ namespace studeehub.Application.Services
 
 			return result
 				? BaseResponse<string>.Ok("Document created successfully")
-				: BaseResponse<string>.Fail("Failed to create Document", Domain.Enums.ErrorType.ServerError);
+				: BaseResponse<string>.Fail("Failed to create Document", ErrorType.ServerError);
 		}
 
 		public async Task<BaseResponse<UploadFileResponse>> UploadDocumentAsync(Stream fileStream, string fileName, string contentType)
 		{
-			var uploadedUrl = await _supabaseStorageService.UploadFileAsync(fileStream, fileName);
+			// sanitize the provided filename to avoid Supabase invalid-key issues (see supabase discussion)
+			string safeFileName;
+			try
+			{
+				safeFileName = SanitizeFileName(fileName);
+			}
+			catch (ArgumentException ex)
+			{
+				_logger.LogWarning(ex, "Invalid file name provided: {FileName}", fileName);
+				return BaseResponse<UploadFileResponse>.Fail("Invalid file name", ErrorType.Validation);
+			}
+
+			var uploadedUrl = await _supabaseStorageService.UploadFileAsync(fileStream, safeFileName);
 
 			if (uploadedUrl == null)
-				return BaseResponse<UploadFileResponse>.Fail("File upload failed", Domain.Enums.ErrorType.ServerError);
+				return BaseResponse<UploadFileResponse>.Fail("File upload failed", ErrorType.ServerError);
 
 			var response = new UploadFileResponse
 			{
@@ -65,6 +78,30 @@ namespace studeehub.Application.Services
 			};
 
 			return BaseResponse<UploadFileResponse>.Ok(response);
+		}
+
+		public async Task<BaseResponse<IList<UploadFileResponse>>> UploadDocumentsAsync(IEnumerable<(Stream FileStream, string FileName, string ContentType)> files)
+		{
+			if (files == null)
+				return BaseResponse<IList<UploadFileResponse>>.Fail("No files provided", Domain.Enums.ErrorType.Validation);
+
+			var results = new List<UploadFileResponse>();
+
+			foreach (var (fileStream, fileName, contentType) in files)
+			{
+				if (fileStream == null)
+					return BaseResponse<IList<UploadFileResponse>>.Fail("A file stream was null", Domain.Enums.ErrorType.Validation);
+
+				// UploadDocumentAsync will sanitize individual file names; call it to keep consistent behavior.
+				var single = await UploadDocumentAsync(fileStream, fileName, contentType);
+
+				if (single == null || !single.Success)
+					return BaseResponse<IList<UploadFileResponse>>.Fail("File upload failed", Domain.Enums.ErrorType.ServerError);
+
+				results.Add(single.Data);
+			}
+
+			return BaseResponse<IList<UploadFileResponse>>.Ok(results);
 		}
 
 		public async Task<BaseResponse<string>> UpdateDocumentAsync(Guid id, UpdateDocumentRequest request)
@@ -194,6 +231,60 @@ namespace studeehub.Application.Services
 				}
 			}
 			return BaseResponse<GetDocumentResponse>.Ok(response);
+		}
+
+		/// <summary>
+		/// Sanitize file names according to allowed characters used by Supabase's storage keys.
+		/// Based on supabase discussion: disallow characters like '%' and others that are invalid for keys.
+		/// This method preserves the original extension, replaces invalid characters with '_',
+		/// collapses repeated underscores, and trims the base name to a safe length.
+		/// </summary>
+		private static string SanitizeFileName(string fileName)
+		{
+			if (string.IsNullOrWhiteSpace(fileName))
+				throw new ArgumentException("fileName is null or empty", nameof(fileName));
+
+			var extension = Path.GetExtension(fileName) ?? string.Empty;
+			var baseName = Path.GetFileNameWithoutExtension(fileName) ?? string.Empty;
+
+			// Allowed characters: alphanumeric, underscore, slash, hyphen, dot, asterisk, single-quote, parentheses,
+			// space and these special chars: & $ @ = ; : + , ? !
+			// This set is derived from the discussion; anything outside will be replaced by '_';
+			const string allowedChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_/-!. *'() &$@=;:+,?";
+
+			var cleanedChars = baseName.Select(c =>
+			{
+				// keep if in allowed set
+				if (allowedChars.IndexOf(c) >= 0)
+					return c;
+
+				// allow percent-encoded sequences? no — replace '%' to avoid issues
+				// fallback: replace other disallowed chars with underscore
+				return '_';
+			}).ToArray();
+
+			var cleaned = new string(cleanedChars);
+
+			// collapse multiple underscores
+			cleaned = Regex.Replace(cleaned, "_{2,}", "_");
+
+			// Trim whitespace at ends
+			cleaned = cleaned.Trim();
+
+			// Remove leading slashes to avoid absolute path-like keys.
+			while (cleaned.StartsWith("/"))
+				cleaned = cleaned.Substring(1);
+
+			// Limit base name length to avoid overly long keys (keep some room for GUIDs added in storage layer).
+			const int maxBaseNameLength = 200;
+			if (cleaned.Length > maxBaseNameLength)
+				cleaned = cleaned.Substring(0, maxBaseNameLength);
+
+			// If result is empty after sanitization, create a fallback name
+			if (string.IsNullOrWhiteSpace(cleaned))
+				cleaned = "file";
+
+			return cleaned + extension;
 		}
 	}
 }

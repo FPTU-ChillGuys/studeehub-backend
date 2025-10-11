@@ -33,24 +33,44 @@ namespace studeehub.API.Controllers
 
 		[HttpPost("upload")]
 		[Consumes("multipart/form-data")]
-		[ProducesResponseType(typeof(BaseResponse<UploadFileResponse>), StatusCodes.Status200OK)]
+		[ProducesResponseType(typeof(BaseResponse<IList<UploadFileResponse>>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
-		public async Task<BaseResponse<UploadFileResponse>> Upload([FromForm] UploadFileRequest request)
+		public async Task<BaseResponse<IList<UploadFileResponse>>> Upload([FromForm] UploadFileRequest request)
 		{
-			var uploadedFile = request.File;
-			if (uploadedFile == null || uploadedFile.Length == 0)
+			if (request?.Files == null || request.Files.Count == 0)
 			{
-				return BaseResponse<UploadFileResponse>.Fail("File is not null", ErrorType.Validation);
+				return BaseResponse<IList<UploadFileResponse>>.Fail("No files provided", ErrorType.Validation);
 			}
 
-			await using var stream = uploadedFile.OpenReadStream();
+			var uploadedResponses = new List<UploadFileResponse>();
 
-			return await _documentService.UploadDocumentAsync(
-				stream,
-				uploadedFile.FileName,
-				uploadedFile.ContentType
-			);
+			foreach (var uploadedFile in request.Files)
+			{
+				if (uploadedFile == null || uploadedFile.Length == 0)
+					continue; // skip empty entries
+
+				await using var stream = uploadedFile.OpenReadStream();
+
+				// Reuse existing single-file UploadDocumentAsync for robustness and to ensure any
+				// side-effects / validations done there remain consistent.
+				var singleResponse = await _documentService.UploadDocumentAsync(
+					stream,
+					uploadedFile.FileName,
+					uploadedFile.ContentType
+				);
+
+				if (singleResponse == null || !singleResponse.Success)
+				{
+					// Decide policy: fail-fast if any file upload fails (current behavior).
+					// Alternatively, collect errors per-file and return partial successes.
+					return BaseResponse<IList<UploadFileResponse>>.Fail("One or more files failed to upload", ErrorType.ServerError);
+				}
+
+				uploadedResponses.Add(singleResponse.Data);
+			}
+
+			return BaseResponse<IList<UploadFileResponse>>.Ok(uploadedResponses);
 		}
 
 		[HttpPost]
