@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Net.payOS;
 using Net.payOS.Types;
@@ -24,6 +25,8 @@ namespace studeehub.Infrastructure.Services
 		private readonly ISubPlanRepository _subscriptionPlanRepository;
 		private readonly IPayTransactionRepository _paymentTransactionRepository;
 		private readonly IUserRepository _userRepository;
+		private readonly IEmailService _emailService;
+		private readonly IEmailTemplateService _emailTemplateService;
 		private readonly IUnitOfWork _unitOfWork;
 
 
@@ -35,7 +38,9 @@ namespace studeehub.Infrastructure.Services
 			ISubPlanRepository subscriptionPlanRepository,
 			IUserRepository userRepository,
 			IPayTransactionRepository paymentTransactionRepository,
-			IUnitOfWork unitOfWork)
+			IUnitOfWork unitOfWork,
+			IEmailService emailService,
+			IEmailTemplateService emailTemplateService)
 		{
 			_payOS = payOS;
 			_validator = validator;
@@ -45,6 +50,8 @@ namespace studeehub.Infrastructure.Services
 			_userRepository = userRepository;
 			_paymentTransactionRepository = paymentTransactionRepository;
 			_unitOfWork = unitOfWork;
+			_emailService = emailService;
+			_emailTemplateService = emailTemplateService;
 		}
 
 		public async Task<BaseResponse<PaymentLinkInformation>> GetPaymentInformationByOrderCode(long orderCode)
@@ -301,19 +308,30 @@ namespace studeehub.Infrastructure.Services
 					// set response code once
 					transaction.ResponseCode = data.code;
 
-					if (data.code == "00")
+					var paymentSucceeded = data.code == "00";
+					var parsedComplete = DateTime.TryParse(data.transactionDateTime ?? string.Empty, out var parsed) ? parsed : DateTime.UtcNow;
+					Subscription? subscription = null;
+
+					// load subscription including navigation properties so we can email
+					subscription = await _subscriptionRepository.GetByConditionAsync(
+						s => s.Id == transaction.SubscriptionId,
+						include: q => q.Include(s => s.User).Include(s => s.SubscriptionPlan),
+						asNoTracking: false);
+
+					if (paymentSucceeded)
 					{
 						transaction.Status = TransactionStatus.Success;
-						var completeAt = DateTime.TryParse(data.transactionDateTime ?? string.Empty, out var parsed) ? parsed : DateTime.UtcNow;
-						transaction.CompletedAt = completeAt;
+						transaction.CompletedAt = parsedComplete;
 
-						var subscription = await _subscriptionRepository.GetByConditionAsync(s => s.Id == transaction.SubscriptionId);
 						if (subscription != null)
 						{
 							subscription.Status = SubscriptionStatus.Active;
-							subscription.StartDate = completeAt;
-							var plan = await _subscriptionPlanRepository.GetByConditionAsync(sp => sp.Id == subscription.SubscriptionPlanId);
-							if (plan != null) subscription.EndDate = completeAt.AddDays(plan.DurationInDays);
+							subscription.StartDate = parsedComplete;
+
+							var plan = subscription.SubscriptionPlan ?? await _subscriptionPlanRepository.GetByConditionAsync(sp => sp.Id == subscription.SubscriptionPlanId);
+							if (plan != null)
+								subscription.EndDate = parsedComplete.AddDays(plan.DurationInDays);
+
 							subscription.UpdatedAt = DateTime.UtcNow;
 							_subscriptionRepository.Update(subscription);
 						}
@@ -321,8 +339,8 @@ namespace studeehub.Infrastructure.Services
 					else
 					{
 						transaction.Status = TransactionStatus.Failed;
-						transaction.CompletedAt = DateTime.TryParse(data.transactionDateTime ?? string.Empty, out var parsed2) ? parsed2 : DateTime.UtcNow;
-						var subscription = await _subscriptionRepository.GetByConditionAsync(s => s.Id == transaction.SubscriptionId);
+						transaction.CompletedAt = parsedComplete;
+
 						if (subscription != null)
 						{
 							subscription.Status = SubscriptionStatus.Failed;
@@ -337,6 +355,23 @@ namespace studeehub.Infrastructure.Services
 					{
 						await _unitOfWork.RollbackAsync(tx);
 						return BaseResponse<WebhookData>.Fail("Failed to persist webhook updates", ErrorType.ServerError);
+					}
+
+					// Send activation email if payment succeeded. If email fails we log it but do not rollback DB changes.
+					if (paymentSucceeded && subscription != null)
+					{
+						var userEmail = subscription.User?.Email;
+						if (!string.IsNullOrWhiteSpace(userEmail))
+						{
+							var fullName = subscription.User?.UserName ?? userEmail;
+							var planName = subscription.SubscriptionPlan?.Name ?? "your plan";
+							var endDate = subscription.EndDate;
+
+							var subject = $"Your subscription \"{planName}\" is now active";
+							var htmlBody = _emailTemplateService.SubscriptionActivatedTemplate(fullName, planName, endDate);
+
+							await _emailService.SendEmailAsync(userEmail, subject, htmlBody);
+						}
 					}
 
 					await _unitOfWork.CommitAsync(tx);
