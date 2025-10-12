@@ -23,6 +23,7 @@ namespace studeehub.Persistence.Context
 		public virtual DbSet<Achievement> Achievements { get; set; } = null!;
 		public virtual DbSet<UserAchievement> UserAchievements { get; set; } = null!;
 		public virtual DbSet<PomodoroSession> PomodoroSessions { get; set; } = null!;
+		public virtual DbSet<PomodoroSetting> PomodoroSettings { get; set; } = null!;
 		public virtual DbSet<SubscriptionPlan> SubscriptionPlans { get; set; } = null!;
 		public virtual DbSet<PaymentTransaction> PaymentTransactions { get; set; } = null!;
 		public virtual DbSet<Streak> Streaks { get; set; } = null!;
@@ -191,6 +192,23 @@ namespace studeehub.Persistence.Context
 				.HasForeignKey(p => p.UserId)
 				.OnDelete(DeleteBehavior.Cascade);
 
+			// PomodoroSetting -- User (one-to-one)
+			// Configure PomodoroSetting and its one-to-one relationship with User.
+			// PomodoroSetting.UserId acts as the foreign key pointing to User.Id.
+			modelBuilder.Entity<PomodoroSetting>()
+				.HasKey(ps => ps.Id);
+
+			// enforce one-to-one: one PomodoroSetting per User
+			modelBuilder.Entity<PomodoroSetting>()
+				.HasIndex(ps => ps.UserId)
+				.IsUnique();
+
+			modelBuilder.Entity<PomodoroSetting>()
+				.HasOne(ps => ps.User)
+				.WithOne(u => u.PomodoroSetting)
+				.HasForeignKey<PomodoroSetting>(ps => ps.UserId)
+				.OnDelete(DeleteBehavior.Cascade);
+
 			// Streak -- User (two-sided)
 			modelBuilder.Entity<Streak>()
 				.HasKey(s => s.Id);
@@ -242,6 +260,12 @@ namespace studeehub.Persistence.Context
 				.HasConversion<string>();
 			modelBuilder.Entity<PaymentTransaction>()
 				.Property(pt => pt.Status)
+				.HasConversion<string>();
+			modelBuilder.Entity<PomodoroSession>()
+				.Property(ps => ps.Type)
+				.HasConversion<string>();
+			modelBuilder.Entity<PomodoroSession>()
+				.Property(ps => ps.Status)
 				.HasConversion<string>();
 
 			// Seed lookup data: roles, users, subscription plans, achievements, user-achievements

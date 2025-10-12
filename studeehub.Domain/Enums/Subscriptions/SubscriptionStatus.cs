@@ -2,7 +2,7 @@
 {
 	public enum SubscriptionStatus
 	{
-		Pending,
+		Pending = 1,
 		Trial,
 		Active,
 		Expired,

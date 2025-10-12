@@ -4,6 +4,7 @@ namespace studeehub.Domain.Entities
 {
 	public class User : IdentityUser<Guid>
 	{
+		public Guid PomodoroSettingId { get; set; }
 		public string FullName { get; set; } = string.Empty;
 		public string Address { get; set; } = string.Empty;
 		public string RefreshToken { get; set; } = string.Empty;
@@ -13,6 +14,7 @@ namespace studeehub.Domain.Entities
 		public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 		public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
+		public virtual PomodoroSetting PomodoroSetting { get; set; } = null!;
 		public virtual ICollection<Workspace> Workspaces { get; set; } = new List<Workspace>();
 		public virtual ICollection<PomodoroSession> PomodoroSessions { get; set; } = new List<PomodoroSession>();
 		public virtual ICollection<Streak> Streaks { get; set; } = new List<Streak>();

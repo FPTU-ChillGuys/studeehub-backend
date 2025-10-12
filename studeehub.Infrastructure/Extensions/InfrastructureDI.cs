@@ -27,6 +27,7 @@ namespace studeehub.Infrastructure.Extensions
 			services.AddScoped<ISubPlanRepository, SubPlanRepository>();
 			services.AddScoped<IUserRepository, UserRepository>();
 			services.AddScoped<IPayTransactionRepository, PayTransactionRepository>();
+			services.AddScoped<IPomodoroSessionRepository, PomodoroSessionRepository>();
 
 			// Register UnitOfWork
 			services.AddScoped<IUnitOfWork, UnitOfWork>();

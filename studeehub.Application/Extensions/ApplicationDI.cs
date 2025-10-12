@@ -7,6 +7,7 @@ using studeehub.Application.DTOs.Requests.Auth;
 using studeehub.Application.DTOs.Requests.Document;
 using studeehub.Application.DTOs.Requests.Note;
 using studeehub.Application.DTOs.Requests.PayOS;
+using studeehub.Application.DTOs.Requests.Pomodoro;
 using studeehub.Application.DTOs.Requests.Schedule;
 using studeehub.Application.DTOs.Requests.Streak;
 using studeehub.Application.DTOs.Requests.Subscription;
@@ -20,6 +21,7 @@ using studeehub.Application.Validators.AuthValidators;
 using studeehub.Application.Validators.DocumentValidators;
 using studeehub.Application.Validators.NoteValidators;
 using studeehub.Application.Validators.PayOsValidators;
+using studeehub.Application.Validators.PomodoroSettingValidators;
 using studeehub.Application.Validators.ScheduleValidators;
 using studeehub.Application.Validators.StreakValidators;
 using studeehub.Application.Validators.SubscriptionValidators;
@@ -45,6 +47,9 @@ namespace studeehub.Application.Extensions
 			services.AddScoped<IPayTransactionService, PayTransactionService>();
 			services.AddScoped<ISubPlanService, SubPlanService>();
 			services.AddScoped<ISubscriptionService, SubscriptionService>();
+			services.AddScoped<IPomodoroSessionService, PomodoroSessionService>();
+			services.AddScoped<IPomodoroSettingService, PomodoroSettingService>();
+
 
 			// Mapster configuration: clone global settings and scan this assembly for IRegister implementations
 			var config = TypeAdapterConfig.GlobalSettings.Clone();
@@ -59,6 +64,8 @@ namespace studeehub.Application.Extensions
 			config.Scan(typeof(SubscriptionRegister).Assembly);
 			config.Scan(typeof(PayTransactionRegister).Assembly);
 			config.Scan(typeof(UserRegister).Assembly);
+			config.Scan(typeof(PomodoroSessionRegister).Assembly);
+			config.Scan(typeof(PomodoroSettingRegister).Assembly);
 
 			// Register TypeAdapterConfig and Mapster IMapper (ServiceMapper)
 			services.AddSingleton(config);
@@ -83,6 +90,7 @@ namespace studeehub.Application.Extensions
 			services.AddScoped<IValidator<CreateSubPlanRequest>, CreateSubPlanValidator>();
 			services.AddScoped<IValidator<UpdateSubPlanRequest>, UpdateSubPlanValidator>();
 			services.AddScoped<IValidator<CreatePaymentLinkRequest>, CreatePaymentLinkRequestValidator>();
+			services.AddScoped<IValidator<UpdateSettingRequest>, UpdateSettingValidator>();
 
 			// SignalR
 			services.AddSignalR();
