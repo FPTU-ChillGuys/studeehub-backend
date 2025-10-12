@@ -7,10 +7,6 @@ namespace studeehub.Application.Validators.PayOsValidators
 	{
 		public CreatePaymentLinkRequestValidator()
 		{
-			RuleFor(x => x.Items)
-				.NotEmpty().WithMessage("At least one item is required.")
-				.Must(items => items != null && items.Count > 0).WithMessage("Items list cannot be null or empty.");
-
 			RuleFor(x => x.Description)
 				.MaximumLength(25).WithMessage("Description must be at most 25 characters.");
 
@@ -22,18 +18,9 @@ namespace studeehub.Application.Validators.PayOsValidators
 				.NotEmpty().WithMessage("CancelUrl is required.")
 				.Must(BeAValidUrl).WithMessage("CancelUrl must be a valid absolute URL.");
 
-			RuleFor(x => x.BuyerEmail)
-				.EmailAddress().When(x => !string.IsNullOrWhiteSpace(x.BuyerEmail))
-				.WithMessage("BuyerEmail must be a valid email address.");
-
-			RuleFor(x => x.BuyerPhone)
-				.Matches(@"^\+?[0-9\s\-]{6,20}$")
-				.When(x => !string.IsNullOrWhiteSpace(x.BuyerPhone))
-				.WithMessage("BuyerPhone must contain only digits, spaces, dashes and optional leading + (6-20 chars).");
-
-			RuleFor(x => x.ExpiredAt)
-				.Must(v => v == null || (v > 0 && v <= int.MaxValue))
-				.WithMessage("ExpiredAt must be a positive value within 32-bit integer range when provided.");
+			RuleFor(x => new { x.UserId, x.SubscriptionPlanId })
+				.Must(x => (x.UserId.HasValue && x.SubscriptionPlanId.HasValue) || (!x.UserId.HasValue && !x.SubscriptionPlanId.HasValue))
+				.WithMessage("Both UserId and SubscriptionPlanId must be provided together or both must be null.");
 		}
 
 		private static bool BeAValidUrl(string? value)

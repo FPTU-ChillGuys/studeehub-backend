@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using studeehub.Application.DTOs.Requests.PaymentTransaction;
 using studeehub.Application.DTOs.Responses.Base;
-using studeehub.Application.DTOs.Responses.PayTransaction;
 using studeehub.Application.Interfaces.Services;
 
 namespace studeehub.API.Controllers
@@ -16,12 +15,6 @@ namespace studeehub.API.Controllers
 		{
 			_payTransactionService = payTransactionService;
 		}
-
-		[HttpGet("subscription/{subscriptionId:Guid}")]
-		[ProducesResponseType(typeof(BaseResponse<List<GetPayTXNResponse>>), StatusCodes.Status200OK)]
-		[ProducesResponseType(typeof(BaseResponse<List<GetPayTXNResponse>>), StatusCodes.Status404NotFound)]
-		public async Task<BaseResponse<List<GetPayTXNResponse>>> GetPaymentTransactionsBySubscriptionId(Guid subscriptionId)
-			=> await _payTransactionService.GetPayTransactionsBySubscriptionId(subscriptionId);
 
 		[HttpPost]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]

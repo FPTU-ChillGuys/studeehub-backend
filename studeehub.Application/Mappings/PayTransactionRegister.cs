@@ -13,6 +13,7 @@ namespace studeehub.Application.Mappings
 				.Map(dest => dest.Amount, src => src.Amount)
 				.Map(dest => dest.Currency, src => src.Currency)
 				.Map(dest => dest.Status, src => src.Status)
+				.Map(dest => dest.TransactionCode, src => src.TransactionCode)
 				.Map(dest => dest.PaymentMethod, src => src.PaymentMethod)
 				.Map(dest => dest.CreatedAt, src => src.CreatedAt)
 				.Map(dest => dest.CompletedAt, src => src.CompletedAt);

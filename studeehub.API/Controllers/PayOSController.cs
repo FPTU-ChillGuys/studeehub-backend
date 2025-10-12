@@ -28,8 +28,8 @@ namespace studeehub.API.Controllers
 		[HttpPost("confirm-webhook")]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
-		public async Task<BaseResponse<string>> ConfirmWebhook(ConfirmWebhookRequest request)
-			=> await _payOSService.ConfirmWebHook(request);
+		public async Task<BaseResponse<string>> ConfirmWebhook(string webhookUrl)
+			=> await _payOSService.ConfirmWebHook(webhookUrl);
 
 		[HttpPost("transfer_handler")]
 		[ProducesResponseType(typeof(BaseResponse<WebhookData>), StatusCodes.Status200OK)]

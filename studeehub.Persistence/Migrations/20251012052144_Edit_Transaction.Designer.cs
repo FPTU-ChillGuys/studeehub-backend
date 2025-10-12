@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using studeehub.Persistence.Context;
 
@@ -11,9 +12,11 @@ using studeehub.Persistence.Context;
 namespace studeehub.Persistence.Migrations
 {
     [DbContext(typeof(StudeeHubDBContext))]
-    partial class StudeeHubDBContextModelSnapshot : ModelSnapshot
+    [Migration("20251012052144_Edit_Transaction")]
+    partial class Edit_Transaction
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -241,14 +244,14 @@ namespace studeehub.Persistence.Migrations
                             Code = "STREAK_3_DAYS",
                             ConditionType = "Streak",
                             ConditionValue = 3,
-                            CreatedAt = new DateTime(2025, 10, 12, 10, 40, 27, 920, DateTimeKind.Utc).AddTicks(1079),
+                            CreatedAt = new DateTime(2025, 10, 12, 5, 21, 42, 629, DateTimeKind.Utc).AddTicks(209),
                             Description = "Maintain a 3-day streak.",
                             IsActive = true,
                             IsDeleted = false,
                             Name = "3-Day Streak",
                             RewardType = "XP",
                             RewardValue = 50,
-                            UpdatedAt = new DateTime(2025, 10, 12, 10, 40, 27, 920, DateTimeKind.Utc).AddTicks(1080)
+                            UpdatedAt = new DateTime(2025, 10, 12, 5, 21, 42, 629, DateTimeKind.Utc).AddTicks(210)
                         },
                         new
                         {
@@ -256,14 +259,14 @@ namespace studeehub.Persistence.Migrations
                             Code = "STREAK_7_DAYS",
                             ConditionType = "Streak",
                             ConditionValue = 7,
-                            CreatedAt = new DateTime(2025, 10, 12, 10, 40, 27, 920, DateTimeKind.Utc).AddTicks(1091),
+                            CreatedAt = new DateTime(2025, 10, 12, 5, 21, 42, 629, DateTimeKind.Utc).AddTicks(221),
                             Description = "Maintain a 7-day streak.",
                             IsActive = true,
                             IsDeleted = false,
                             Name = "7-Day Streak",
                             RewardType = "XP",
                             RewardValue = 150,
-                            UpdatedAt = new DateTime(2025, 10, 12, 10, 40, 27, 920, DateTimeKind.Utc).AddTicks(1091)
+                            UpdatedAt = new DateTime(2025, 10, 12, 5, 21, 42, 629, DateTimeKind.Utc).AddTicks(221)
                         },
                         new
                         {
@@ -271,14 +274,14 @@ namespace studeehub.Persistence.Migrations
                             Code = "FIRST_NOTE",
                             ConditionType = "NoteCreated",
                             ConditionValue = 1,
-                            CreatedAt = new DateTime(2025, 10, 12, 10, 40, 27, 920, DateTimeKind.Utc).AddTicks(1094),
+                            CreatedAt = new DateTime(2025, 10, 12, 5, 21, 42, 629, DateTimeKind.Utc).AddTicks(223),
                             Description = "Create your first note.",
                             IsActive = true,
                             IsDeleted = false,
                             Name = "First Note Created",
                             RewardType = "Badge",
                             RewardValue = 1,
-                            UpdatedAt = new DateTime(2025, 10, 12, 10, 40, 27, 920, DateTimeKind.Utc).AddTicks(1094)
+                            UpdatedAt = new DateTime(2025, 10, 12, 5, 21, 42, 629, DateTimeKind.Utc).AddTicks(224)
                         },
                         new
                         {
@@ -286,14 +289,14 @@ namespace studeehub.Persistence.Migrations
                             Code = "FLASHCARDS_REVIEWED_10",
                             ConditionType = "FlashcardReviewed",
                             ConditionValue = 10,
-                            CreatedAt = new DateTime(2025, 10, 12, 10, 40, 27, 920, DateTimeKind.Utc).AddTicks(1097),
+                            CreatedAt = new DateTime(2025, 10, 12, 5, 21, 42, 629, DateTimeKind.Utc).AddTicks(227),
                             Description = "Review 10 flashcards.",
                             IsActive = true,
                             IsDeleted = false,
                             Name = "10 Flashcards Reviewed",
                             RewardType = "XP",
                             RewardValue = 100,
-                            UpdatedAt = new DateTime(2025, 10, 12, 10, 40, 27, 920, DateTimeKind.Utc).AddTicks(1098)
+                            UpdatedAt = new DateTime(2025, 10, 12, 5, 21, 42, 629, DateTimeKind.Utc).AddTicks(227)
                         },
                         new
                         {
@@ -301,14 +304,14 @@ namespace studeehub.Persistence.Migrations
                             Code = "DOCUMENTS_UPLOADED_10",
                             ConditionType = "DocumentUpload",
                             ConditionValue = 10,
-                            CreatedAt = new DateTime(2025, 10, 12, 10, 40, 27, 920, DateTimeKind.Utc).AddTicks(1099),
+                            CreatedAt = new DateTime(2025, 10, 12, 5, 21, 42, 629, DateTimeKind.Utc).AddTicks(230),
                             Description = "Upload 10 documents.",
                             IsActive = true,
                             IsDeleted = false,
                             Name = "10 Documents Uploaded",
                             RewardType = "XP",
                             RewardValue = 200,
-                            UpdatedAt = new DateTime(2025, 10, 12, 10, 40, 27, 920, DateTimeKind.Utc).AddTicks(1100)
+                            UpdatedAt = new DateTime(2025, 10, 12, 5, 21, 42, 629, DateTimeKind.Utc).AddTicks(230)
                         });
                 });
 
@@ -699,7 +702,7 @@ namespace studeehub.Persistence.Migrations
                         {
                             Id = new Guid("d2f1c3a4-1001-4a1b-8c1d-000000000101"),
                             Code = "BASIC_MONTHLY",
-                            CreatedAt = new DateTime(2025, 10, 12, 10, 40, 27, 920, DateTimeKind.Utc).AddTicks(1016),
+                            CreatedAt = new DateTime(2025, 10, 12, 5, 21, 42, 629, DateTimeKind.Utc).AddTicks(139),
                             Currency = "VND",
                             Description = "Gói cơ bản theo tháng với dung lượng và số lượng tài liệu giới hạn.",
                             DurationInDays = 30,
@@ -710,13 +713,13 @@ namespace studeehub.Persistence.Migrations
                             MaxStorageMB = 500,
                             Name = "Gói Cơ Bản (Theo Tháng)",
                             Price = 0m,
-                            UpdatedAt = new DateTime(2025, 10, 12, 10, 40, 27, 920, DateTimeKind.Utc).AddTicks(1017)
+                            UpdatedAt = new DateTime(2025, 10, 12, 5, 21, 42, 629, DateTimeKind.Utc).AddTicks(140)
                         },
                         new
                         {
                             Id = new Guid("d2f1c3a4-1002-4a1b-8c1d-000000000102"),
                             Code = "PRO_MONTHLY",
-                            CreatedAt = new DateTime(2025, 10, 12, 10, 40, 27, 920, DateTimeKind.Utc).AddTicks(1029),
+                            CreatedAt = new DateTime(2025, 10, 12, 5, 21, 42, 629, DateTimeKind.Utc).AddTicks(152),
                             Currency = "VND",
                             Description = "Gói chuyên nghiệp theo tháng với giới hạn cao hơn và có tính năng AI.",
                             DurationInDays = 30,
@@ -727,13 +730,13 @@ namespace studeehub.Persistence.Migrations
                             MaxStorageMB = 10240,
                             Name = "Gói Chuyên Nghiệp (Theo Tháng)",
                             Price = 49.9m,
-                            UpdatedAt = new DateTime(2025, 10, 12, 10, 40, 27, 920, DateTimeKind.Utc).AddTicks(1029)
+                            UpdatedAt = new DateTime(2025, 10, 12, 5, 21, 42, 629, DateTimeKind.Utc).AddTicks(153)
                         },
                         new
                         {
                             Id = new Guid("d2f1c3a4-1003-4a1b-8c1d-000000000103"),
                             Code = "PRO_YEARLY",
-                            CreatedAt = new DateTime(2025, 10, 12, 10, 40, 27, 920, DateTimeKind.Utc).AddTicks(1036),
+                            CreatedAt = new DateTime(2025, 10, 12, 5, 21, 42, 629, DateTimeKind.Utc).AddTicks(160),
                             Currency = "VND",
                             Description = "Gói chuyên nghiệp theo năm với mức giá ưu đãi khi thanh toán hàng năm.",
                             DurationInDays = 365,
@@ -744,7 +747,7 @@ namespace studeehub.Persistence.Migrations
                             MaxStorageMB = 10240,
                             Name = "Gói Chuyên Nghiệp (Theo Năm)",
                             Price = 499.99m,
-                            UpdatedAt = new DateTime(2025, 10, 12, 10, 40, 27, 920, DateTimeKind.Utc).AddTicks(1036)
+                            UpdatedAt = new DateTime(2025, 10, 12, 5, 21, 42, 629, DateTimeKind.Utc).AddTicks(160)
                         });
                 });
 
@@ -756,10 +759,6 @@ namespace studeehub.Persistence.Migrations
 
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
-
-                    b.Property<string>("Address")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -842,7 +841,6 @@ namespace studeehub.Persistence.Migrations
                         {
                             Id = new Guid("33f41895-b601-4aa1-8dc4-8229a9d07008"),
                             AccessFailedCount = 0,
-                            Address = "",
                             ConcurrencyStamp = "seed-5",
                             CreatedAt = new DateTime(2025, 10, 10, 0, 0, 0, 0, DateTimeKind.Utc),
                             Email = "admin@example.com",
@@ -852,10 +850,10 @@ namespace studeehub.Persistence.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@EXAMPLE.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEH8KT8J+aOiN9ic5bPI9cd3GeShXaSLeA/j7FZgv8hox3MQyK4hrvFuLE7bPH78Emw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEJYZhtqNAPIml/jiAF6gxjAqxof/vEfHAN29MRb/+yOO/rCWsWC25WKiUpA7JYd2MQ==",
                             PhoneNumberConfirmed = false,
                             RefreshToken = "",
-                            RefreshTokenExpiryTime = new DateTime(2025, 10, 19, 10, 40, 27, 823, DateTimeKind.Utc).AddTicks(2936),
+                            RefreshTokenExpiryTime = new DateTime(2025, 10, 19, 5, 21, 42, 528, DateTimeKind.Utc).AddTicks(4029),
                             SecurityStamp = "seed-4",
                             TwoFactorEnabled = false,
                             UpdatedAt = new DateTime(2025, 10, 10, 0, 0, 0, 0, DateTimeKind.Utc),
@@ -865,7 +863,6 @@ namespace studeehub.Persistence.Migrations
                         {
                             Id = new Guid("09097277-2705-40c2-bce5-51dbd1f4c1e6"),
                             AccessFailedCount = 0,
-                            Address = "",
                             ConcurrencyStamp = "seed-7",
                             CreatedAt = new DateTime(2025, 10, 10, 0, 0, 0, 0, DateTimeKind.Utc),
                             Email = "user@example.com",
@@ -875,10 +872,10 @@ namespace studeehub.Persistence.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "USER@EXAMPLE.COM",
                             NormalizedUserName = "USER",
-                            PasswordHash = "AQAAAAIAAYagAAAAEK+0UHkir8hlN3Ohf4noeerzmeShs4ot1esI7GdYGCvzN2VuNRl7bSCGsOiL6sUtXA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAELd05YHvMYJWiNDrqWfWVHP9DLsHV8BXftZet6JNeAwpO8xcRt8UgK6B7j1LvMTbvQ==",
                             PhoneNumberConfirmed = false,
                             RefreshToken = "",
-                            RefreshTokenExpiryTime = new DateTime(2025, 10, 19, 10, 40, 27, 871, DateTimeKind.Utc).AddTicks(9244),
+                            RefreshTokenExpiryTime = new DateTime(2025, 10, 19, 5, 21, 42, 577, DateTimeKind.Utc).AddTicks(6923),
                             SecurityStamp = "seed-6",
                             TwoFactorEnabled = false,
                             UpdatedAt = new DateTime(2025, 10, 10, 0, 0, 0, 0, DateTimeKind.Utc),

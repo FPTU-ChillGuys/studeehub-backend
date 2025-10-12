@@ -9,6 +9,7 @@ namespace studeehub.Application.DTOs.Responses.PayTransaction
 		public string PaymentMethod { get; set; } = "VNPAY";
 		public decimal Amount { get; set; }
 		public string Currency { get; set; } = "VND";
+		public string TransactionCode { get; set; } = string.Empty;
 
 		public TransactionStatus Status { get; set; }
 
