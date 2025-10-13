@@ -14,7 +14,7 @@ namespace studeehub.Application.Services
 	{
 		private readonly IGenericRepository<PomodoroSetting> _repository;
 		private readonly IUserRepository _userRepository;
-        private readonly IMapper _mapper;
+		private readonly IMapper _mapper;
 		private readonly IValidator<UpdateSettingRequest> _validator;
 
 		public PomodoroSettingService(IGenericRepository<PomodoroSetting> repository, IMapper mapper, IValidator<UpdateSettingRequest> validator, IUserRepository userRepository)
@@ -55,15 +55,15 @@ namespace studeehub.Application.Services
 				if (existedUser == null)
 				{
 					return BaseResponse<string>.Fail("User not found.", ErrorType.NotFound);
-                }
+				}
 				existedUser.PomodoroSettingId = setting.Id;
-                _userRepository.Update(existedUser);
+				_userRepository.Update(existedUser);
 				var userUpdateResponse = await _userRepository.SaveChangesAsync();
-                await _repository.AddAsync(setting);
+				await _repository.AddAsync(setting);
 				_mapper.Map(request, setting);
 				var addResponse = await _repository.SaveChangesAsync();
 				return addResponse && userUpdateResponse
-                    ? BaseResponse<string>.Ok("Pomodoro settings created successfully.")
+					? BaseResponse<string>.Ok("Pomodoro settings created successfully.")
 					: BaseResponse<string>.Fail("Failed to create Pomodoro settings.", ErrorType.ServerError);
 			}
 
