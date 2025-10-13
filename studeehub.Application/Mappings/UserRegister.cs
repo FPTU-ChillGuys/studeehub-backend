@@ -1,4 +1,5 @@
 ﻿using Mapster;
+using studeehub.Application.DTOs.Requests.User;
 using studeehub.Application.DTOs.Responses.User;
 using studeehub.Domain.Entities;
 
@@ -17,6 +18,13 @@ namespace studeehub.Application.Mappings
 				.Map(dest => dest.PhoneNumber, src => src.PhoneNumber)
 				.Map(dest => dest.CreatedAt, src => src.CreatedAt)
 				.Map(dest => dest.UpdatedAt, src => src.UpdatedAt);
+
+			config.NewConfig<UpdateUserRequest, User>()
+				.Map(dest => dest.FullName, src => src.FullName)
+				.Map(dest => dest.Address, src => src.Address)
+				.Map(dest => dest.PhoneNumber, src => src.PhoneNumber)
+				.Map(dest => dest.UpdatedAt, src => DateTime.UtcNow)
+				.IgnoreNullValues(true);
 		}
 	}
 }

@@ -13,14 +13,16 @@ namespace studeehub.Application.Services
 	public class PomodoroSettingService : IPomodoroSettingService
 	{
 		private readonly IGenericRepository<PomodoroSetting> _repository;
-		private readonly IMapper _mapper;
+		private readonly IUserRepository _userRepository;
+        private readonly IMapper _mapper;
 		private readonly IValidator<UpdateSettingRequest> _validator;
 
-		public PomodoroSettingService(IGenericRepository<PomodoroSetting> repository, IMapper mapper, IValidator<UpdateSettingRequest> validator)
+		public PomodoroSettingService(IGenericRepository<PomodoroSetting> repository, IMapper mapper, IValidator<UpdateSettingRequest> validator, IUserRepository userRepository)
 		{
 			_repository = repository;
 			_mapper = mapper;
 			_validator = validator;
+			_userRepository = userRepository;
 		}
 
 		public async Task<PomodoroSetting> GetForUserAsync(Guid userId)
@@ -49,11 +51,19 @@ namespace studeehub.Application.Services
 			if (setting == null)
 			{
 				setting = new PomodoroSetting { Id = Guid.NewGuid(), UserId = userId };
-				await _repository.AddAsync(setting);
+				var existedUser = await _userRepository.GetByConditionAsync(u => u.Id == userId);
+				if (existedUser == null)
+				{
+					return BaseResponse<string>.Fail("User not found.", ErrorType.NotFound);
+                }
+				existedUser.PomodoroSettingId = setting.Id;
+                _userRepository.Update(existedUser);
+				var userUpdateResponse = await _userRepository.SaveChangesAsync();
+                await _repository.AddAsync(setting);
 				_mapper.Map(request, setting);
 				var addResponse = await _repository.SaveChangesAsync();
-				return addResponse
-					? BaseResponse<string>.Ok("Pomodoro settings created successfully.")
+				return addResponse && userUpdateResponse
+                    ? BaseResponse<string>.Ok("Pomodoro settings created successfully.")
 					: BaseResponse<string>.Fail("Failed to create Pomodoro settings.", ErrorType.ServerError);
 			}
 

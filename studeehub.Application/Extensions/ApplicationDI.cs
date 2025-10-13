@@ -11,6 +11,7 @@ using studeehub.Application.DTOs.Requests.Pomodoro;
 using studeehub.Application.DTOs.Requests.Schedule;
 using studeehub.Application.DTOs.Requests.Streak;
 using studeehub.Application.DTOs.Requests.Subscription;
+using studeehub.Application.DTOs.Requests.User;
 using studeehub.Application.DTOs.Requests.UserAchievem;
 using studeehub.Application.DTOs.Requests.Workspace;
 using studeehub.Application.Interfaces.Services;
@@ -26,6 +27,7 @@ using studeehub.Application.Validators.ScheduleValidators;
 using studeehub.Application.Validators.StreakValidators;
 using studeehub.Application.Validators.SubscriptionValidators;
 using studeehub.Application.Validators.UserAchievemValidators;
+using studeehub.Application.Validators.UserValidators;
 using studeehub.Application.Validators.WorkSpaceValidators;
 
 namespace studeehub.Application.Extensions
@@ -91,6 +93,7 @@ namespace studeehub.Application.Extensions
 			services.AddScoped<IValidator<UpdateSubPlanRequest>, UpdateSubPlanValidator>();
 			services.AddScoped<IValidator<CreatePaymentLinkRequest>, CreatePaymentLinkRequestValidator>();
 			services.AddScoped<IValidator<UpdateSettingRequest>, UpdateSettingValidator>();
+			services.AddScoped<IValidator<UpdateUserRequest>, UpdateUserValidator>();
 
 			// SignalR
 			services.AddSignalR();

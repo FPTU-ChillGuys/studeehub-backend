@@ -20,8 +20,16 @@ namespace studeehub.API.Controllers
 		[HttpGet("{id:Guid}")]
 		[ProducesResponseType(typeof(BaseResponse<GetUserResponse>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<GetUserResponse>), StatusCodes.Status404NotFound)]
-		public async Task<BaseResponse<GetUserResponse>> GetProfileByIdAsync(Guid id)
+		public async Task<BaseResponse<GetUserResponse>> GetProfileByIdAsync([FromRoute] Guid id)
 			=> await _userService.GetProfileByIdAsync(id);
+
+		[HttpPut("{id:Guid}")]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status404NotFound)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status400BadRequest)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
+		public async Task<BaseResponse<string>> UpdateProfileAsync([FromRoute] Guid id, [FromBody] UpdateUserRequest request)
+			=> await _userService.UpdateProfileAsync(id, request);
 
 		[HttpGet("metrics")]
 		[ProducesResponseType(typeof(BaseResponse<UserMetricsResponse>), StatusCodes.Status200OK)]

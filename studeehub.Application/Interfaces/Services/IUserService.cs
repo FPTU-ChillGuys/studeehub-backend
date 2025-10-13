@@ -10,6 +10,7 @@ namespace studeehub.Application.Interfaces.Services
 		public Task<bool> IsUserExistAsync(Guid userId);
 		public Task<User?> GetUserByIdAsync(Guid userId);
 		public Task<BaseResponse<GetUserResponse>> GetProfileByIdAsync(Guid userId);
+		public Task<BaseResponse<string>> UpdateProfileAsync(Guid userId, UpdateUserRequest request);
 		public Task<BaseResponse<UserMetricsResponse>> GetUserMetricsAsync(GetUserMetricsRequest request);
 
 	}

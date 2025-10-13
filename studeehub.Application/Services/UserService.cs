@@ -1,4 +1,5 @@
-﻿using MapsterMapper;
+﻿using FluentValidation;
+using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using studeehub.Application.DTOs.Requests.User;
 using studeehub.Application.DTOs.Responses.Base;
@@ -19,9 +20,10 @@ namespace studeehub.Application.Services
 		private readonly IScheduleRepository _scheduleRepository;
 		private readonly IStreakRepository _streakRepository;
 		private readonly IGenericRepository<UserAchievement> _userAchievementRepository;
+		private readonly IValidator<UpdateUserRequest> _updateUserValidator;
 		private readonly IMapper _mapper;
 
-		public UserService(IUserRepository userRepository, IMapper mapper, IPomodoroSessionRepository pomodoroSessionRepository, ISubscriptionRepository subscriptionRepository, IScheduleRepository scheduleRepository, IStreakRepository streakRepository, IGenericRepository<UserAchievement> userAchievementRepository)
+		public UserService(IUserRepository userRepository, IMapper mapper, IPomodoroSessionRepository pomodoroSessionRepository, ISubscriptionRepository subscriptionRepository, IScheduleRepository scheduleRepository, IStreakRepository streakRepository, IGenericRepository<UserAchievement> userAchievementRepository, IValidator<UpdateUserRequest> updateUserValidator)
 		{
 			_userRepository = userRepository;
 			_mapper = mapper;
@@ -30,6 +32,7 @@ namespace studeehub.Application.Services
 			_scheduleRepository = scheduleRepository;
 			_streakRepository = streakRepository;
 			_userAchievementRepository = userAchievementRepository;
+			_updateUserValidator = updateUserValidator;
 		}
 
 		public Task<bool> IsUserExistAsync(Guid userId)
@@ -254,6 +257,26 @@ namespace studeehub.Application.Services
 					})
 					.OrderBy(g => g.Year).ThenBy(g => g.Month).ToList(),
 			};
+		}
+
+		public async Task<BaseResponse<string>> UpdateProfileAsync(Guid userId, UpdateUserRequest request)
+		{
+			var validationResult = await _updateUserValidator.ValidateAsync(request);
+			if (!validationResult.IsValid)
+			{
+				return BaseResponse<string>.Fail("Validation errors: " + string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage)), Domain.Enums.ErrorType.Validation);
+			}
+			var user = await _userRepository.GetByConditionAsync(u => u.Id == userId);
+			if (user == null)
+			{
+				return BaseResponse<string>.Fail("User not found", Domain.Enums.ErrorType.NotFound);
+			}
+			_mapper.Map(request, user);
+			_userRepository.Update(user);
+			var result = await _userRepository.SaveChangesAsync();
+			return result
+				? BaseResponse<string>.Ok("Profile updated successfully")
+				: BaseResponse<string>.Fail("Failed to update profile", Domain.Enums.ErrorType.ServerError);
 		}
 	}
 }
