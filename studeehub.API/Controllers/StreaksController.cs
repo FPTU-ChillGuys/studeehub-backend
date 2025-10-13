@@ -9,19 +9,20 @@ namespace studeehub.API.Controllers
 {
 	[Route("api/[controller]")]
 	[ApiController]
-	public class StreakController : ControllerBase
+	public class StreaksController : ControllerBase
 	{
 		private readonly IStreakService _streakService;
 
-		public StreakController(IStreakService streakService)
+		public StreaksController(IStreakService streakService)
 		{
 			_streakService = streakService;
 		}
 
-		[HttpGet("user/{userId:Guid}")]
+		// GET /api/users/{userId}/streaks
+		[HttpGet("/api/users/{userId:Guid}/streaks")]
 		[ProducesResponseType(typeof(BaseResponse<List<GetStreakResponse>>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<List<GetStreakResponse>>), StatusCodes.Status404NotFound)]
-		public async Task<BaseResponse<List<GetStreakResponse>>> GetStreakByUserId(Guid userId, StreakType? type)
+		public async Task<BaseResponse<List<GetStreakResponse>>> GetStreakByUserId([FromRoute] Guid userId, [FromQuery] StreakType? type)
 			=> await _streakService.GetStreakByUserIdAsync(userId, type);
 
 		[HttpGet("{id:Guid}")]
@@ -38,12 +39,13 @@ namespace studeehub.API.Controllers
 		public async Task<BaseResponse<string>> CreateStreak([FromBody] CreateStreakRequest request)
 			=> await _streakService.CreateStreakAsync(request);
 
-		[HttpPut("{userId:Guid}")]
+		// PUT /api/users/{userId}/streaks
+		[HttpPut("/api/users/{userId:Guid}/streaks")]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status404NotFound)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
-		public async Task<BaseResponse<string>> UpdateStreak(Guid userId, [FromBody] UpdateStreakRequest request)
+		public async Task<BaseResponse<string>> UpdateStreak([FromRoute] Guid userId, [FromBody] UpdateStreakRequest request)
 			=> await _streakService.UpdateStreakAsync(userId, request);
 	}
 }

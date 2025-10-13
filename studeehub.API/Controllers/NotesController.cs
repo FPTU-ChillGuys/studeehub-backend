@@ -8,16 +8,17 @@ namespace studeehub.API.Controllers
 {
 	[Route("api/[controller]")]
 	[ApiController]
-	public class NoteController : ControllerBase
+	public class NotesController : ControllerBase
 	{
 		private readonly INoteService _noteService;
 
-		public NoteController(INoteService noteService)
+		public NotesController(INoteService noteService)
 		{
 			_noteService = noteService;
 		}
 
-		[HttpGet("user/{userId:Guid}")]
+		// GET /api/users/{userId}/notes
+		[HttpGet("/api/users/{userId:Guid}/notes")]
 		[ProducesResponseType(typeof(BaseResponse<List<GetNoteResponse>>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<List<GetNoteResponse>>), StatusCodes.Status404NotFound)]
 		public async Task<BaseResponse<List<GetNoteResponse>>> GetNotesByUserId([FromRoute] Guid userId)

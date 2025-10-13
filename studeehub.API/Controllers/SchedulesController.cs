@@ -9,19 +9,20 @@ namespace studeehub.API.Controllers
 {
 	[Route("api/[controller]")]
 	[ApiController]
-	public class ScheduleController : ControllerBase
+	public class SchedulesController : ControllerBase
 	{
 		private readonly IScheduleService _scheduleService;
 
-		public ScheduleController(IScheduleService scheduleService)
+		public SchedulesController(IScheduleService scheduleService)
 		{
 			_scheduleService = scheduleService;
 		}
 
-		[HttpGet("user/{userId:guid}")]
+		// GET /api/users/{userId}/schedules
+		[HttpGet("/api/users/{userId:guid}/schedules")]
 		[ProducesResponseType(typeof(PagedResponse<GetScheduleResponse>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(PagedResponse<GetScheduleResponse>), StatusCodes.Status400BadRequest)]
-		public async Task<PagedResponse<GetScheduleResponse>> GetSchedulesByUserId(Guid userId, [FromQuery] PagedAndSortedRequest request)
+		public async Task<PagedResponse<GetScheduleResponse>> GetSchedulesByUserId([FromRoute] Guid userId, [FromQuery] PagedAndSortedRequest request)
 			=> await _scheduleService.GetSchedulesByUserIdAsync(userId, request);
 
 		[HttpGet("{id:guid}")]
@@ -35,7 +36,7 @@ namespace studeehub.API.Controllers
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status409Conflict)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
-		public async Task<BaseResponse<string>> CreateSchedule(CreateScheduleRequest request)
+		public async Task<BaseResponse<string>> CreateSchedule([FromBody] CreateScheduleRequest request)
 			=> await _scheduleService.CreateScheduleAsync(request);
 
 		[HttpPut("{id:guid}")]
@@ -43,7 +44,7 @@ namespace studeehub.API.Controllers
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status404NotFound)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
-		public async Task<BaseResponse<string>> UpdateSchedule(Guid id, UpdateScheduleRequest request)
+		public async Task<BaseResponse<string>> UpdateSchedule(Guid id, [FromBody] UpdateScheduleRequest request)
 			=> await _scheduleService.UpdateScheduleAsync(id, request);
 
 		[HttpPatch("{id:guid}/checkin")]

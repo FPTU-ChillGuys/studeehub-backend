@@ -6,27 +6,29 @@ using studeehub.Application.Interfaces.Services;
 
 namespace studeehub.API.Controllers
 {
-	[Route("api/[controller]")]
+	[Route("api/subscriptions")]
 	[ApiController]
-	public class SubscriptionController : ControllerBase
+	public class SubscriptionsController : ControllerBase
 	{
 		private readonly ISubscriptionService _subscriptionService;
 		private readonly IPayTransactionService _payTransactionService;
-		public SubscriptionController(ISubscriptionService subscriptionService, IPayTransactionService payTransactionService)
+		public SubscriptionsController(ISubscriptionService subscriptionService, IPayTransactionService payTransactionService)
 		{
 			_subscriptionService = subscriptionService;
 			_payTransactionService = payTransactionService;
 		}
 
-		[HttpGet("user/{userId:Guid}")]
+		// GET /api/users/{userId}/subscriptions
+		[HttpGet("/api/users/{userId:Guid}/subscriptions")]
 		[ProducesResponseType(typeof(BaseResponse<List<GetSubscriptionResponse>>), StatusCodes.Status200OK)]
-		public async Task<BaseResponse<List<GetSubscriptionResponse>>> GetSubscriptionByUserIdAsync(Guid userId)
+		public async Task<BaseResponse<List<GetSubscriptionResponse>>> GetSubscriptionByUserIdAsync([FromRoute] Guid userId)
 			=> await _subscriptionService.GetSubscriptionsByUserIdAsync(userId);
 
+		// GET /api/subscriptions/{subscriptionId}/transactions
 		[HttpGet("{subscriptionId:Guid}/transactions")]
 		[ProducesResponseType(typeof(BaseResponse<List<GetPayTXNResponse>>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<List<GetPayTXNResponse>>), StatusCodes.Status404NotFound)]
-		public async Task<BaseResponse<List<GetPayTXNResponse>>> GetPaymentTransactionsBySubscriptionId(Guid subscriptionId)
+		public async Task<BaseResponse<List<GetPayTXNResponse>>> GetPaymentTransactionsBySubscriptionId([FromRoute] Guid subscriptionId)
 			=> await _payTransactionService.GetPayTransactionsBySubscriptionId(subscriptionId);
 	}
 }

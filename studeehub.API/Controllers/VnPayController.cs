@@ -5,7 +5,7 @@ using studeehub.Application.Interfaces.Services;
 
 namespace studeehub.API.Controllers
 {
-	[Route("api/[controller]")]
+	[Route("api/payments/vnpay")]
 	[ApiController]
 	public class VnPayController : ControllerBase
 	{
@@ -16,6 +16,7 @@ namespace studeehub.API.Controllers
 			_payTransactionService = payTransactionService;
 		}
 
+		// POST /api/payments/vnpay
 		[HttpPost]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status400BadRequest)]
@@ -24,6 +25,7 @@ namespace studeehub.API.Controllers
 		public async Task<BaseResponse<string>> CreatePaymentSession([FromBody] CreatePaymentSessionRequest request)
 			=> await _payTransactionService.CreatePaymentSessionAsync(request, HttpContext);
 
+		// GET /api/payments/vnpay/callback
 		[HttpGet("callback")]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status400BadRequest)]

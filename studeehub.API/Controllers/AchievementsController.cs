@@ -8,11 +8,11 @@ namespace studeehub.API.Controllers
 {
 	[Route("api/[controller]")]
 	[ApiController]
-	public class AchievementController : ControllerBase
+	public class AchievementsController : ControllerBase
 	{
 		private readonly IAchievementService _achievementService;
 
-		public AchievementController(IAchievementService achievementService)
+		public AchievementsController(IAchievementService achievementService)
 		{
 			_achievementService = achievementService;
 		}

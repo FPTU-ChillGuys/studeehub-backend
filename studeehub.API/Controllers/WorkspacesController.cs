@@ -8,16 +8,17 @@ namespace studeehub.API.Controllers
 {
 	[Route("api/[controller]")]
 	[ApiController]
-	public class WorkspaceController : ControllerBase
+	public class WorkspacesController : ControllerBase
 	{
 		private readonly IWorkspaceService _workSpaceService;
 
-		public WorkspaceController(IWorkspaceService workSpaceService)
+		public WorkspacesController(IWorkspaceService workSpaceService)
 		{
 			_workSpaceService = workSpaceService;
 		}
 
-		[HttpGet("user/{userId:Guid}")]
+		// GET /api/users/{userId}/workspaces
+		[HttpGet("/api/users/{userId:Guid}/workspaces")]
 		[ProducesResponseType(typeof(BaseResponse<List<GetWorkspaceResponse>>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<List<GetWorkspaceResponse>>), StatusCodes.Status404NotFound)]
 		public async Task<BaseResponse<List<GetWorkspaceResponse>>> GetWorkSpacesByUserId([FromRoute] Guid userId)
