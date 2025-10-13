@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using studeehub.Application.DTOs.Requests.User;
 using studeehub.Application.DTOs.Responses.Base;
 using studeehub.Application.DTOs.Responses.User;
 using studeehub.Application.Interfaces.Services;
@@ -21,5 +22,11 @@ namespace studeehub.API.Controllers
 		[ProducesResponseType(typeof(BaseResponse<GetUserResponse>), StatusCodes.Status404NotFound)]
 		public async Task<BaseResponse<GetUserResponse>> GetProfileByIdAsync(Guid id)
 			=> await _userService.GetProfileByIdAsync(id);
+
+		[HttpGet("metrics")]
+		[ProducesResponseType(typeof(BaseResponse<UserMetricsResponse>), StatusCodes.Status200OK)]
+		[ProducesResponseType(typeof(BaseResponse<UserMetricsResponse>), StatusCodes.Status404NotFound)]
+		public async Task<BaseResponse<UserMetricsResponse>> GetUserMetricsAsync([FromQuery] GetUserMetricsRequest request)
+			=> await _userService.GetUserMetricsAsync(request);
 	}
 }

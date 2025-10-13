@@ -28,7 +28,7 @@ namespace studeehub.Application.Interfaces.Repositories
 		);
 
 
-		//Task<int> CountAsync(Expression<Func<T, bool>>? filter = null);
+		Task<int> CountAsync(Expression<Func<T, bool>>? filter = null);
 		Task<bool> AnyAsync(Expression<Func<T, bool>> predicate);
 		Task AddAsync(T entity);
 		Task AddRangeAsync(IEnumerable<T> entities);

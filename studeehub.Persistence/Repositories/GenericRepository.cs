@@ -118,15 +118,15 @@ namespace studeehub.Persistence.Repositories
 			return await _context.SaveChangesAsync() > 0;
 		}
 
-		//public async Task<int> CountAsync(Expression<Func<T, bool>>? filter = null)
-		//{
-		//    IQueryable<T> query = _dbSet;
+		public async Task<int> CountAsync(Expression<Func<T, bool>>? filter = null)
+		{
+			IQueryable<T> query = _dbSet;
 
-		//    if (filter is not null)
-		//        query = query.Where(filter);
+			if (filter is not null)
+				query = query.Where(filter);
 
-		//    return await query.CountAsync();
-		//}
+			return await query.CountAsync();
+		}
 
 		public async Task<bool> AnyAsync(Expression<Func<T, bool>> predicate)
 		{
