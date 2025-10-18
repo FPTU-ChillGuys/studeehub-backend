@@ -1,0 +1,63 @@
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using studeehub.Application.DTOs.Responses.Base;
+using studeehub.Domain.Enums;
+using System.Text;
+
+namespace studeehub.API.Extensions
+{
+	public static class JwtConfig
+	{
+		public static IServiceCollection AddJWTServices(this IServiceCollection services, IConfiguration configuration)
+		{
+			var key = configuration["Authentication:Key"] ?? throw new ArgumentNullException("Authentication:Key not found in configuration");
+			var issuer = configuration["Authentication:Issuer"] ?? throw new ArgumentNullException("Authentication:Issuer not found in configuration");
+			var audience = configuration["Authentication:Audience"] ?? throw new ArgumentNullException("Authentication:Audience not found in configuration");
+
+			services.AddAuthentication(options =>
+			{
+				options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+				options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+				options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+			})
+			.AddJwtBearer(options =>
+			{
+				options.Events = new JwtBearerEvents
+				{
+					OnChallenge = context =>
+					{
+						// suppress the default WWW-Authenticate header handling and return a JSON body
+						context.HandleResponse();
+
+						context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+						context.Response.ContentType = "application/json";
+						return context.Response.WriteAsJsonAsync(BaseResponse<string>.Fail("Missing or invalid token", ErrorType.Unauthorized));
+					},
+					OnForbidden = context =>
+					{
+						context.Response.StatusCode = StatusCodes.Status403Forbidden;
+						context.Response.ContentType = "application/json";
+						return context.Response.WriteAsJsonAsync(BaseResponse<string>.Fail("You are not authorized to access this resource", ErrorType.Forbidden));
+					}
+				};
+
+				// In development you may set RequireHttpsMetadata = false. In production prefer true.
+				options.RequireHttpsMetadata = false;
+				options.SaveToken = true;
+				options.TokenValidationParameters = new TokenValidationParameters
+				{
+					ValidateIssuer = true,
+					ValidateAudience = true,
+					ValidateLifetime = true,
+					ValidateIssuerSigningKey = true,
+					ValidIssuer = issuer,
+					ValidAudience = audience,
+					IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
+					ClockSkew = TimeSpan.Zero // remove delay when token is expired
+				};
+			});
+
+			return services;
+		}
+	}
+}

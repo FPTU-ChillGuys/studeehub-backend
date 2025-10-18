@@ -1,4 +1,6 @@
-﻿namespace studeehub.Application.DTOs.Responses.Base
+﻿using studeehub.Domain.Enums;
+
+namespace studeehub.Application.DTOs.Responses.Base
 {
 	public class PagedResponse<T> : BaseResponse<List<T>>
 	{
@@ -19,12 +21,19 @@
 			};
 		}
 
-		public static PagedResponse<T> Fail(string message, int page, int pageSize)
+		public static PagedResponse<T> Fail(
+			string message,
+			ErrorType errorType = ErrorType.ServerError,
+			List<string>? errors = null,
+			int page = 1,
+			int pageSize = 10)
 		{
 			return new PagedResponse<T>
 			{
 				Success = false,
 				Message = message,
+				Errors = errors,
+				ErrorType = errorType,
 				Data = new List<T>(),
 				TotalCount = 0,
 				Page = page,
