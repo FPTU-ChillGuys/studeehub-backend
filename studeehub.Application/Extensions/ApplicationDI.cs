@@ -51,6 +51,7 @@ namespace studeehub.Application.Extensions
 			services.AddScoped<ISubscriptionService, SubscriptionService>();
 			services.AddScoped<IPomodoroSessionService, PomodoroSessionService>();
 			services.AddScoped<IPomodoroSettingService, PomodoroSettingService>();
+			services.AddScoped<IUserMetricsService, UserMetricsService>();
 
 
 			// Mapster configuration: clone global settings and scan this assembly for IRegister implementations
