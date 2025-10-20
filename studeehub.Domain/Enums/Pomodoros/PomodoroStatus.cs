@@ -2,9 +2,9 @@
 {
 	public enum PomodoroStatus
 	{
-		Pending = 1,
-		Active,
+		Active = 1,
 		Completed,
-		Skipped
+		Skipped,
+		Incomplete
 	}
 }

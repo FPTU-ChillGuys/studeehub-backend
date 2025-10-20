@@ -8,7 +8,7 @@ namespace studeehub.Domain.Entities
 		public Guid UserId { get; set; }
 
 		public PomodoroType Type { get; set; }
-		public PomodoroStatus Status { get; set; } = PomodoroStatus.Pending;
+		public PomodoroStatus Status { get; set; } = PomodoroStatus.Active;
 
 		public DateTime? Start { get; set; }
 		public DateTime? End { get; set; }
