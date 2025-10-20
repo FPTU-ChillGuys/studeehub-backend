@@ -17,11 +17,22 @@ namespace studeehub.API.Controllers
 			_userService = userService;
 		}
 
+		[HttpGet]
+		[ProducesResponseType(typeof(PagedResponse<GetUserResponse>), StatusCodes.Status200OK)]
+		public async Task<PagedResponse<GetUserResponse>> GetAllUsersAsync([FromQuery] GetPagedAndSortedUsersRequest request)
+			=> await _userService.GetUsersAsync(request);
+
 		[HttpGet("{id:Guid}")]
 		[ProducesResponseType(typeof(BaseResponse<GetUserResponse>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<GetUserResponse>), StatusCodes.Status404NotFound)]
 		public async Task<BaseResponse<GetUserResponse>> GetProfileByIdAsync([FromRoute] Guid id)
 			=> await _userService.GetProfileByIdAsync(id);
+
+		[HttpPatch("{id:Guid}/update-status")]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
+		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status404NotFound)]
+		public async Task<BaseResponse<string>> UpdateStatusAsync([FromRoute] Guid id, [FromBody] bool request)
+			=> await _userService.UpdateUserStatus(id, request);
 
 		[HttpPut("{id:Guid}")]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]

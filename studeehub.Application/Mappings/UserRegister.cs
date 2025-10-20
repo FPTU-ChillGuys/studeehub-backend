@@ -17,7 +17,8 @@ namespace studeehub.Application.Mappings
 				.Map(dest => dest.UserName, src => src.UserName)
 				.Map(dest => dest.PhoneNumber, src => src.PhoneNumber)
 				.Map(dest => dest.CreatedAt, src => src.CreatedAt)
-				.Map(dest => dest.UpdatedAt, src => src.UpdatedAt);
+				.Map(dest => dest.UpdatedAt, src => src.UpdatedAt)
+				.Map(dest => dest.IsActive, src => src.IsActive);
 
 			config.NewConfig<UpdateUserRequest, User>()
 				.Map(dest => dest.FullName, src => src.FullName)
