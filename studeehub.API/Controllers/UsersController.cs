@@ -31,8 +31,8 @@ namespace studeehub.API.Controllers
 		[HttpPatch("{id:Guid}/update-status")]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status404NotFound)]
-		public async Task<BaseResponse<string>> UpdateStatusAsync([FromRoute] Guid id, [FromBody] bool request)
-			=> await _userService.UpdateUserStatus(id, request);
+		public async Task<BaseResponse<string>> UpdateStatusAsync([FromRoute] Guid id, [FromBody] UpdateStatusRequest request)
+			=> await _userService.UpdateUserStatus(id, request.Status);
 
 		[HttpPut("{id:Guid}")]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
