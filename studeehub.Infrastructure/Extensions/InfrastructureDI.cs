@@ -20,7 +20,6 @@ namespace studeehub.Infrastructure.Extensions
 			// Register Repositories
 			services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 			services.AddScoped<IAuthRepository, AuthRepository>();
-			services.AddScoped<IWorkSpaceRepository, WorkspaceRepository>();
 			services.AddScoped<IStreakRepository, StreakRepository>();
 			services.AddScoped<IScheduleRepository, ScheduleRepository>();
 			services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
@@ -36,7 +35,6 @@ namespace studeehub.Infrastructure.Extensions
 			services.AddTransient<IEmailService, EmailService>();
 			services.AddTransient<IEmailTemplateService, EmailTemplateService>();
 			services.AddTransient<ISupabaseStorageService, SupabaseStorageService>();
-			services.AddTransient<IVnPayService, VnPayService>();
 			services.AddTransient<ISubscriptionJobService, SubscriptionJobService>();
 			services.AddTransient<IPayOSService, PayOSService>();
 

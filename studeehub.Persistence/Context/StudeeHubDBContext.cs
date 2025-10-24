@@ -14,10 +14,6 @@ namespace studeehub.Persistence.Context
 		}
 
 		// DbSets for domain entities (updated)
-		public virtual DbSet<Workspace> Workspaces { get; set; } = null!;
-		public virtual DbSet<Document> Documents { get; set; } = null!;
-		public virtual DbSet<Flashcard> Flashcards { get; set; } = null!;
-		public virtual DbSet<Note> Notes { get; set; } = null!;
 		public virtual DbSet<Schedule> Schedules { get; set; } = null!;
 		public virtual DbSet<Subscription> Subscriptions { get; set; } = null!;
 		public virtual DbSet<Achievement> Achievements { get; set; } = null!;
@@ -31,84 +27,6 @@ namespace studeehub.Persistence.Context
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
 			base.OnModelCreating(modelBuilder);
-
-			// Workspace -- User (two-sided)
-			modelBuilder.Entity<Workspace>()
-				.HasKey(ws => ws.Id);
-
-			modelBuilder.Entity<Workspace>()
-				.HasOne(ws => ws.User)
-				.WithMany(u => u.Workspaces)
-				.HasForeignKey(ws => ws.UserId)
-				.OnDelete(DeleteBehavior.Cascade);
-
-			// Document -- User
-			modelBuilder.Entity<Document>()
-				.HasKey(d => d.Id);
-
-			modelBuilder.Entity<Document>()
-				.HasOne(d => d.User)
-				.WithMany()
-				// changed to Restrict to avoid multiple cascade paths (User -> Documents and User -> Workspaces -> Documents)
-				.HasForeignKey(d => d.UserId)
-				.OnDelete(DeleteBehavior.Restrict);
-
-			// Document -- Workspace (two-sided)
-			modelBuilder.Entity<Document>()
-				.HasOne(d => d.Workspace)
-				.WithMany(ws => ws.Documents)
-				.HasForeignKey(d => d.WorkSpaceId)
-				.OnDelete(DeleteBehavior.Cascade);
-
-			// Note -- User
-			modelBuilder.Entity<Note>()
-				.HasKey(n => n.Id);
-
-			//// json constraint on Content
-			//modelBuilder.Entity<Note>(entity =>
-			//{
-			//	entity.Property(e => e.Content)
-			//		  .HasColumnType("NVARCHAR(MAX)");
-
-			//	entity.ToTable(t => t.HasCheckConstraint("CK_Note_Content_IsJson", "ISJSON(Content) = 1"));
-			//});
-			modelBuilder.Entity<Note>(entity =>
-			{
-				entity.Property(e => e.Content)
-					  .HasColumnType("NVARCHAR(MAX)");
-			});
-
-			modelBuilder.Entity<Note>()
-				.HasOne(n => n.User)
-				.WithMany()
-				// changed to Restrict
-				.HasForeignKey(n => n.UserId)
-				.OnDelete(DeleteBehavior.Restrict);
-
-			// Note -- Workspace (two-sided)
-			modelBuilder.Entity<Note>()
-				.HasOne(n => n.Workspace)
-				.WithMany(ws => ws.Notes)
-				.HasForeignKey(n => n.WorkSpaceId)
-				.OnDelete(DeleteBehavior.Cascade);
-
-			// Flashcard -- User
-			modelBuilder.Entity<Flashcard>()
-				.HasKey(f => f.Id);
-
-			modelBuilder.Entity<Flashcard>()
-				.HasOne(f => f.User)
-				.WithMany()
-				// changed to Restrict
-				.HasForeignKey(f => f.UserId)
-				.OnDelete(DeleteBehavior.Restrict);
-
-			// Flashcard -- Workspace (two-sided)
-			modelBuilder.Entity<Flashcard>()
-				.HasOne(f => f.Workspace)
-				.WithMany(ws => ws.Flashcards)
-				.HasForeignKey(f => f.WorkSpaceId)
-				.OnDelete(DeleteBehavior.Cascade);
 
 			// Subscription -- User (two-sided)
 			modelBuilder.Entity<Subscription>()
@@ -462,42 +380,6 @@ namespace studeehub.Persistence.Context
 					ConditionType = ConditionType.Streak,
 					RewardType = RewardType.XP,
 					RewardValue = 150,
-					IsActive = true
-				},
-				new Achievement
-				{
-					Id = Guid.Parse("a1f2c3d4-0003-4a1b-8c1d-000000000003"),
-					Code = "FIRST_NOTE",
-					Name = "First Note Created",
-					Description = "Create your first note.",
-					ConditionValue = 1,
-					ConditionType = ConditionType.NoteCreated,
-					RewardType = RewardType.Badge,
-					RewardValue = 1,
-					IsActive = true
-				},
-				new Achievement
-				{
-					Id = Guid.Parse("a1f2c3d4-0004-4a1b-8c1d-000000000004"),
-					Code = "FLASHCARDS_REVIEWED_10",
-					Name = "10 Flashcards Reviewed",
-					Description = "Review 10 flashcards.",
-					ConditionValue = 10,
-					ConditionType = ConditionType.FlashcardReviewed,
-					RewardType = RewardType.XP,
-					RewardValue = 100,
-					IsActive = true
-				},
-				new Achievement
-				{
-					Id = Guid.Parse("a1f2c3d4-0005-4a1b-8c1d-000000000005"),
-					Code = "DOCUMENTS_UPLOADED_10",
-					Name = "10 Documents Uploaded",
-					Description = "Upload 10 documents.",
-					ConditionValue = 10,
-					ConditionType = ConditionType.DocumentUpload,
-					RewardType = RewardType.XP,
-					RewardValue = 200,
 					IsActive = true
 				}
 			};

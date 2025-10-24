@@ -3,9 +3,6 @@
 	public enum ConditionType
 	{
 		Streak = 1,
-		MetSchedule,
-		DocumentUpload,
-		NoteCreated,
-		FlashcardReviewed
+		MetSchedule
 	}
 }

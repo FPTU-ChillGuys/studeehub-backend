@@ -4,8 +4,6 @@ using MapsterMapper;
 using Microsoft.Extensions.DependencyInjection;
 using studeehub.Application.DTOs.Requests.Achievement;
 using studeehub.Application.DTOs.Requests.Auth;
-using studeehub.Application.DTOs.Requests.Document;
-using studeehub.Application.DTOs.Requests.Note;
 using studeehub.Application.DTOs.Requests.PayOS;
 using studeehub.Application.DTOs.Requests.Pomodoro;
 using studeehub.Application.DTOs.Requests.Schedule;
@@ -13,14 +11,11 @@ using studeehub.Application.DTOs.Requests.Streak;
 using studeehub.Application.DTOs.Requests.Subscription;
 using studeehub.Application.DTOs.Requests.User;
 using studeehub.Application.DTOs.Requests.UserAchievem;
-using studeehub.Application.DTOs.Requests.Workspace;
 using studeehub.Application.Interfaces.Services;
 using studeehub.Application.Mappings;
 using studeehub.Application.Services;
 using studeehub.Application.Validators.AchievemValidators;
 using studeehub.Application.Validators.AuthValidators;
-using studeehub.Application.Validators.DocumentValidators;
-using studeehub.Application.Validators.NoteValidators;
 using studeehub.Application.Validators.PayOsValidators;
 using studeehub.Application.Validators.PomodoroSettingValidators;
 using studeehub.Application.Validators.ScheduleValidators;
@@ -28,7 +23,6 @@ using studeehub.Application.Validators.StreakValidators;
 using studeehub.Application.Validators.SubscriptionValidators;
 using studeehub.Application.Validators.UserAchievemValidators;
 using studeehub.Application.Validators.UserValidators;
-using studeehub.Application.Validators.WorkSpaceValidators;
 
 namespace studeehub.Application.Extensions
 {
@@ -38,9 +32,6 @@ namespace studeehub.Application.Extensions
 		{
 			// Add application services here, e.g. MediatR, AutoMapper, etc.
 			services.AddScoped<IAuthService, AuthService>();
-			services.AddScoped<IWorkspaceService, WorkspaceService>();
-			services.AddScoped<IDocumentService, DocumentService>();
-			services.AddScoped<INoteService, NoteService>();
 			services.AddScoped<IStreakService, StreakService>();
 			services.AddScoped<IUserService, UserService>();
 			services.AddScoped<IAchievementService, AchievementService>();
@@ -56,9 +47,6 @@ namespace studeehub.Application.Extensions
 
 			// Mapster configuration: clone global settings and scan this assembly for IRegister implementations
 			var config = TypeAdapterConfig.GlobalSettings.Clone();
-			config.Scan(typeof(WorkSpaceRegister).Assembly);
-			config.Scan(typeof(DocumentRegister).Assembly);
-			config.Scan(typeof(NoteRegister).Assembly);
 			config.Scan(typeof(StreakRegister).Assembly);
 			config.Scan(typeof(AchievementRegister).Assembly);
 			config.Scan(typeof(UserAchievementRegister).Assembly);
@@ -76,12 +64,6 @@ namespace studeehub.Application.Extensions
 
 			// FluentValidation
 			services.AddScoped<IValidator<ResetPasswordRequest>, ResetPasswordValidator>();
-			services.AddScoped<IValidator<CreateWorkspaceRequest>, CreateWorkSpaceValidator>();
-			services.AddScoped<IValidator<UpdateWorkspaceRequest>, UpdateWorkSpaceValidator>();
-			services.AddScoped<IValidator<CreateDocumentRequest>, CreateDocumentValidator>();
-			services.AddScoped<IValidator<UpdateDocumentRequest>, UpdateDocumentValidator>();
-			services.AddScoped<IValidator<CreateNoteRequest>, CreateNoteValidator>();
-			services.AddScoped<IValidator<UpdateNoteRequest>, UpdateNoteValidator>();
 			services.AddScoped<IValidator<CreateStreakRequest>, CreateStreakValidator>();
 			services.AddScoped<IValidator<UpdateStreakRequest>, UpdateStreakValidator>();
 			services.AddScoped<IValidator<GetAchievemsRequest>, GetAchievemValidator>();

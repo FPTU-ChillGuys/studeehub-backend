@@ -15,7 +15,6 @@ namespace studeehub.Domain.Entities
 		public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
 		public virtual PomodoroSetting PomodoroSetting { get; set; } = null!;
-		public virtual ICollection<Workspace> Workspaces { get; set; } = new List<Workspace>();
 		public virtual ICollection<PomodoroSession> PomodoroSessions { get; set; } = new List<PomodoroSession>();
 		public virtual ICollection<Streak> Streaks { get; set; } = new List<Streak>();
 		public virtual ICollection<Subscription> Subscriptions { get; set; } = new List<Subscription>();
