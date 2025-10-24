@@ -99,6 +99,55 @@ namespace studeehub.Infrastructure.Services
 					return BaseResponse<CreatePaymentResult>.Fail("Subscription plan not found", ErrorType.NotFound);
 				}
 
+				// If plan is free (price == 0) -> no payment link creation. Activate subscription immediately.
+				if (plan.Price <= 0m)
+				{
+					// Ensure we have user info for email and buyer metadata
+					var freeUser = await _userRepository.GetByConditionAsync(u => u.Id == request.UserId);
+					if (freeUser == null)
+					{
+						return BaseResponse<CreatePaymentResult>.Fail("User not found", ErrorType.NotFound);
+					}
+
+					var tx = await _unitOfWork.BeginTransactionAsync();
+					try
+					{
+						var now = DateTime.UtcNow;
+						var subscription = new Subscription
+						{
+							Id = Guid.NewGuid(),
+							UserId = request.UserId!.Value,
+							SubscriptionPlanId = request.SubscriptionPlanId!.Value,
+							Status = SubscriptionStatus.Active,
+							StartDate = now,
+							EndDate = plan.DurationInDays > 0 ? now.AddDays(plan.DurationInDays) : now,
+							IsPreExpiryNotified = false,
+							IsPostExpiryNotified = false,
+							CreatedAt = now,
+							UpdatedAt = now
+						};
+
+						await _subscriptionRepository.AddAsync(subscription);
+
+						var saved = await _unitOfWork.SaveChangesAsync();
+						if (!saved)
+						{
+							await _unitOfWork.RollbackAsync(tx);
+							return BaseResponse<CreatePaymentResult>.Fail("Failed to save subscription data", ErrorType.ServerError);
+						}
+
+						await _unitOfWork.CommitAsync(tx);
+
+						// No CreatePaymentResult to return for free plans; return success with null data
+						return BaseResponse<CreatePaymentResult>.Ok(null!, "Free subscription activated");
+					}
+					catch (Exception dbEx)
+					{
+						await _unitOfWork.RollbackAsync(tx);
+						return BaseResponse<CreatePaymentResult>.Fail("Failed to create free subscription", ErrorType.ServerError, new List<string> { dbEx.Message });
+					}
+				}
+
 				var item = new ItemData(plan.Name, 1, (int)plan.Price);
 				items.Add(item);
 
@@ -143,7 +192,7 @@ namespace studeehub.Infrastructure.Services
 					return BaseResponse<CreatePaymentResult>.Fail("Failed to create payment link", ErrorType.ServerError);
 
 				// Use UnitOfWork for atomic creation of subscription & transaction
-				var tx = await _unitOfWork.BeginTransactionAsync();
+				var tx2 = await _unitOfWork.BeginTransactionAsync();
 				try
 				{
 					var subscription = new Subscription
@@ -178,15 +227,15 @@ namespace studeehub.Infrastructure.Services
 					var saved = await _unitOfWork.SaveChangesAsync();
 					if (!saved)
 					{
-						await _unitOfWork.RollbackAsync(tx);
+						await _unitOfWork.RollbackAsync(tx2);
 						return BaseResponse<CreatePaymentResult>.Fail("Failed to save subscription and transaction data", ErrorType.ServerError);
 					}
 
-					await _unitOfWork.CommitAsync(tx);
+					await _unitOfWork.CommitAsync(tx2);
 				}
 				catch (Exception dbEx)
 				{
-					await _unitOfWork.RollbackAsync(tx);
+					await _unitOfWork.RollbackAsync(tx2);
 					return BaseResponse<CreatePaymentResult>.Fail("Failed to save subscription and transaction data", ErrorType.ServerError, new List<string> { dbEx.Message });
 				}
 
