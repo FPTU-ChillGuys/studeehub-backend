@@ -359,11 +359,15 @@ namespace studeehub.Persistence.Context
 			};
 		}
 
-		// Seed some common subscription plans
+		// Seed some common subscription plans (refactored to match SubscriptionPlan properties and UI)
 		private ICollection<SubscriptionPlan> SeedingSubscriptionPlans()
 		{
+			// explicit timestamps so EF won't use defaults that could vary
+			var now = new DateTime(2025, 10, 10, 0, 0, 0, DateTimeKind.Utc);
+
 			return new List<SubscriptionPlan>
 			{
+				// Free / Basic monthly
 				new SubscriptionPlan
 				{
 					Id = Guid.Parse("d2f1c3a4-1001-4a1b-8c1d-000000000101"),
@@ -373,11 +377,19 @@ namespace studeehub.Persistence.Context
 					Price = 0m,
 					Currency = "VND",
 					DurationInDays = 30,
+					DiscountPercentage = 0f,
 					IsActive = true,
-					MaxDocuments = 50,
+					DocumentUploadLimitPerDay = 50,
 					MaxStorageMB = 500,
-					HasAIAnalysis = false
+					AIQueriesPerDay = 0,
+					FlashcardCreationLimitPerDay = 0,
+					HasAIAnalysis = false,
+					CreatedAt = now,
+					UpdatedAt = now,
+					IsDeleted = false
 				},
+
+				// Pro monthly
 				new SubscriptionPlan
 				{
 					Id = Guid.Parse("d2f1c3a4-1002-4a1b-8c1d-000000000102"),
@@ -387,11 +399,19 @@ namespace studeehub.Persistence.Context
 					Price = 49.9m,
 					Currency = "VND",
 					DurationInDays = 30,
+					DiscountPercentage = 0f,
 					IsActive = true,
-					MaxDocuments = 1000,
+					DocumentUploadLimitPerDay = 1000,
 					MaxStorageMB = 10240,
-					HasAIAnalysis = true
+					AIQueriesPerDay = 1000,
+					FlashcardCreationLimitPerDay = 200,
+					HasAIAnalysis = true,
+					CreatedAt = now,
+					UpdatedAt = now,
+					IsDeleted = false
 				},
+
+				// Pro yearly
 				new SubscriptionPlan
 				{
 					Id = Guid.Parse("d2f1c3a4-1003-4a1b-8c1d-000000000103"),
@@ -401,10 +421,16 @@ namespace studeehub.Persistence.Context
 					Price = 499.99m,
 					Currency = "VND",
 					DurationInDays = 365,
+					DiscountPercentage = 0f,
 					IsActive = true,
-					MaxDocuments = 1000,
+					DocumentUploadLimitPerDay = 1000,
 					MaxStorageMB = 10240,
-					HasAIAnalysis = true
+					AIQueriesPerDay = 1000,
+					FlashcardCreationLimitPerDay = 200,
+					HasAIAnalysis = true,
+					CreatedAt = now,
+					UpdatedAt = now,
+					IsDeleted = false
 				}
 			};
 		}

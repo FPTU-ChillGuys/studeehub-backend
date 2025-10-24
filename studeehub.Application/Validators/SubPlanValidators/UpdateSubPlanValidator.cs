@@ -27,15 +27,24 @@ namespace studeehub.Application.Validators.SubscriptionValidators
 
 			// IsActive is a non-nullable bool on the DTO; no NotNull rule required
 
+			RuleFor(x => x.DiscountPercentage)
+				.InclusiveBetween(0.0f, 100.0f).WithMessage("Discount percentage must be between 0 and 100.");
+
 			RuleFor(x => x.Currency)
 				.NotEmpty().WithMessage("Currency is required.")
 				.Length(3).WithMessage("Currency must be a valid 3-letter ISO code.");
 
-			RuleFor(x => x.MaxDocuments)
+			RuleFor(x => x.DocumentUploadLimitPerDay)
 				.GreaterThanOrEqualTo(0).WithMessage("Max documents must be a non-negative value.");
 
 			RuleFor(x => x.MaxStorageMB)
 				.GreaterThanOrEqualTo(0).WithMessage("Max storage must be a non-negative value.");
+
+			RuleFor(x => x.AIQueriesPerDay)
+				.GreaterThanOrEqualTo(0).WithMessage("AI queries per day must be a non-negative value.");
+
+			RuleFor(x => x.FlashcardCreationLimitPerDay)
+				.GreaterThanOrEqualTo(0).WithMessage("Flashcard creation limit per day must be a non-negative value.");
 
 			// HasAIAnalysis is a non-nullable bool on the DTO; no NotNull rule required
 		}

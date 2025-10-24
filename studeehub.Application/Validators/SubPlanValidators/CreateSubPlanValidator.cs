@@ -30,13 +30,20 @@ namespace studeehub.Application.Validators.SubscriptionValidators
 				.NotEmpty().WithMessage("Currency is required.")
 				.Length(3).WithMessage("Currency must be a valid 3-letter ISO code.");
 
-			RuleFor(x => x.MaxDocuments)
-				.GreaterThanOrEqualTo(0).WithMessage("Max documents must be zero or a positive number.");
+			RuleFor(x => x.DiscountPercentage)
+				.InclusiveBetween(0.0f, 100.0f).WithMessage("Discount percentage must be between 0 and 100.");
+
+			RuleFor(x => x.DocumentUploadLimitPerDay)
+				.GreaterThanOrEqualTo(0).WithMessage("Document upload limit per day must be a non-negative value.");
 
 			RuleFor(x => x.MaxStorageMB)
-				.GreaterThanOrEqualTo(0).WithMessage("Max storage in MB must be zero or a positive number.");
+				.GreaterThanOrEqualTo(0).WithMessage("Max storage (MB) must be a non-negative value.");
 
-			// HasAIAnalysis is a non-nullable bool on the DTO, no NotNull needed
+			RuleFor(x => x.AIQueriesPerDay)
+				.GreaterThanOrEqualTo(0).WithMessage("AI queries per day must be a non-negative value.");
+
+			RuleFor(x => x.FlashcardCreationLimitPerDay)
+				.GreaterThanOrEqualTo(0).WithMessage("Flashcard creation limit per day must be a non-negative value.");
 		}
 	}
 }
