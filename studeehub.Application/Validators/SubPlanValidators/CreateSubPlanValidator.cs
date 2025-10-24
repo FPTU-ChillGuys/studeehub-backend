@@ -16,12 +16,11 @@ namespace studeehub.Application.Validators.SubscriptionValidators
 				.NotEmpty().WithMessage("Subscription plan name is required.")
 				.MaximumLength(100).WithMessage("Subscription plan name must not exceed 100 characters.");
 
-			// Description is optional for create; enforce only max length
 			RuleFor(x => x.Description)
 				.MaximumLength(500).WithMessage("Description must not exceed 500 characters.");
 
 			RuleFor(x => x.Price)
-				.GreaterThan(0).WithMessage("Price must be greater than zero.");
+				.GreaterThanOrEqualTo(0).WithMessage("Price must be a non-negative value (use 0 for free).");
 
 			RuleFor(x => x.DurationInDays)
 				.GreaterThan(0).WithMessage("Duration in days must be greater than zero.");
