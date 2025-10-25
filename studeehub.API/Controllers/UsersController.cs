@@ -39,7 +39,7 @@ namespace studeehub.API.Controllers
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status404NotFound)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
-		public async Task<BaseResponse<string>> UpdateProfileAsync([FromRoute] Guid id, [FromBody] UpdateUserRequest request)
+		public async Task<BaseResponse<string>> UpdateProfileAsync([FromRoute] Guid id, [FromForm] UpdateUserRequest request)
 			=> await _userService.UpdateProfileAsync(id, request);
 	}
 }

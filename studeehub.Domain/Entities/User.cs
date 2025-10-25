@@ -9,6 +9,7 @@ namespace studeehub.Domain.Entities
 		public string Address { get; set; } = string.Empty;
 		public string RefreshToken { get; set; } = string.Empty;
 		public DateTime RefreshTokenExpiryTime { get; set; } = DateTime.UtcNow.AddDays(7);
+		public string ProfilePictureUrl { get; set; } = string.Empty;
 		public bool IsActive { get; set; } = true;
 
 		public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

@@ -2,10 +2,8 @@
 {
 	public interface ISupabaseStorageService
 	{
-		public Task<string> ExtractFilePathFromUrl(string fileUrl);
-		public Task<string?> UploadFileAsync(Stream fileStream, string fileName, string bucket = "Studeehub_Bucket");
-		public Task<bool> DeleteFileAsync(string filePath, string bucket = "Studeehub_Bucket");
-		public Task<string> GenerateSignedUrlAsync(string filePath, int expiresInSeconds = 3600, string bucket = "Studeehub_Bucket");
+		public Task<string?> UploadUserAvatarAsync(Stream fileStream, string userId, string? fileName = null, string bucket = "studeehub_bucket");
 
+		public Task<string?> EnsureSignedUrlAsync(string? profileUrl, string userId, int expiresInSeconds = 3600, string bucket = "studeehub_bucket");
 	}
 }

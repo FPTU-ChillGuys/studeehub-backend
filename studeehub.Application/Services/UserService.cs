@@ -1,12 +1,12 @@
 ﻿using FluentValidation;
 using MapsterMapper;
-using Microsoft.EntityFrameworkCore;
 using studeehub.Application.DTOs.Requests.User;
 using studeehub.Application.DTOs.Responses.Base;
 using studeehub.Application.DTOs.Responses.User;
 using studeehub.Application.Extensions;
 using studeehub.Application.Interfaces.Repositories;
 using studeehub.Application.Interfaces.Services;
+using studeehub.Application.Interfaces.Services.ThirdPartyServices;
 using studeehub.Domain.Entities;
 using System.Linq.Expressions;
 
@@ -15,14 +15,16 @@ namespace studeehub.Application.Services
 	public class UserService : IUserService
 	{
 		private readonly IUserRepository _userRepository;
+		private readonly ISupabaseStorageService _supabaseStorageService;
 		private readonly IValidator<UpdateUserRequest> _updateUserValidator;
 		private readonly IMapper _mapper;
 
-		public UserService(IUserRepository userRepository, IMapper mapper, IValidator<UpdateUserRequest> updateUserValidator)
+		public UserService(IUserRepository userRepository, IMapper mapper, IValidator<UpdateUserRequest> updateUserValidator, ISupabaseStorageService supabaseStorageService)
 		{
 			_userRepository = userRepository;
 			_mapper = mapper;
 			_updateUserValidator = updateUserValidator;
+			_supabaseStorageService = supabaseStorageService;
 		}
 
 		public Task<bool> IsUserExistAsync(Guid userId)
@@ -44,6 +46,23 @@ namespace studeehub.Application.Services
 			}
 
 			var response = _mapper.Map<GetUserResponse>(user);
+
+			// Ensure profile picture URL has a valid signed token; regenerate if expired.
+			if (!string.IsNullOrWhiteSpace(user.ProfilePictureUrl))
+			{
+				try
+				{
+					var validUrl = await _supabaseStorageService.EnsureSignedUrlAsync(user.ProfilePictureUrl, user.Id.ToString());
+					// If we could generate a fresh URL, return it to client.
+					if (!string.IsNullOrWhiteSpace(validUrl))
+						response.ProfilePictureUrl = validUrl;
+				}
+				catch
+				{
+					return BaseResponse<GetUserResponse>.Ok(response, "User profile retrieved successfully, but failed to process profile picture URL");
+				}
+			}
+
 			return BaseResponse<GetUserResponse>.Ok(response, "User profile retrieved successfully");
 		}
 
@@ -54,11 +73,35 @@ namespace studeehub.Application.Services
 			{
 				return BaseResponse<string>.Fail("Validation errors: " + string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage)), Domain.Enums.ErrorType.Validation);
 			}
+
 			var user = await _userRepository.GetByConditionAsync(u => u.Id == userId);
 			if (user == null)
 			{
 				return BaseResponse<string>.Fail("User not found", Domain.Enums.ErrorType.NotFound);
 			}
+
+			// If a file was uploaded, upload it to Supabase and set ProfilePictureUrl on the request
+			if (request.File != null)
+			{
+				try
+				{
+					using var stream = request.File.OpenReadStream();
+					var uploadedUrl = await _supabaseStorageService.UploadUserAvatarAsync(stream, userId.ToString(), request.File.FileName);
+					if (uploadedUrl == null)
+					{
+						return BaseResponse<string>.Fail("Failed to upload profile picture", Domain.Enums.ErrorType.ServerError);
+					}
+
+					request.ProfilePictureUrl = uploadedUrl;
+				}
+				catch (Exception ex)
+				{
+					// Bubble up a friendly error to the client while preserving internal details in logs (if any)
+					return BaseResponse<string>.Fail("Failed to upload profile picture: " + ex.Message, Domain.Enums.ErrorType.ServerError);
+				}
+			}
+
+			// Map incoming fields (including ProfilePictureUrl if set) to the user entity
 			_mapper.Map(request, user);
 			_userRepository.Update(user);
 			var result = await _userRepository.SaveChangesAsync();
@@ -75,20 +118,24 @@ namespace studeehub.Application.Services
 			if (!string.IsNullOrWhiteSpace(request.FullName))
 			{
 				var keyword = request.FullName.Trim();
-
-				// Compose a predicate that matches FullName or UserName using either Vietnamese or Latin1 collations.
-				filter = filter.AndAlso(u =>
-					u.FullName != null &&
-					(
-						EF.Functions.Collate(u.FullName, "Vietnamese_CI_AI").Contains(keyword) ||
-						EF.Functions.Collate(u.FullName, "Latin1_General_CI_AI").Contains(keyword)
-					)
-				);
+				filter = filter.AndAlso(EfCollationExtensions.CollateContains<User>(u => u.FullName, keyword));
 			}
 
 			if (!string.IsNullOrWhiteSpace(request.Address))
 			{
-				filter = filter.AndAlso(u => u.Address != null && u.Address.Contains(request.Address));
+				var keyword = request.Address.Trim();
+				filter = filter.AndAlso(EfCollationExtensions.CollateContains<User>(u => u.Address, keyword));
+			}
+
+			if (!string.IsNullOrWhiteSpace(request.Email))
+			{
+				var keyword = request.Email.Trim();
+				filter = filter.AndAlso(EfCollationExtensions.CollateContains<User>(u => u.Email, keyword));
+			}
+
+			if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
+			{
+				filter = filter.AndAlso(u => u.PhoneNumber != null && u.PhoneNumber.Contains(request.PhoneNumber));
 			}
 
 			if (request.IsActive.HasValue)

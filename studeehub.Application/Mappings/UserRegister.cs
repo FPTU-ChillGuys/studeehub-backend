@@ -16,6 +16,7 @@ namespace studeehub.Application.Mappings
 				.Map(dest => dest.Email, src => src.Email)
 				.Map(dest => dest.UserName, src => src.UserName)
 				.Map(dest => dest.PhoneNumber, src => src.PhoneNumber)
+				.Map(dest => dest.ProfilePictureUrl, src => src.ProfilePictureUrl)
 				.Map(dest => dest.CreatedAt, src => src.CreatedAt)
 				.Map(dest => dest.UpdatedAt, src => src.UpdatedAt)
 				.Map(dest => dest.IsActive, src => src.IsActive);
@@ -25,6 +26,7 @@ namespace studeehub.Application.Mappings
 				.Map(dest => dest.Address, src => src.Address)
 				.Map(dest => dest.PhoneNumber, src => src.PhoneNumber)
 				.Map(dest => dest.UpdatedAt, src => DateTime.UtcNow)
+				.Map(dest => dest.ProfilePictureUrl, src => src.ProfilePictureUrl)
 				.IgnoreNullValues(true);
 		}
 	}

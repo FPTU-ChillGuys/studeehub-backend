@@ -125,7 +125,9 @@ namespace studeehub.Persistence.Repositories
 					UserName = payload.Email,
 					FullName = payload.Name ?? string.Empty,
 					EmailConfirmed = true,
-					IsActive = true
+					IsActive = true,
+					Address = payload.Locale ?? string.Empty,
+					ProfilePictureUrl = string.IsNullOrWhiteSpace(payload.Picture) ? string.Empty : payload.Picture.Trim()
 				};
 
 				var tempPassword = GenerateTemporaryPassword(12);

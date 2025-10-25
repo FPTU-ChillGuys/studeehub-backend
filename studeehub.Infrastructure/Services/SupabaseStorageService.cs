@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using studeehub.Application.Interfaces.Services.ThirdPartyServices;
+using System.Text;
+using System.Text.Json;
 
 namespace studeehub.Infrastructure.Services
 {
@@ -39,79 +41,19 @@ namespace studeehub.Infrastructure.Services
 			}
 		}
 
-		// Synchronous extraction returned as a Task to match the interface signature.
-		public Task<string> ExtractFilePathFromUrl(string fileUrl)
+		/// <summary>
+		/// Uploads a user avatar to Supabase storage and returns a signed URL.
+		/// Supports common image extensions (png, jpg, jpeg, gif, webp, bmp, svg).
+		/// If extension cannot be determined it falls back to .png.
+		/// </summary>
+		public async Task<string?> UploadUserAvatarAsync(Stream fileStream, string userId, string? fileName = null, string bucket = "studeehub_bucket")
 		{
-			if (string.IsNullOrWhiteSpace(fileUrl))
-				throw new ArgumentException("fileUrl is null or empty", nameof(fileUrl));
-
-			// Use Uri to safely parse
-			var uri = new Uri(fileUrl);
-			var path = uri.AbsolutePath;
-
-			// Supabase URLs typically have this pattern:
-			// /storage/v1/object/sign/<bucket>/<file-path>
-			var marker = "/storage/v1/object/sign/";
-			var idx = path.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
-			if (idx < 0)
-				throw new ArgumentException("Invalid Supabase file URL format", nameof(fileUrl));
-
-			// Extract the part after the marker
-			var relativePath = path.Substring(idx + marker.Length);
-
-			// Optional: if you only want the path *inside* the bucket (remove bucket name)
-			var firstSlash = relativePath.IndexOf('/');
-			if (firstSlash > -1)
-				relativePath = relativePath.Substring(firstSlash + 1);
-
-			return Task.FromResult(relativePath);
-		}
-
-		public async Task<bool> DeleteFileAsync(string filePath, string bucket = "studeehub_bucket")
-		{
-			if (string.IsNullOrWhiteSpace(filePath))
-				throw new ArgumentException("filePath is null or empty", nameof(filePath));
+			if (fileStream == null) throw new ArgumentNullException(nameof(fileStream));
+			if (string.IsNullOrWhiteSpace(userId)) throw new ArgumentException("userId is required", nameof(userId));
 
 			await EnsureInitializedAsync();
 
-			var storage = _client.Storage;
-			var bucketRef = storage.From(bucket);
-
-			var response = await bucketRef.Remove(new List<string> { filePath });
-
-			// If SDK returns a list of removed files, ensure there is at least one removed.
-			if (response == null)
-				return false;
-
-			// Try to determine success in a safe way
-			try
-			{
-				// If response is a list-like object
-				if (response is IEnumerable<string> list)
-					return list.Any();
-
-				// Fallback: non-null response indicates success for some SDK versions
-				return true;
-			}
-			catch
-			{
-				return false;
-			}
-		}
-
-		public async Task<string?> UploadFileAsync(Stream fileStream, string fileName, string bucket = "studeehub_bucket")
-		{
-			if (fileStream == null)
-				throw new ArgumentNullException(nameof(fileStream));
-			if (string.IsNullOrWhiteSpace(fileName))
-				throw new ArgumentException("fileName is null or empty", nameof(fileName));
-
-			await EnsureInitializedAsync();
-
-			var storage = _client.Storage;
-			var bucketRef = storage.From(bucket);
-
-			// Read stream into byte array
+			// Read stream into byte array (we need bytes to possibly detect type)
 			byte[] fileBytes;
 			using (var ms = new MemoryStream())
 			{
@@ -119,77 +61,242 @@ namespace studeehub.Infrastructure.Services
 				fileBytes = ms.ToArray();
 			}
 
-			// Extract file extension
-			var extension = Path.GetExtension(fileName);
-			var baseName = Path.GetFileNameWithoutExtension(fileName);
-
-			// Generate unique filename to avoid duplicates
-			var uniqueName = $"{baseName}_{Guid.NewGuid():N}{extension}";
-
-			var response = await bucketRef.Upload(fileBytes, uniqueName);
-
-			// SDKs differ on return types. Treat non-null/non-empty as success and return signed URL.
-			if (response != null)
+			// Try extension from fileName first
+			string? extension = null;
+			if (!string.IsNullOrWhiteSpace(fileName))
 			{
-				try
+				extension = NormalizeAndValidateExtension(Path.GetExtension(fileName));
+			}
+
+			// If not available or not allowed, try to detect from bytes
+			if (string.IsNullOrWhiteSpace(extension))
+			{
+				extension = DetectImageExtensionFromBytes(fileBytes);
+			}
+
+			// Final fallback
+			extension ??= ".png";
+
+			// Build a predictable avatar path: avatars/{userId}/{guid}{ext}
+			var uniqueName = $"avatars/{userId}/{Guid.NewGuid():N}{extension}";
+
+			var storage = _client.Storage;
+			var bucketRef = storage.From(bucket);
+
+			var uploadResponse = await bucketRef.Upload(fileBytes, uniqueName);
+
+			if (uploadResponse == null)
+				return null;
+
+			try
+			{
+				var signedUrl = await bucketRef.CreateSignedUrl(uniqueName, 3600);
+				return string.IsNullOrWhiteSpace(signedUrl) ? null : signedUrl;
+			}
+			catch
+			{
+				return null;
+			}
+		}
+
+		/// <summary>
+		/// Ensure profileUrl contains a valid (non-expired) signed token.
+		/// If token missing or expired a fresh signed url is created and returned.
+		/// Returns null if unable to create a signed URL.
+		/// </summary>
+		public async Task<string?> EnsureSignedUrlAsync(string? profileUrl, string userId, int expiresInSeconds = 3600, string bucket = "studeehub_bucket")
+		{
+			if (string.IsNullOrWhiteSpace(profileUrl))
+				return null;
+
+			// Try to parse token from the URL query string
+			string? token = null;
+			try
+			{
+				var uri = new Uri(profileUrl);
+				var query = uri.Query; // starts with '?'
+				if (!string.IsNullOrEmpty(query))
 				{
-					var signedUrl = await GenerateSignedUrlAsync(uniqueName, 3600, bucket);
-					return signedUrl;
+					var qs = query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries);
+					foreach (var kv in qs)
+					{
+						var parts = kv.Split('=', 2);
+						if (parts.Length == 2 && parts[0].Equals("token", StringComparison.OrdinalIgnoreCase))
+						{
+							token = Uri.UnescapeDataString(parts[1]);
+							break;
+						}
+					}
 				}
-				catch
+			}
+			catch
+			{
+				// If the URL is malformed we still attempt to regenerate from stored path below
+			}
+
+			// If token exists and not expired, return original URL
+			if (!string.IsNullOrWhiteSpace(token))
+			{
+				var exp = TryGetJwtExpiry(token);
+				if (exp.HasValue && exp.Value > DateTimeOffset.UtcNow.AddSeconds(30)) // small buffer
 				{
-					// If CreateSignedUrl throws for some SDK changes, return null to indicate failure.
+					return profileUrl;
+				}
+			}
+
+			// Extract the object path inside the bucket from the URL and create a new signed URL
+			var objectPath = ExtractFilePathFromUrl(profileUrl);
+			if (string.IsNullOrWhiteSpace(objectPath))
+				return null;
+
+			await EnsureInitializedAsync();
+
+			try
+			{
+				var bucketRef = _client.Storage.From(bucket);
+				var signedUrl = await bucketRef.CreateSignedUrl(objectPath, expiresInSeconds);
+				return string.IsNullOrWhiteSpace(signedUrl) ? null : signedUrl;
+			}
+			catch
+			{
+				return null;
+			}
+		}
+
+		// Extracts the path inside the bucket from a Supabase signed/unsigned URL.
+		// Example input: https://<project>.supabase.co/storage/v1/object/sign/<bucket>/<path/to/file>?token=...
+		// Returns "path/to/file"
+		private static string? ExtractFilePathFromUrl(string? fileUrl)
+		{
+			if (string.IsNullOrWhiteSpace(fileUrl))
+				return null;
+
+			try
+			{
+				var uri = new Uri(fileUrl);
+				var path = uri.AbsolutePath; // /storage/v1/object/sign/<bucket>/<file-path>
+
+				var marker = "/storage/v1/object/sign/";
+				var idx = path.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+				if (idx < 0)
 					return null;
+
+				var relative = path.Substring(idx + marker.Length); // <bucket>/<file-path>
+				var firstSlash = relative.IndexOf('/');
+				if (firstSlash < 0)
+					return null;
+
+				return relative.Substring(firstSlash + 1);
+			}
+			catch
+			{
+				return null;
+			}
+		}
+
+		// Try to get the 'exp' claim (UNIX seconds) from a JWT token without validating signature.
+		private static DateTimeOffset? TryGetJwtExpiry(string token)
+		{
+			if (string.IsNullOrWhiteSpace(token))
+				return null;
+
+			try
+			{
+				var parts = token.Split('.');
+				if (parts.Length < 2) return null;
+
+				string payload = parts[1];
+				// base64url -> normal base64
+				payload = payload.Replace('-', '+').Replace('_', '/');
+				switch (payload.Length % 4)
+				{
+					case 2: payload += "=="; break;
+					case 3: payload += "="; break;
 				}
+
+				var bytes = Convert.FromBase64String(payload);
+				var json = Encoding.UTF8.GetString(bytes);
+				using var doc = JsonDocument.Parse(json);
+				if (doc.RootElement.TryGetProperty("exp", out var expProp))
+				{
+					if (expProp.ValueKind == JsonValueKind.Number && expProp.TryGetInt64(out long seconds))
+					{
+						return DateTimeOffset.FromUnixTimeSeconds(seconds);
+					}
+				}
+			}
+			catch
+			{
+				// ignore parse errors
 			}
 
 			return null;
 		}
 
-		// Optional: a convenience batch upload that reuses UploadFileAsync internally.
-		// Not required by the interface but can be used by concrete callers if desired.
-		public async Task<IList<string?>> UploadFilesAsync(IEnumerable<(Stream FileStream, string FileName)> files, string bucket = "studeehub_bucket")
+		private static string? NormalizeAndValidateExtension(string? ext)
 		{
-			if (files == null)
-				throw new ArgumentNullException(nameof(files));
+			if (string.IsNullOrWhiteSpace(ext))
+				return null;
 
-			var results = new List<string?>();
+			ext = ext.Trim().ToLowerInvariant();
+			if (!ext.StartsWith('.')) ext = "." + ext;
 
-			// Sequential to avoid overwhelming SDK / concurrency issues; callers can run parallel if needed.
-			foreach (var (stream, name) in files)
+			// Allowed image extensions
+			var allowed = new[] { ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".svg" };
+			if (allowed.Contains(ext))
 			{
-				results.Add(await UploadFileAsync(stream, name, bucket));
+				// Prefer .jpg instead of .jpeg for consistency
+				if (ext == ".jpeg") return ".jpg";
+				return ext;
 			}
 
-			return results;
+			return null;
 		}
 
-		public async Task<string> GenerateSignedUrlAsync(string filePath, int expiresInSeconds = 3600, string bucket = "studeehub_bucket")
+		private static string? DetectImageExtensionFromBytes(byte[] bytes)
 		{
-			if (string.IsNullOrWhiteSpace(filePath))
-				throw new ArgumentException("filePath is null or empty", nameof(filePath));
+			if (bytes == null || bytes.Length < 4)
+				return null;
 
-			if (expiresInSeconds <= 0)
-				throw new ArgumentOutOfRangeException(nameof(expiresInSeconds), "expiresInSeconds must be greater than zero.");
+			// JPEG (FF D8 FF)
+			if (bytes.Length >= 3 && bytes[0] == 0xFF && bytes[1] == 0xD8 && bytes[2] == 0xFF)
+				return ".jpg";
 
-			await EnsureInitializedAsync();
+			// PNG (89 50 4E 47 0D 0A 1A 0A)
+			if (bytes.Length >= 8 &&
+				bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47)
+				return ".png";
 
-			var storage = _client.Storage;
-			var bucketRef = storage.From(bucket);
+			// GIF (47 49 46 38)
+			if (bytes[0] == 0x47 && bytes[1] == 0x49 && bytes[2] == 0x46 && bytes[3] == 0x38)
+				return ".gif";
 
+			// BMP (42 4D)
+			if (bytes[0] == 0x42 && bytes[1] == 0x4D)
+				return ".bmp";
+
+			// WEBP: "RIFF"...."WEBP"
+			if (bytes.Length >= 12 &&
+				bytes[0] == 'R' && bytes[1] == 'I' && bytes[2] == 'F' && bytes[3] == 'F' &&
+				bytes[8] == 'W' && bytes[9] == 'E' && bytes[10] == 'B' && bytes[11] == 'P')
+				return ".webp";
+
+			// SVG: textual, may start with '<?xml' or '<svg'
 			try
 			{
-				var signedUrl = await bucketRef.CreateSignedUrl(filePath, expiresInSeconds);
-
-				if (string.IsNullOrWhiteSpace(signedUrl))
-					throw new InvalidOperationException("Supabase SDK returned an empty signed URL.");
-
-				return signedUrl;
+				var header = Encoding.UTF8.GetString(bytes.Take(Math.Min(bytes.Length, 512)).ToArray()).TrimStart();
+				if (header.StartsWith("<svg", StringComparison.OrdinalIgnoreCase) ||
+					(header.StartsWith("<?xml", StringComparison.OrdinalIgnoreCase) && header.IndexOf("<svg", StringComparison.OrdinalIgnoreCase) >= 0))
+				{
+					return ".svg";
+				}
 			}
-			catch (Exception ex)
+			catch
 			{
-				throw new InvalidOperationException($"Failed to create signed URL for '{filePath}' in bucket '{bucket}'.", ex);
+				// ignore decoding errors
 			}
+
+			return null;
 		}
 	}
 }
