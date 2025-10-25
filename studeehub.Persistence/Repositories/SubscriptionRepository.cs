@@ -49,5 +49,22 @@ namespace studeehub.Persistence.Repositories
 					)
 				.ToListAsync();
 		}
+
+		public async Task<Subscription?> GetActiveSubscriptionByUserIdAsync(Guid userId)
+		{
+			var now = DateTime.UtcNow;
+			return await _context.Subscriptions
+				.AsNoTracking()
+				.Include(s => s.SubscriptionPlan)
+				.FirstOrDefaultAsync(s =>
+					s.UserId == userId &&
+					(
+						s.Status == SubscriptionStatus.Active ||
+						s.Status == SubscriptionStatus.Trial
+					) &&
+					s.StartDate <= now &&
+					s.EndDate >= now
+				);
+		}
 	}
 }

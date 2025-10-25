@@ -24,6 +24,11 @@ namespace studeehub.API.Controllers
 		public async Task<BaseResponse<List<GetSubscriptionResponse>>> GetSubscriptionByUserIdAsync([FromRoute] Guid userId)
 			=> await _subscriptionService.GetSubscriptionsByUserIdAsync(userId);
 
+		[HttpGet("/api/users/{userId:Guid}/subscriptions/active")]
+		[ProducesResponseType(typeof(BaseResponse<GetSubscriptionResponse>), StatusCodes.Status200OK)]
+		public async Task<BaseResponse<GetSubscriptionResponse>> GetActiveSubscriptionByUserIdAsync([FromRoute] Guid userId)
+			=> await _subscriptionService.GetActiveSubscriptionByUserIdAsync(userId);
+
 		// GET /api/subscriptions/{subscriptionId}/transactions
 		[HttpGet("{subscriptionId:Guid}/transactions")]
 		[ProducesResponseType(typeof(BaseResponse<List<GetPayTXNResponse>>), StatusCodes.Status200OK)]

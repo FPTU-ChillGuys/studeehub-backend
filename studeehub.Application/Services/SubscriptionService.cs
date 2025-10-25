@@ -5,6 +5,7 @@ using studeehub.Application.DTOs.Responses.Subscription;
 using studeehub.Application.Interfaces.Repositories;
 using studeehub.Application.Interfaces.Services;
 using studeehub.Domain.Entities;
+using studeehub.Domain.Enums;
 
 namespace studeehub.Application.Services
 {
@@ -17,6 +18,17 @@ namespace studeehub.Application.Services
 		{
 			_subscriptionRepository = subscriptionRepository;
 			_mapper = mapper;
+		}
+
+		public async Task<BaseResponse<GetSubscriptionResponse>> GetActiveSubscriptionByUserIdAsync(Guid userId)
+		{
+			var subscription = await _subscriptionRepository.GetActiveSubscriptionByUserIdAsync(userId);
+			if (subscription == null)
+			{
+				return BaseResponse<GetSubscriptionResponse>.Fail("No active subscription found for the user.", ErrorType.NotFound);
+			}
+			var response = _mapper.Map<GetSubscriptionResponse>(subscription);
+			return BaseResponse<GetSubscriptionResponse>.Ok(response);
 		}
 
 		public async Task<IEnumerable<Subscription>> GetExpiredSubscriptionsAsync()
