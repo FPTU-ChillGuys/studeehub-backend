@@ -6,3 +6,6 @@ services:
     build:
       context: .
       dockerfile: studeehub.API/Dockerfile
+    ports:
+     - "5000:8080"
+     - "5001:8081"
