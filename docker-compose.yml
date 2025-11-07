@@ -1,5 +1,7 @@
 services:
   studeehub.api:
+    env_file:
+       - stack.env
     image: ${DOCKER_REGISTRY-}studeehubapi
     build:
       context: .
