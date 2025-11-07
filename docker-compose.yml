@@ -1,0 +1,6 @@
+services:
+  studeehub.api:
+    image: ${DOCKER_REGISTRY-}studeehubapi
+    build:
+      context: .
+      dockerfile: studeehub.API/Dockerfile
