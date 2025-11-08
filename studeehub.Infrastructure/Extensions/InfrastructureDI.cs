@@ -86,13 +86,14 @@ namespace studeehub.Infrastructure.Extensions
 			services.AddSingleton(payOS);
 
 			// - CORS
-			var webUrl = configuration["Front-end:webUrl"] ?? throw new Exception("Missing web url!!");
-			services.AddCors(options =>
+			var webUrls = configuration["Front-end:webUrl"] ?? throw new Exception("Missing web url!!");
+			var webUrlArray = webUrls.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            services.AddCors(options =>
 			{
 				options.AddPolicy("AllowFrontend", builder =>
 				{
 					builder
-						.WithOrigins(webUrl)
+						.WithOrigins(webUrlArray)
 						.AllowAnyHeader()
 						.AllowAnyMethod()
 						.AllowCredentials();
