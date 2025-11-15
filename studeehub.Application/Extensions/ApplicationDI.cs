@@ -74,7 +74,7 @@ namespace studeehub.Application.Extensions
 			services.AddScoped<IValidator<UpdateScheduleRequest>, UpdateScheduleValidator>();
 			services.AddScoped<IValidator<CreateSubPlanRequest>, CreateSubPlanValidator>();
 			services.AddScoped<IValidator<UpdateSubPlanRequest>, UpdateSubPlanValidator>();
-			services.AddScoped<IValidator<CreatePaymentLinkRequest>, CreatePaymentLinkRequestValidator>();
+			services.AddScoped<IValidator<CreateLinkRequest>, CreatePaymentLinkRequestValidator>();
 			services.AddScoped<IValidator<UpdateSettingRequest>, UpdateSettingValidator>();
 			services.AddScoped<IValidator<UpdateUserRequest>, UpdateUserValidator>();
 

@@ -1,6 +1,6 @@
 ﻿namespace studeehub.Application.DTOs.Requests.PayOS
 {
-	public sealed record CreatePaymentLinkRequest
+	public sealed record CreateLinkRequest
 	{
 		public string? Description { get; init; }
 		public string ReturnUrl { get; init; } = null!;

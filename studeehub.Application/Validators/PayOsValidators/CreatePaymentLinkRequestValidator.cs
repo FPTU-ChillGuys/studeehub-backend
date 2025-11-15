@@ -3,7 +3,7 @@ using studeehub.Application.DTOs.Requests.PayOS;
 
 namespace studeehub.Application.Validators.PayOsValidators
 {
-	public class CreatePaymentLinkRequestValidator : AbstractValidator<CreatePaymentLinkRequest>
+	public class CreatePaymentLinkRequestValidator : AbstractValidator<CreateLinkRequest>
 	{
 		public CreatePaymentLinkRequestValidator()
 		{
