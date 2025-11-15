@@ -344,92 +344,92 @@ namespace studeehub.Infrastructure.Services
 					return BaseResponse<WebhookData>.Fail("Invalid webhook payload", ErrorType.Validation);
 				}
 
-				//var transaction = await _paymentTransactionRepository.GetByConditionAsync(pt => pt.TransactionCode == data.orderCode.ToString());
-				//if (transaction == null)
-				//{
-				//	return BaseResponse<WebhookData>.Fail("Transaction not found for the given order code", ErrorType.NotFound);
-				//}
+				var transaction = await _paymentTransactionRepository.GetByConditionAsync(pt => pt.TransactionCode == data.orderCode.ToString());
+				if (transaction == null)
+				{
+					return BaseResponse<WebhookData>.Fail("Transaction not found for the given order code", ErrorType.NotFound);
+				}
 
-				//// Use UnitOfWork transaction while updating payment + subscription
-				//var tx = await _unitOfWork.BeginTransactionAsync();
-				//try
-				//{
-				//	// set response code once
-				//	transaction.ResponseCode = data.code;
+				// Use UnitOfWork transaction while updating payment + subscription
+				var tx = await _unitOfWork.BeginTransactionAsync();
+				try
+				{
+					// set response code once
+					transaction.ResponseCode = data.code;
 
-				//	var paymentSucceeded = data.code == "00";
-				//	var parsedComplete = DateTime.TryParse(data.transactionDateTime ?? string.Empty, out var parsed) ? parsed : DateTime.UtcNow;
-				//	Subscription? subscription = null;
+					var paymentSucceeded = data.code == "00";
+					var parsedComplete = DateTime.TryParse(data.transactionDateTime ?? string.Empty, out var parsed) ? parsed : DateTime.UtcNow;
+					Subscription? subscription = null;
 
-				//	// load subscription including navigation properties so we can email
-				//	subscription = await _subscriptionRepository.GetByConditionAsync(
-				//		s => s.Id == transaction.SubscriptionId,
-				//		include: q => q.Include(s => s.User).Include(s => s.SubscriptionPlan),
-				//		asNoTracking: false);
+					// load subscription including navigation properties so we can email
+					subscription = await _subscriptionRepository.GetByConditionAsync(
+						s => s.Id == transaction.SubscriptionId,
+						include: q => q.Include(s => s.User).Include(s => s.SubscriptionPlan),
+						asNoTracking: false);
 
-				//	if (paymentSucceeded)
-				//	{
-				//		transaction.Status = TransactionStatus.Success;
-				//		transaction.CompletedAt = parsedComplete;
+					if (paymentSucceeded)
+					{
+						transaction.Status = TransactionStatus.Success;
+						transaction.CompletedAt = parsedComplete;
 
-				//		if (subscription != null)
-				//		{
-				//			subscription.Status = SubscriptionStatus.Active;
-				//			subscription.StartDate = parsedComplete;
+						if (subscription != null)
+						{
+							subscription.Status = SubscriptionStatus.Active;
+							subscription.StartDate = parsedComplete;
 
-				//			var plan = subscription.SubscriptionPlan ?? await _subscriptionPlanRepository.GetByConditionAsync(sp => sp.Id == subscription.SubscriptionPlanId);
-				//			if (plan != null)
-				//				subscription.EndDate = parsedComplete.AddDays(plan.DurationInDays);
+							var plan = subscription.SubscriptionPlan ?? await _subscriptionPlanRepository.GetByConditionAsync(sp => sp.Id == subscription.SubscriptionPlanId);
+							if (plan != null)
+								subscription.EndDate = parsedComplete.AddDays(plan.DurationInDays);
 
-				//			subscription.UpdatedAt = DateTime.UtcNow;
-				//			_subscriptionRepository.Update(subscription);
-				//		}
-				//	}
-				//	else
-				//	{
-				//		transaction.Status = TransactionStatus.Failed;
-				//		transaction.CompletedAt = parsedComplete;
+							subscription.UpdatedAt = DateTime.UtcNow;
+							_subscriptionRepository.Update(subscription);
+						}
+					}
+					else
+					{
+						transaction.Status = TransactionStatus.Failed;
+						transaction.CompletedAt = parsedComplete;
 
-				//		if (subscription != null)
-				//		{
-				//			subscription.Status = SubscriptionStatus.Failed;
-				//			subscription.UpdatedAt = DateTime.UtcNow;
-				//			_subscriptionRepository.Update(subscription);
-				//		}
-				//	}
+						if (subscription != null)
+						{
+							subscription.Status = SubscriptionStatus.Failed;
+							subscription.UpdatedAt = DateTime.UtcNow;
+							_subscriptionRepository.Update(subscription);
+						}
+					}
 
-				//	_paymentTransactionRepository.Update(transaction);
-				//	var saved = await _unitOfWork.SaveChangesAsync();
-				//	if (!saved)
-				//	{
-				//		await _unitOfWork.RollbackAsync(tx);
-				//		return BaseResponse<WebhookData>.Fail("Failed to persist webhook updates", ErrorType.ServerError);
-				//	}
+					_paymentTransactionRepository.Update(transaction);
+					var saved = await _unitOfWork.SaveChangesAsync();
+					if (!saved)
+					{
+						await _unitOfWork.RollbackAsync(tx);
+						return BaseResponse<WebhookData>.Fail("Failed to persist webhook updates", ErrorType.ServerError);
+					}
 
-				//	// Send activation email if payment succeeded. If email fails we log it but do not rollback DB changes.
-				//	if (paymentSucceeded && subscription != null)
-				//	{
-				//		var userEmail = subscription.User?.Email;
-				//		if (!string.IsNullOrWhiteSpace(userEmail))
-				//		{
-				//			var fullName = subscription.User?.UserName ?? userEmail;
-				//			var planName = subscription.SubscriptionPlan?.Name ?? "your plan";
-				//			var endDate = subscription.EndDate;
+					// Send activation email if payment succeeded. If email fails we log it but do not rollback DB changes.
+					if (paymentSucceeded && subscription != null)
+					{
+						var userEmail = subscription.User?.Email;
+						if (!string.IsNullOrWhiteSpace(userEmail))
+						{
+							var fullName = subscription.User?.UserName ?? userEmail;
+							var planName = subscription.SubscriptionPlan?.Name ?? "your plan";
+							var endDate = subscription.EndDate;
 
-				//			var subject = $"Your subscription \"{planName}\" is now active";
-				//			var htmlBody = _emailTemplateService.SubscriptionActivatedTemplate(fullName, planName, endDate);
+							var subject = $"Your subscription \"{planName}\" is now active";
+							var htmlBody = _emailTemplateService.SubscriptionActivatedTemplate(fullName, planName, endDate);
 
-				//			await _emailService.SendEmailAsync(userEmail, subject, htmlBody);
-				//		}
-				//	}
+							await _emailService.SendEmailAsync(userEmail, subject, htmlBody);
+						}
+					}
 
-				//	await _unitOfWork.CommitAsync(tx);
-				//}
-				//catch (Exception dbEx)
-				//{
-				//	await _unitOfWork.RollbackAsync(tx);
-				//	return BaseResponse<WebhookData>.Fail("Failed to process webhook", ErrorType.ServerError, new List<string> { dbEx.Message });
-				//}
+					await _unitOfWork.CommitAsync(tx);
+				}
+				catch (Exception dbEx)
+				{
+					await _unitOfWork.RollbackAsync(tx);
+					return BaseResponse<WebhookData>.Fail("Failed to process webhook", ErrorType.ServerError, new List<string> { dbEx.Message });
+				}
 
 				// Return verified webhook data to caller for further processing by controller/service caller
 				return BaseResponse<WebhookData>.Ok(data, "Webhook data verified");
