@@ -87,16 +87,27 @@ namespace studeehub.Infrastructure.Services
 					return BaseResponse<CreatePaymentResult>.Fail("Invalid request data.", ErrorType.Validation, errors);
 				}
 
-				var existing = await _subscriptionRepository.GetByConditionAsync(
-				s => s.UserId == request.UserId && s.Status == SubscriptionStatus.Active);
-				if (existing != null)
-					return BaseResponse<CreatePaymentResult>.Fail("User already has an active subscription", ErrorType.Validation);
-
-				var items = new List<ItemData>();
+				// Load target plan early so we can decide whether to allow creating a new payment link
 				var plan = await _subscriptionPlanRepository.GetByConditionAsync(sp => sp.Id == request.SubscriptionPlanId);
 				if (plan == null)
 				{
 					return BaseResponse<CreatePaymentResult>.Fail("Subscription plan not found", ErrorType.NotFound);
+				}
+
+				// Check if user already has an active (non-upgradeable) subscription.
+				var existing = await _subscriptionRepository.GetByConditionAsync(
+					s => s.UserId == request.UserId && s.Status == SubscriptionStatus.Active,
+					include: q => q.Include(s => s.SubscriptionPlan));
+
+				if (existing != null)
+				{
+					// If user has an active free subscription (price == 0) and the requested plan is paid, allow creating a payment link (upgrade).
+					// Otherwise block as user already has an active subscription.
+					var existingPlanPrice = existing.SubscriptionPlan?.Price ?? 0m;
+					if (!(existingPlanPrice <= 0m && plan.Price > 0m))
+					{
+						return BaseResponse<CreatePaymentResult>.Fail("User already has an active subscription", ErrorType.Validation);
+					}
 				}
 
 				// If plan is free (price == 0) -> no payment link creation. Activate subscription immediately.
@@ -148,6 +159,7 @@ namespace studeehub.Infrastructure.Services
 					}
 				}
 
+				var items = new List<ItemData>();
 				var item = new ItemData(plan.Name, 1, (int)plan.Price);
 				items.Add(item);
 
@@ -184,7 +196,7 @@ namespace studeehub.Infrastructure.Services
 				var signature = BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
 
 				var paymentData = new PaymentData(orderCode, amount, desciption, items, request.CancelUrl, request.ReturnUrl,
-													signature, buyerName, buyerEmail, buyerPhone, buyerAddress, expiredAt);
+							signature, buyerName, buyerEmail, buyerPhone, buyerAddress, expiredAt);
 
 				var createPayment = await _payOS.createPaymentLink(paymentData);
 
@@ -383,6 +395,22 @@ namespace studeehub.Infrastructure.Services
 
 							subscription.UpdatedAt = DateTime.UtcNow;
 							_subscriptionRepository.Update(subscription);
+
+							// If this subscription is an upgrade from a free plan, find the previous active free subscription and deactivate it
+							var previousActive = await _subscriptionRepository.GetByConditionAsync(
+								s => s.UserId == subscription.UserId && s.Status == SubscriptionStatus.Active && s.Id != subscription.Id,
+								include: q => q.Include(s => s.SubscriptionPlan));
+
+							if (previousActive != null)
+							{
+								var prevPlan = previousActive.SubscriptionPlan ?? await _subscriptionPlanRepository.GetByConditionAsync(sp => sp.Id == previousActive.SubscriptionPlanId);
+								if (prevPlan != null && prevPlan.Price <= 0m)
+								{
+									previousActive.Status = SubscriptionStatus.Cancelled;
+									previousActive.UpdatedAt = DateTime.UtcNow;
+									_subscriptionRepository.Update(previousActive);
+								}
+							}
 						}
 					}
 					else

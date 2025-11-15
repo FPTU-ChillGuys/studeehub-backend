@@ -6,7 +6,7 @@ using studeehub.Application.Interfaces.Services.ThirdPartyServices;
 
 namespace studeehub.API.Controllers
 {
-	[Route("api")]
+	[Route("api/payments/payos")]
 	[ApiController]
 	public class PaymentsController : ControllerBase
 	{
@@ -17,35 +17,29 @@ namespace studeehub.API.Controllers
 		}
 
 		// Return URLs used by PayOS redirect flows
-		[HttpGet("payments/payos/success")]
+		[HttpGet("success")]
 		public async Task<BaseResponse<string>> Success()
 			=> await Task.FromResult(BaseResponse<string>.Ok("Payment successful"));
 
-		[HttpGet("payments/payos/cancel")]
+		[HttpGet("cancel")]
 		public async Task<BaseResponse<string>> Cancel()
 			=> await Task.FromResult(BaseResponse<string>.Ok("Payment cancelled"));
 
 		// Webhook management and handlers
-		[HttpPost("payments/payos/webhooks/confirm")]
+		[HttpPost("webhooks/confirm")]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
 		public async Task<BaseResponse<string>> ConfirmWebhook([FromBody] string webhookUrl)
 			=> await _payOSService.ConfirmWebHook(webhookUrl);
 
-		[HttpPost("payments/payos/webhooks")]
-		[ProducesResponseType(typeof(BaseResponse<WebhookData>), StatusCodes.Status200OK)]
-		[ProducesResponseType(typeof(BaseResponse<WebhookData>), StatusCodes.Status500InternalServerError)]
-		public async Task<BaseResponse<WebhookData>> NewTransferHandler([FromBody] WebhookType body)
-			=> await _payOSService.TransferHandler(body);
-
-		[HttpPost("payos/transfer_handler")]
+		[HttpPost("webhooks")]
 		[ProducesResponseType(typeof(BaseResponse<WebhookData>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<WebhookData>), StatusCodes.Status500InternalServerError)]
 		public async Task<BaseResponse<WebhookData>> TransferHandler([FromBody] WebhookType body)
 			=> await _payOSService.TransferHandler(body);
 
 		// Cancel (state change) for a payment identified by orderCode
-		[HttpPatch("payments/payos/{orderCode:long}/cancel")]
+		[HttpPatch("{orderCode:long}/cancel")]
 		[ProducesResponseType(typeof(BaseResponse<PaymentLinkInformation>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<PaymentLinkInformation>), StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(typeof(BaseResponse<PaymentLinkInformation>), StatusCodes.Status404NotFound)]
@@ -54,7 +48,7 @@ namespace studeehub.API.Controllers
 			=> await _payOSService.CancelPaymentLink(orderCode, cancellationReason);
 
 		// Get payment information by order code
-		[HttpGet("payments/payos/{orderCode:long}")]
+		[HttpGet("{orderCode:long}")]
 		[ProducesResponseType(typeof(BaseResponse<PaymentLinkInformation>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<PaymentLinkInformation>), StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(typeof(BaseResponse<PaymentLinkInformation>), StatusCodes.Status404NotFound)]
@@ -63,7 +57,7 @@ namespace studeehub.API.Controllers
 			=> await _payOSService.GetPaymentInformationByOrderCode(orderCode);
 
 		// Create a payment link
-		[HttpPost("payments/payos/links")]
+		[HttpPost("links")]
 		[ProducesResponseType(typeof(BaseResponse<CreatePaymentResult>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<CreatePaymentResult>), StatusCodes.Status400BadRequest)]
 		[ProducesResponseType(typeof(BaseResponse<CreatePaymentResult>), StatusCodes.Status500InternalServerError)]
