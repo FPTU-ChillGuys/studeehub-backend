@@ -87,171 +87,49 @@ namespace studeehub.Infrastructure.Services
 					return BaseResponse<CreatePaymentResult>.Fail("Invalid request data.", ErrorType.Validation, errors);
 				}
 
-				// Load target plan early so we can decide whether to allow creating a new payment link
-				var plan = await _subscriptionPlanRepository.GetByConditionAsync(sp => sp.Id == request.SubscriptionPlanId);
-				if (plan == null)
+				// Validate and load required entities
+				var (existingSubscription, plan, user, validationError) = await ValidateAndLoadEntitiesAsync(request);
+				if (validationError != null)
+					return validationError;
+
+				// Prevent creating a payment/link or activating subscription when the user already has an active subscription
+				// Allow upgrade when existing active plan is free (price <= 0) and requested plan is paid (price > 0)
+				if (existingSubscription == null)
 				{
-					return BaseResponse<CreatePaymentResult>.Fail("Subscription plan not found", ErrorType.NotFound);
-				}
+					var existingActive = await _subscriptionRepository.GetByConditionAsync(
+						 s => s.UserId == user.Id && s.Status == SubscriptionStatus.Active,
+						 include: q => q.Include(s => s.SubscriptionPlan));
 
-				// Check if user already has an active (non-upgradeable) subscription.
-				var existing = await _subscriptionRepository.GetByConditionAsync(
-					s => s.UserId == request.UserId && s.Status == SubscriptionStatus.Active,
-					include: q => q.Include(s => s.SubscriptionPlan));
-
-				if (existing != null)
-				{
-					// If user has an active free subscription (price == 0) and the requested plan is paid, allow creating a payment link (upgrade).
-					// Otherwise block as user already has an active subscription.
-					var existingPlanPrice = existing.SubscriptionPlan?.Price ?? 0m;
-					if (!(existingPlanPrice <= 0m && plan.Price > 0m))
+					if (existingActive != null)
 					{
-						return BaseResponse<CreatePaymentResult>.Fail("User already has an active subscription", ErrorType.Validation);
-					}
-				}
-
-				// If plan is free (price == 0) -> no payment link creation. Activate subscription immediately.
-				if (plan.Price <= 0m)
-				{
-					// Ensure we have user info for email and buyer metadata
-					var freeUser = await _userRepository.GetByConditionAsync(u => u.Id == request.UserId);
-					if (freeUser == null)
-					{
-						return BaseResponse<CreatePaymentResult>.Fail("User not found", ErrorType.NotFound);
-					}
-
-					var tx = await _unitOfWork.BeginTransactionAsync();
-					try
-					{
-						var now = DateTime.UtcNow;
-						var subscription = new Subscription
+						var existingPlanPrice = existingActive.SubscriptionPlan?.Price ?? 0m;
+						if (!(existingPlanPrice <= 0m && plan.Price > 0m))
 						{
-							Id = Guid.NewGuid(),
-							UserId = request.UserId!.Value,
-							SubscriptionPlanId = request.SubscriptionPlanId!.Value,
-							Status = SubscriptionStatus.Active,
-							StartDate = now,
-							EndDate = plan.DurationInDays > 0 ? now.AddDays(plan.DurationInDays) : now,
-							IsPreExpiryNotified = false,
-							IsPostExpiryNotified = false,
-							CreatedAt = now,
-							UpdatedAt = now
-						};
-
-						await _subscriptionRepository.AddAsync(subscription);
-
-						var saved = await _unitOfWork.SaveChangesAsync();
-						if (!saved)
-						{
-							await _unitOfWork.RollbackAsync(tx);
-							return BaseResponse<CreatePaymentResult>.Fail("Failed to save subscription data", ErrorType.ServerError);
+							return BaseResponse<CreatePaymentResult>.Fail("User already has an active subscription", ErrorType.Validation);
 						}
-
-						await _unitOfWork.CommitAsync(tx);
-
-						// No CreatePaymentResult to return for free plans; return success with null data
-						return BaseResponse<CreatePaymentResult>.Ok(null!, "Free subscription activated");
-					}
-					catch (Exception dbEx)
-					{
-						await _unitOfWork.RollbackAsync(tx);
-						return BaseResponse<CreatePaymentResult>.Fail("Failed to create free subscription", ErrorType.ServerError, new List<string> { dbEx.Message });
 					}
 				}
 
-				var items = new List<ItemData>();
-				var item = new ItemData(plan.Name, 1, (int)plan.Price);
-				items.Add(item);
+				// If free plan, activate (either existing pending or create active subscription)
+				var freePlanResult = await HandleFreePlanActivationAsync(existingSubscription, plan, user);
+				if (freePlanResult != null)
+					return freePlanResult;
 
-				var user = await _userRepository.GetByConditionAsync(u => u.Id == request.UserId);
-				if (user == null)
-				{
-					return BaseResponse<CreatePaymentResult>.Fail("User not found", ErrorType.NotFound);
-				}
-				var buyerName = user.FullName ?? user.UserName;
-				var buyerEmail = user.Email;
-				var buyerPhone = user.PhoneNumber;
-				var buyerAddress = user.Address;
-				long expiredAt = new DateTimeOffset(DateTime.UtcNow.AddHours(1)).ToUnixTimeSeconds();
-
+				// Prepare payment details
 				long orderCode = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+				var items = new List<ItemData> { new ItemData(plan.Name, 1, (int)plan.Price) };
 				int amount = items.Sum(i => i.price * i.quantity);
-				var desciption = string.IsNullOrWhiteSpace(request.Description)
-					? "Thanh toan don hang"
-					: request.Description;
 
-				// Build signature payload sorted alphabetically by key:
-				// amount=$amount&cancelUrl=$cancelUrl&description=$description&orderCode=$orderCode&returnUrl=$returnUrl
-				var payload = $"amount={amount}&cancelUrl={request.CancelUrl}&description={desciption}&orderCode={orderCode}&returnUrl={request.ReturnUrl}";
+				var paymentData = BuildPaymentData(request, plan, user, orderCode, amount, items);
 
-				// Compute HMAC-SHA256 using checksum key from configuration and produce lowercase hex string
-				var checksumKey = _configuration.GetValue<string>("PayOS:ChecksumKey");
-				if (string.IsNullOrWhiteSpace(checksumKey))
-					return BaseResponse<CreatePaymentResult>.Fail("Payment configuration error", ErrorType.ServerError);
-
-				var keyBytes = Encoding.UTF8.GetBytes(checksumKey);
-				var payloadBytes = Encoding.UTF8.GetBytes(payload);
-				using var hmac = new HMACSHA256(keyBytes);
-				var hash = hmac.ComputeHash(payloadBytes);
-				var signature = BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
-
-				var paymentData = new PaymentData(orderCode, amount, desciption, items, request.CancelUrl, request.ReturnUrl,
-							signature, buyerName, buyerEmail, buyerPhone, buyerAddress, expiredAt);
-
+				// Create payment link on provider
 				var createPayment = await _payOS.createPaymentLink(paymentData);
-
 				if (createPayment == null)
 					return BaseResponse<CreatePaymentResult>.Fail("Failed to create payment link", ErrorType.ServerError);
 
-				// Use UnitOfWork for atomic creation of subscription & transaction
-				var tx2 = await _unitOfWork.BeginTransactionAsync();
-				try
-				{
-					var subscription = new Subscription
-					{
-						Id = Guid.NewGuid(),
-						UserId = request.UserId!.Value,
-						SubscriptionPlanId = request.SubscriptionPlanId!.Value,
-						Status = SubscriptionStatus.Pending,
-						CreatedAt = DateTime.UtcNow,
-						UpdatedAt = DateTime.UtcNow
-					};
-
-					await _subscriptionRepository.AddAsync(subscription);
-
-					var paymentTransaction = new PaymentTransaction
-					{
-						Id = Guid.NewGuid(),
-						UserId = request.UserId.Value,
-						SubscriptionId = subscription.Id,
-						PaymentLinkId = createPayment.paymentLinkId,
-						PaymentMethod = "PAYOS",
-						TransactionCode = createPayment.orderCode.ToString(),
-						Amount = Convert.ToDecimal(createPayment.amount),
-						Currency = string.IsNullOrWhiteSpace(createPayment.currency) ? "VND" : createPayment.currency,
-						Status = TransactionStatus.Pending,
-						CreatedAt = DateTime.UtcNow
-					};
-
-					await _paymentTransactionRepository.AddAsync(paymentTransaction);
-
-					// Persist via UnitOfWork (single SaveChanges)
-					var saved = await _unitOfWork.SaveChangesAsync();
-					if (!saved)
-					{
-						await _unitOfWork.RollbackAsync(tx2);
-						return BaseResponse<CreatePaymentResult>.Fail("Failed to save subscription and transaction data", ErrorType.ServerError);
-					}
-
-					await _unitOfWork.CommitAsync(tx2);
-				}
-				catch (Exception dbEx)
-				{
-					await _unitOfWork.RollbackAsync(tx2);
-					return BaseResponse<CreatePaymentResult>.Fail("Failed to save subscription and transaction data", ErrorType.ServerError, new List<string> { dbEx.Message });
-				}
-
-				return BaseResponse<CreatePaymentResult>.Ok(createPayment, "Payment link created");
+				// Persist subscription (if needed) and payment transaction atomically
+				var persistResult = await PersistSubscriptionAndTransactionAsync(createPayment, existingSubscription, plan, user);
+				return persistResult;
 			}
 			catch (Exception ex)
 			{
@@ -466,6 +344,200 @@ namespace studeehub.Infrastructure.Services
 			{
 				var errors = new List<string> { ex.Message };
 				return BaseResponse<WebhookData>.Fail("Failed to process webhook", ErrorType.ServerError, errors);
+			}
+		}
+
+		// --- Helper methods ---
+
+		private async Task<(Subscription? existingSubscription, SubscriptionPlan plan, User user, BaseResponse<CreatePaymentResult>? error)> ValidateAndLoadEntitiesAsync(CreatePaymentLinkRequest request)
+		{
+			// If SubscriptionId provided, load and ensure it's pending
+			if (request.SubscriptionId is Guid subscriptionId)
+			{
+				var existingSubscription = await _subscriptionRepository.GetByConditionAsync(
+					s => s.Id == subscriptionId,
+					include: q => q.Include(s => s.SubscriptionPlan).Include(s => s.User));
+
+				if (existingSubscription == null)
+					return (null!, null!, null!, BaseResponse<CreatePaymentResult>.Fail("Subscription not found", ErrorType.NotFound));
+
+				if (existingSubscription.Status != SubscriptionStatus.Pending)
+					return (null!, null!, null!, BaseResponse<CreatePaymentResult>.Fail("Only pending subscriptions can be used to create a payment link.", ErrorType.Conflict));
+
+				var plan = existingSubscription.SubscriptionPlan ?? await _subscriptionPlanRepository.GetByConditionAsync(sp => sp.Id == existingSubscription.SubscriptionPlanId);
+				if (plan == null)
+					return (null!, null!, null!, BaseResponse<CreatePaymentResult>.Fail("Subscription plan not found", ErrorType.NotFound));
+
+				var user = existingSubscription.User ?? await _userRepository.GetByConditionAsync(u => u.Id == existingSubscription.UserId);
+				if (user == null)
+					return (null!, null!, null!, BaseResponse<CreatePaymentResult>.Fail("User not found", ErrorType.NotFound));
+
+				return (existingSubscription, plan, user, null);
+			}
+
+			// No subscriptionId: require both SubscriptionPlanId and UserId
+			var subscriptionPlanId = request.SubscriptionPlanId;
+			var userId = request.UserId;
+
+			if (subscriptionPlanId == Guid.Empty || userId == Guid.Empty)
+				return (null!, null!, null!, BaseResponse<CreatePaymentResult>.Fail("SubscriptionPlanId and UserId are required when SubscriptionId is not provided.", ErrorType.Validation));
+
+			var planResult = await _subscriptionPlanRepository.GetByConditionAsync(sp => sp.Id == subscriptionPlanId);
+			if (planResult == null)
+				return (null!, null!, null!, BaseResponse<CreatePaymentResult>.Fail("Subscription plan not found", ErrorType.NotFound));
+
+			var userResult = await _userRepository.GetByConditionAsync(u => u.Id == userId);
+			if (userResult == null)
+				return (null!, null!, null!, BaseResponse<CreatePaymentResult>.Fail("User not found", ErrorType.NotFound));
+
+			return (null, planResult, userResult, null);
+		}
+
+		private async Task<BaseResponse<CreatePaymentResult>?> HandleFreePlanActivationAsync(Subscription? existingSubscription, SubscriptionPlan plan, User user)
+		{
+			if (plan.Price > 0m) return null; // not a free plan
+
+			var tx = await _unitOfWork.BeginTransactionAsync();
+			try
+			{
+				var now = DateTime.UtcNow;
+				if (existingSubscription != null)
+				{
+					existingSubscription.Status = SubscriptionStatus.Active;
+					existingSubscription.StartDate = now;
+					existingSubscription.EndDate = plan.DurationInDays > 0 ? now.AddDays(plan.DurationInDays) : now;
+					existingSubscription.IsPreExpiryNotified = false;
+					existingSubscription.IsPostExpiryNotified = false;
+					existingSubscription.UpdatedAt = now;
+
+					_subscriptionRepository.Update(existingSubscription);
+				}
+				else
+				{
+					var subscription = new Subscription
+					{
+						Id = Guid.NewGuid(),
+						UserId = user.Id,
+						SubscriptionPlanId = plan.Id,
+						Status = SubscriptionStatus.Active,
+						StartDate = now,
+						EndDate = plan.DurationInDays > 0 ? now.AddDays(plan.DurationInDays) : now,
+						IsPreExpiryNotified = false,
+						IsPostExpiryNotified = false,
+						CreatedAt = now,
+						UpdatedAt = now
+					};
+
+					await _subscriptionRepository.AddAsync(subscription);
+				}
+
+				var saved = await _unitOfWork.SaveChangesAsync();
+				if (!saved)
+				{
+					await _unitOfWork.RollbackAsync(tx);
+					return BaseResponse<CreatePaymentResult>.Fail("Failed to process free subscription", ErrorType.ServerError);
+				}
+
+				await _unitOfWork.CommitAsync(tx);
+				return BaseResponse<CreatePaymentResult>.Ok(null!, "Free subscription activated");
+			}
+			catch (Exception dbEx)
+			{
+				await _unitOfWork.RollbackAsync(tx);
+				return BaseResponse<CreatePaymentResult>.Fail("Failed to process free subscription", ErrorType.ServerError, new List<string> { dbEx.Message });
+			}
+		}
+
+		private PaymentData BuildPaymentData(CreatePaymentLinkRequest request, SubscriptionPlan plan, User user, long orderCode, int amount, List<ItemData> items)
+		{
+			var desciption = string.IsNullOrWhiteSpace(request.Description) ? "Thanh toan don hang" : request.Description;
+			long expiredAt = new DateTimeOffset(DateTime.UtcNow.AddHours(1)).ToUnixTimeSeconds();
+
+			// Build signature payload
+			var payload = $"amount={amount}&cancelUrl={request.CancelUrl}&description={desciption}&orderCode={orderCode}&returnUrl={request.ReturnUrl}";
+
+			var checksumKey = _configuration.GetValue<string>("PayOS:ChecksumKey");
+			if (string.IsNullOrWhiteSpace(checksumKey))
+				throw new InvalidOperationException("Payment configuration error");
+
+			var keyBytes = Encoding.UTF8.GetBytes(checksumKey);
+			var payloadBytes = Encoding.UTF8.GetBytes(payload);
+			using var hmac = new HMACSHA256(keyBytes);
+			var hash = hmac.ComputeHash(payloadBytes);
+			var signature = BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+
+			return new PaymentData(orderCode, amount, desciption, items, request.CancelUrl, request.ReturnUrl,
+				signature, user.FullName ?? user.UserName, user.Email, user.PhoneNumber, user.Address, expiredAt);
+		}
+
+		private async Task<BaseResponse<CreatePaymentResult>> PersistSubscriptionAndTransactionAsync(CreatePaymentResult createPayment, Subscription? existingSubscription, SubscriptionPlan plan, User user)
+		{
+			var tx = await _unitOfWork.BeginTransactionAsync();
+			try
+			{
+				if (existingSubscription == null)
+				{
+					var subscription = new Subscription
+					{
+						Id = Guid.NewGuid(),
+						UserId = user.Id,
+						SubscriptionPlanId = plan.Id,
+						Status = SubscriptionStatus.Pending,
+						CreatedAt = DateTime.UtcNow,
+						UpdatedAt = DateTime.UtcNow
+					};
+
+					await _subscriptionRepository.AddAsync(subscription);
+
+					var paymentTransaction = new PaymentTransaction
+					{
+						Id = Guid.NewGuid(),
+						UserId = user.Id,
+						SubscriptionId = subscription.Id,
+						PaymentLinkId = createPayment.paymentLinkId,
+						PaymentMethod = "PAYOS",
+						TransactionCode = createPayment.orderCode.ToString(),
+						Amount = Convert.ToDecimal(createPayment.amount),
+						Currency = string.IsNullOrWhiteSpace(createPayment.currency) ? "VND" : createPayment.currency,
+						Status = TransactionStatus.Pending,
+						CreatedAt = DateTime.UtcNow
+					};
+
+					await _paymentTransactionRepository.AddAsync(paymentTransaction);
+				}
+				else
+				{
+					var paymentTransaction = new PaymentTransaction
+					{
+						Id = Guid.NewGuid(),
+						UserId = existingSubscription.UserId,
+						SubscriptionId = existingSubscription.Id,
+						PaymentLinkId = createPayment.paymentLinkId,
+						PaymentMethod = "PAYOS",
+						TransactionCode = createPayment.orderCode.ToString(),
+						Amount = Convert.ToDecimal(createPayment.amount),
+						Currency = string.IsNullOrWhiteSpace(createPayment.currency) ? "VND" : createPayment.currency,
+						Status = TransactionStatus.Pending,
+						CreatedAt = DateTime.UtcNow
+					};
+
+					await _paymentTransactionRepository.AddAsync(paymentTransaction);
+				}
+
+				var saved = await _unitOfWork.SaveChangesAsync();
+				if (!saved)
+				{
+					await _unitOfWork.RollbackAsync(tx);
+					return BaseResponse<CreatePaymentResult>.Fail("Failed to save subscription and transaction data", ErrorType.ServerError);
+				}
+
+				await _unitOfWork.CommitAsync(tx);
+				return BaseResponse<CreatePaymentResult>.Ok(createPayment, "Payment link created");
+			}
+			catch (Exception dbEx)
+			{
+				await _unitOfWork.RollbackAsync(tx);
+				return BaseResponse<CreatePaymentResult>.Fail("Failed to save subscription and transaction data", ErrorType.ServerError, new List<string> { dbEx.Message });
 			}
 		}
 	}

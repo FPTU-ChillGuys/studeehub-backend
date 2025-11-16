@@ -8,7 +8,8 @@
 
 		// Optional: create subscription/payment transaction for a user when creating the PayOS link.
 		// Provide both UserId and SubscriptionPlanId to enable subscription creation.
-		public Guid? UserId { get; init; }
-		public Guid? SubscriptionPlanId { get; init; }
+		public Guid UserId { get; init; }
+		public Guid SubscriptionPlanId { get; init; }
+		public Guid? SubscriptionId { get; init; }
 	}
 }

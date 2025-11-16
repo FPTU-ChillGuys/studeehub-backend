@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using studeehub.Application.DTOs.Requests.Subscription;
 using studeehub.Application.DTOs.Responses.Base;
-using studeehub.Application.DTOs.Responses.PayTransaction;
 using studeehub.Application.DTOs.Responses.Subscription;
 using studeehub.Application.Interfaces.Services;
+using studeehub.Domain.Enums.Subscriptions;
 
 namespace studeehub.API.Controllers
 {
@@ -11,29 +12,33 @@ namespace studeehub.API.Controllers
 	public class SubscriptionsController : ControllerBase
 	{
 		private readonly ISubscriptionService _subscriptionService;
-		private readonly IPayTransactionService _payTransactionService;
-		public SubscriptionsController(ISubscriptionService subscriptionService, IPayTransactionService payTransactionService)
+
+		public SubscriptionsController(ISubscriptionService subscriptionService)
 		{
 			_subscriptionService = subscriptionService;
-			_payTransactionService = payTransactionService;
 		}
+
+		[HttpGet]
+		public async Task<PagedResponse<GetSubscriptionResponse>> GetAllSubscriptionsAsync([FromQuery] GetPagedAndSortedSubscriptionsRequest request)
+			=> await _subscriptionService.GetAllSubscriptionsAsync(request);
 
 		// GET /api/users/{userId}/subscriptions
 		[HttpGet("/api/users/{userId:Guid}/subscriptions")]
-		[ProducesResponseType(typeof(BaseResponse<List<GetSubscriptionResponse>>), StatusCodes.Status200OK)]
-		public async Task<BaseResponse<List<GetSubscriptionResponse>>> GetSubscriptionByUserIdAsync([FromRoute] Guid userId)
+		[ProducesResponseType(typeof(BaseResponse<List<GetUserSubscriptionResponse>>), StatusCodes.Status200OK)]
+		public async Task<BaseResponse<List<GetUserSubscriptionResponse>>> GetSubscriptionByUserIdAsync([FromRoute] Guid userId)
 			=> await _subscriptionService.GetSubscriptionsByUserIdAsync(userId);
 
 		[HttpGet("/api/users/{userId:Guid}/subscriptions/active")]
-		[ProducesResponseType(typeof(BaseResponse<GetSubscriptionResponse>), StatusCodes.Status200OK)]
-		public async Task<BaseResponse<GetSubscriptionResponse>> GetActiveSubscriptionByUserIdAsync([FromRoute] Guid userId)
+		[ProducesResponseType(typeof(BaseResponse<GetUserSubscriptionResponse>), StatusCodes.Status200OK)]
+		public async Task<BaseResponse<GetUserSubscriptionResponse>> GetActiveSubscriptionByUserIdAsync([FromRoute] Guid userId)
 			=> await _subscriptionService.GetActiveSubscriptionByUserIdAsync(userId);
 
-		// GET /api/subscriptions/{subscriptionId}/transactions
-		[HttpGet("{subscriptionId:Guid}/transactions")]
-		[ProducesResponseType(typeof(BaseResponse<List<GetPayTXNResponse>>), StatusCodes.Status200OK)]
-		[ProducesResponseType(typeof(BaseResponse<List<GetPayTXNResponse>>), StatusCodes.Status404NotFound)]
-		public async Task<BaseResponse<List<GetPayTXNResponse>>> GetPaymentTransactionsBySubscriptionId([FromRoute] Guid subscriptionId)
-			=> await _payTransactionService.GetPayTransactionsBySubscriptionId(subscriptionId);
+		[HttpPost]
+		public async Task<BaseResponse<string>> CreateSubscriptionAsync([FromBody] CreateSubscriptionRequest request)
+			=> await _subscriptionService.CreateSubscriptionAsync(request);
+
+		[HttpPut("{subscriptionId:Guid}/status")]
+		public async Task<BaseResponse<string>> UpdateSubscriptionStatusAsync([FromRoute] Guid subscriptionId, [FromBody] SubscriptionStatus status)
+			=> await _subscriptionService.UpdateSubscriptionStatusAsync(subscriptionId, status);
 	}
 }

@@ -188,5 +188,31 @@ namespace studeehub.Application.Services
 				? BaseResponse<string>.Ok("User status updated successfully")
 				: BaseResponse<string>.Fail("Failed to update user status", Domain.Enums.ErrorType.ServerError);
 		}
+
+		public async Task<BaseResponse<List<GetUserLookupResponse>>> GetUserLookupAsync(GetUserLookupRequest request)
+		{
+			// Base filter
+			Expression<Func<User, bool>> filter = u => true;
+			if (request.IsActiveOnly)
+				filter = filter.AndAlso(u => u.IsActive);
+
+			var users = (await _userRepository.GetAllAsync(filter: filter, asNoTracking: true)).ToList();
+
+			if (!users.Any())
+			{
+				return BaseResponse<List<GetUserLookupResponse>>.Ok(new List<GetUserLookupResponse>());
+			}
+
+			if (!request.IncludeAdmins)
+			{
+				// Filter out users who are admins using repository helper
+				var ids = users.Select(u => u.Id).ToList();
+				var rolesMap = await _userRepository.GetUserRolesAsync(ids);
+				users = users.Where(u => !(rolesMap.TryGetValue(u.Id, out var roles) && roles.Any(r => string.Equals(r, "ADMIN", StringComparison.OrdinalIgnoreCase)))).ToList();
+			}
+
+			var responses = users.Select(u => new GetUserLookupResponse { Id = u.Id, FullName = u.FullName, Email = u.Email ?? string.Empty }).ToList();
+			return BaseResponse<List<GetUserLookupResponse>>.Ok(responses);
+		}
 	}
 }

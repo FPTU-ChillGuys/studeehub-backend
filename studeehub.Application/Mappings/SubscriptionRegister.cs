@@ -8,7 +8,7 @@ namespace studeehub.Application.Mappings
 	{
 		public void Register(TypeAdapterConfig config)
 		{
-			config.NewConfig<Subscription, GetSubscriptionResponse>()
+			config.NewConfig<Subscription, GetUserSubscriptionResponse>()
 				.Map(dest => dest.Id, src => src.Id)
 				.Map(dest => dest.UserId, src => src.UserId)
 				.Map(dest => dest.SubscriptionPlanId, src => src.SubscriptionPlanId)
@@ -16,6 +16,16 @@ namespace studeehub.Application.Mappings
 				.Map(dest => dest.EndDate, src => src.EndDate)
 				.Map(dest => dest.Status, src => src.Status)
 				.Map(dest => dest.SubscriptionPlan, src => src.SubscriptionPlan);
+
+			config.NewConfig<Subscription, GetSubscriptionResponse>()
+				.Map(dest => dest.Id, src => src.Id)
+				.Map(dest => dest.UserId, src => src.UserId)
+				.Map(dest => dest.SubscriptionPlanId, src => src.SubscriptionPlanId)
+				.Map(dest => dest.StartDate, src => src.StartDate)
+				.Map(dest => dest.EndDate, src => src.EndDate)
+				.Map(dest => dest.Status, src => src.Status)
+				.Map(dest => dest.SubscriptionPlan, src => src.SubscriptionPlan)
+				.Map(dest => dest.User, src => src.User);
 		}
 	}
 }

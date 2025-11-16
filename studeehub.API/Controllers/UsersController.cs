@@ -22,6 +22,11 @@ namespace studeehub.API.Controllers
 		public async Task<PagedResponse<GetUserResponse>> GetAllUsersAsync([FromQuery] GetPagedAndSortedUsersRequest request)
 			=> await _userService.GetUsersAsync(request);
 
+		[HttpGet("lookup")]
+		[ProducesResponseType(typeof(BaseResponse<List<GetUserLookupResponse>>), StatusCodes.Status200OK)]
+		public async Task<BaseResponse<List<GetUserLookupResponse>>> GetUserLookAsync([FromQuery] GetUserLookupRequest request)
+			=> await _userService.GetUserLookupAsync(request);
+
 		[HttpGet("{id:Guid}")]
 		[ProducesResponseType(typeof(BaseResponse<GetUserResponse>), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BaseResponse<GetUserResponse>), StatusCodes.Status404NotFound)]
