@@ -77,6 +77,7 @@ namespace studeehub.Application.Extensions
 			services.AddScoped<IValidator<CreatePaymentLinkRequest>, CreatePaymentLinkRequestValidator>();
 			services.AddScoped<IValidator<UpdateSettingRequest>, UpdateSettingValidator>();
 			services.AddScoped<IValidator<UpdateUserRequest>, UpdateUserValidator>();
+			services.AddScoped<IValidator<CreateSubscriptionRequest>, CreateSubscriptionValidator>();
 
 			// SignalR
 			services.AddSignalR();

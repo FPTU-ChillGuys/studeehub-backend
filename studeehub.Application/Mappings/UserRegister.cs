@@ -28,6 +28,11 @@ namespace studeehub.Application.Mappings
 				.Map(dest => dest.UpdatedAt, src => DateTime.UtcNow)
 				.Map(dest => dest.ProfilePictureUrl, src => src.ProfilePictureUrl)
 				.IgnoreNullValues(true);
+
+			config.NewConfig<User, GetUserLookupResponse>()
+				.Map(dest => dest.Id, src => src.Id)
+				.Map(dest => dest.FullName, src => src.FullName)
+				.Map(dest => dest.Email, src => src.Email);
 		}
 	}
 }

@@ -53,6 +53,11 @@ namespace studeehub.Application.Mappings
 				.Map(dest => dest.AIQueriesPerDay, src => src.AIQueriesPerDay)
 				.Map(dest => dest.FlashcardCreationLimitPerDay, src => src.FlashcardCreationLimitPerDay)
 				.Map(dest => dest.HasAIAnalysis, src => src.HasAIAnalysis);
+
+			config.NewConfig<SubscriptionPlan, GetSubPlanLookupResponse>()
+				.Map(dest => dest.Id, src => src.Id)
+				.Map(dest => dest.Name, src => src.Name)
+				.Map(dest => dest.Code, src => src.Code);
 		}
 	}
 }

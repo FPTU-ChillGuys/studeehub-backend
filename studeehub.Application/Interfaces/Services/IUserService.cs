@@ -8,6 +8,7 @@ namespace studeehub.Application.Interfaces.Services
 	public interface IUserService
 	{
 		public Task<PagedResponse<GetUserResponse>> GetUsersAsync(GetPagedAndSortedUsersRequest request);
+		public Task<BaseResponse<List<GetUserLookupResponse>>> GetUserLookupAsync(GetUserLookupRequest request);
 		public Task<BaseResponse<string>> UpdateUserStatus(Guid userId, bool isActive);
 		public Task<bool> IsUserExistAsync(Guid userId);
 		public Task<User?> GetUserByIdAsync(Guid userId);

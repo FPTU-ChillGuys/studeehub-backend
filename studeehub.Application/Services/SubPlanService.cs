@@ -2,6 +2,7 @@
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using studeehub.Application.DTOs.Requests.Subscription;
+using studeehub.Application.DTOs.Requests.SubscriptionPlan;
 using studeehub.Application.DTOs.Responses.Base;
 using studeehub.Application.DTOs.Responses.SubPlan;
 using studeehub.Application.Interfaces.Repositories;
@@ -107,6 +108,30 @@ namespace studeehub.Application.Services
 			}
 			var response = _mapper.Map<GetSubPlanResponse>(existingPlan);
 			return BaseResponse<GetSubPlanResponse>.Ok(response);
+		}
+
+		public async Task<BaseResponse<List<GetSubPlanLookupResponse>>> GetSubPlanLookupAsync(GetSubPlanLookupRequest request)
+		{
+			// Retrieve plans that are not deleted; optionally only active ones
+			Func<SubscriptionPlan, bool> predicate = sp => !sp.IsDeleted;
+
+			IEnumerable<SubscriptionPlan> plans;
+			if (request.IsActiveOnly)
+			{
+				plans = (await _subPlanRepository.GetAllAsync(sp => !sp.IsDeleted && sp.IsActive, asNoTracking: true)).ToList();
+			}
+			else
+			{
+				plans = (await _subPlanRepository.GetAllAsync(sp => !sp.IsDeleted, asNoTracking: true)).ToList();
+			}
+
+			if (plans == null || !plans.Any())
+			{
+				return BaseResponse<List<GetSubPlanLookupResponse>>.Ok(new List<GetSubPlanLookupResponse>());
+			}
+
+			var responses = _mapper.Map<List<GetSubPlanLookupResponse>>(plans);
+			return BaseResponse<List<GetSubPlanLookupResponse>>.Ok(responses);
 		}
 
 		public async Task<BaseResponse<string>> UpdateSubPlanAsync(Guid id, UpdateSubPlanRequest request)

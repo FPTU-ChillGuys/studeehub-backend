@@ -18,9 +18,15 @@ namespace studeehub.Application.Validators.PayOsValidators
 				.NotEmpty().WithMessage("CancelUrl is required.")
 				.Must(BeAValidUrl).WithMessage("CancelUrl must be a valid absolute URL.");
 
-			RuleFor(x => new { x.UserId, x.SubscriptionPlanId })
-				.Must(x => (x.UserId.HasValue && x.SubscriptionPlanId.HasValue) || (!x.UserId.HasValue && !x.SubscriptionPlanId.HasValue))
-				.WithMessage("Both UserId and SubscriptionPlanId must be provided together or both must be null.");
+			// When no SubscriptionId is supplied, require both UserId and SubscriptionPlanId to be provided (non-empty GUID)
+			When(x => x.SubscriptionId == null, () =>
+			{
+				RuleFor(x => x.UserId)
+					.Must(id => id != Guid.Empty).WithMessage("UserId is required when SubscriptionId is not provided.");
+
+				RuleFor(x => x.SubscriptionPlanId)
+					.Must(id => id != Guid.Empty).WithMessage("SubscriptionPlanId is required when SubscriptionId is not provided.");
+			});
 		}
 
 		private static bool BeAValidUrl(string? value)

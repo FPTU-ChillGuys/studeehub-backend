@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using studeehub.Application.DTOs.Requests.Subscription;
+using studeehub.Application.DTOs.Requests.SubscriptionPlan;
 using studeehub.Application.DTOs.Responses.Base;
 using studeehub.Application.DTOs.Responses.SubPlan;
 using studeehub.Application.Interfaces.Services;
@@ -22,6 +23,11 @@ namespace studeehub.API.Controllers
 		[ProducesResponseType(typeof(BaseResponse<List<GetSubPlanResponse>>), StatusCodes.Status200OK)]
 		public async Task<BaseResponse<List<GetSubPlanResponse>>> GetAllSubPlans()
 			=> await _subPlanService.GetAllSubPlansAsync();
+
+		[HttpGet("lookup")]
+		[ProducesResponseType(typeof(BaseResponse<List<GetSubPlanLookupResponse>>), StatusCodes.Status200OK)]
+		public async Task<BaseResponse<List<GetSubPlanLookupResponse>>> GetSubPlanLookup([FromQuery] GetSubPlanLookupRequest request)
+			=> await _subPlanService.GetSubPlanLookupAsync(request);
 
 		// GET /api/subscription-plans/{id}
 		[HttpGet("{id:Guid}")]

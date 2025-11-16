@@ -1,5 +1,4 @@
-﻿using studeehub.Application.DTOs.Responses.SubPlan;
-using studeehub.Domain.Enums.Subscriptions;
+﻿using studeehub.Domain.Enums.Subscriptions;
 
 namespace studeehub.Application.DTOs.Responses.Subscription
 {
@@ -13,8 +12,23 @@ namespace studeehub.Application.DTOs.Responses.Subscription
 		public DateTime EndDate { get; set; }
 		public SubscriptionStatus Status { get; set; }
 
-		// Expose plan data via a DTO (do not return EF/domain entity directly)
-		public GetSubPlanResponse SubscriptionPlan { get; set; } = null!;
+		public PlanDto SubscriptionPlan { get; set; } = null!;
+		public UserDto User { get; set; } = null!;
 	}
 
+	public class PlanDto
+	{
+		public Guid Id { get; set; }
+		public string Name { get; set; } = null!;
+		public string Description { get; set; } = null!;
+		public decimal Price { get; set; }
+		public int DurationInDays { get; set; }
+	}
+
+	public class UserDto
+	{
+		public Guid Id { get; set; }
+		public string FullName { get; set; } = null!;
+		public string Email { get; set; } = null!;
+	}
 }
